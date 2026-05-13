@@ -1,10 +1,5 @@
 package com.jujin.freeway.ioc.internal.util;
 
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
 import com.jujin.freeway.ioc.config.Orderable;
 import org.slf4j.Logger;
 
@@ -19,6 +14,7 @@ import java.util.List;
  */
 
 class DependencyNode<T> {
+
     private final Logger logger;
 
     private final Orderable<T> orderable;
@@ -37,7 +33,6 @@ class DependencyNode<T> {
         boolean first = true;
 
         for (DependencyNode<T> node : dependencies) {
-
             buffer.append(first ? ": " : ", ");
 
             buffer.append(node.toString());
@@ -71,22 +66,19 @@ class DependencyNode<T> {
     }
 
     boolean isReachable(DependencyNode<T> node) {
-        if (this == node)
-            return true;
+        if (this == node) return true;
 
         // Quick fast pass for immediate dependencies
 
         for (DependencyNode<T> d : dependencies) {
-            if (d == node)
-                return true;
+            if (d == node) return true;
         }
 
         // Slower second pass looks for
         // indirect dependencies
 
         for (DependencyNode<T> d : dependencies) {
-            if (d.isReachable(node))
-                return true;
+            if (d.isReachable(node)) return true;
         }
 
         return false;
@@ -105,8 +97,7 @@ class DependencyNode<T> {
     }
 
     private void fillOrder(List<Orderable<T>> list) {
-        if (list.contains(orderable))
-            return;
+        if (list.contains(orderable)) return;
 
         // Recusively add dependencies
 
@@ -116,5 +107,4 @@ class DependencyNode<T> {
 
         list.add(orderable);
     }
-
 }

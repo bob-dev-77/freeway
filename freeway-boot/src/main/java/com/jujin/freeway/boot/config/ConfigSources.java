@@ -1,10 +1,6 @@
 package com.jujin.freeway.boot.config;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Manages a chain of {@link ConfigSource} instances.

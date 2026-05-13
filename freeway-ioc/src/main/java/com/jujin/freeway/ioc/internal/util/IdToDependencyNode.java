@@ -1,23 +1,10 @@
 package com.jujin.freeway.ioc.internal.util;
 
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
-import com.jujin.freeway.ioc.internal.IdMatcher;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
 import com.jujin.freeway.ioc.config.Orderable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import com.jujin.freeway.ioc.internal.IdMatcher;
 import org.slf4j.Logger;
+
+import java.util.*;
 
 /**
  * Used to order objects into an "execution" order. Each object must have a
@@ -33,9 +20,11 @@ public class IdToDependencyNode<T> {
     private final List<Orderable<T>> orderables = new ArrayList<>();
 
     private final Map<String, Orderable<T>> idToOrderable = new TreeMap<>(
-        String.CASE_INSENSITIVE_ORDER);
+            String.CASE_INSENSITIVE_ORDER
+    );
 
-    private final Map<String, DependencyNode<T>> idToDependencyNode = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    private final Map<String, DependencyNode<T>> idToDependencyNode =
+            new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
     // Special node that is always dead last: all other nodes are a dependency
     // of the trailer.
@@ -120,8 +109,7 @@ public class IdToDependencyNode<T> {
 
             // Nulls are placeholders that are skipped.
 
-            if (target != null)
-                result.add(target);
+            if (target != null) result.add(target);
         }
 
         return result;
@@ -130,7 +118,8 @@ public class IdToDependencyNode<T> {
     private void initializeGraph() {
         trailer = new DependencyNode<T>(
             logger,
-            new Orderable<T>("*-trailer-*", null));
+                new Orderable<T>("*-trailer-*", null)
+        );
 
         addNodes();
 
@@ -168,10 +157,8 @@ public class IdToDependencyNode<T> {
 
         DependencyLinker<T> linker = null;
 
-        if ("after".equals(type))
-            linker = after;
-        else if ("before".equals(type))
-            linker = before;
+        if ("after".equals(type)) linker = after;
+        else if ("before".equals(type)) linker = before;
 
         if (linker == null) {
             logger.warn(UtilMessages.constraintFormat(constraint, sourceId));
@@ -186,10 +173,12 @@ public class IdToDependencyNode<T> {
     private void linkNodes(
         String sourceId,
         String patternList,
-        DependencyLinker<T> linker) {
+        DependencyLinker<T> linker
+    ) {
         Collection<DependencyNode<T>> nodes = findDependencies(
             sourceId,
-            patternList);
+                patternList
+        );
 
         DependencyNode<T> source = idToDependencyNode.get(sourceId);
 
@@ -200,17 +189,16 @@ public class IdToDependencyNode<T> {
 
     private Collection<DependencyNode<T>> findDependencies(
         String sourceId,
-        String patternList) {
+        String patternList
+    ) {
         IdMatcher matcher = buildMatcherForPattern(patternList);
 
         Collection<DependencyNode<T>> result = new ArrayList<>();
 
         for (String id : idToDependencyNode.keySet()) {
-            if (sourceId.equals(id))
-                continue;
+            if (sourceId.equals(id)) continue;
 
-            if (matcher.matches(id))
-                result.add(idToDependencyNode.get(id));
+            if (matcher.matches(id)) result.add(idToDependencyNode.get(id));
         }
 
         return result;

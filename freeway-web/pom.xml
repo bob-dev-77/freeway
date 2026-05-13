@@ -16,7 +16,7 @@
     <artifactId>freeway-web</artifactId>
     <packaging>jar</packaging>
 
-    <name>Freeway Web</name>
+    <name>Freeway :: Web</name>
     <description
     >Freeway Web - built-in HTTP server based on JDK jdk.httpserver + robaho httpserver</description>
 

@@ -1,7 +1,4 @@
 package com.jujin.freeway.ioc.exception;
-import com.jujin.freeway.ioc.*;
-
-import com.jujin.freeway.ioc.exception.FreewayException;
 
 import java.util.List;
 

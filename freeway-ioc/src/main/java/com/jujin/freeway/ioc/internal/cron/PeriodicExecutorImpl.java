@@ -1,49 +1,25 @@
 package com.jujin.freeway.ioc.internal.cron;
 
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
-import com.jujin.freeway.ioc.annotations.PostInjection;
-import java.util.function.Supplier;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
-import com.jujin.freeway.ioc.threading.ParallelExecutor;
 import com.jujin.freeway.ioc.RegistryShutdownHub;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
+import com.jujin.freeway.ioc.annotations.PostInjection;
 import com.jujin.freeway.ioc.schedule.PeriodicExecutor;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
 import com.jujin.freeway.ioc.schedule.PeriodicJob;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
 import com.jujin.freeway.ioc.schedule.Schedule;
+import com.jujin.freeway.ioc.threading.ParallelExecutor;
 import org.slf4j.Logger;
 
-import java.util.HashSet;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 
 public class PeriodicExecutorImpl implements PeriodicExecutor, Runnable {
+
     private final ParallelExecutor parallelExecutor;
 
     private final Logger logger;
@@ -65,7 +41,16 @@ public class PeriodicExecutorImpl implements PeriodicExecutor, Runnable {
 
     private final Lock jobLock = new ReentrantLock();
 
+    public PeriodicExecutorImpl(
+            ParallelExecutor parallelExecutor,
+            Logger logger
+    ) {
+        this.parallelExecutor = parallelExecutor;
+        this.logger = logger;
+    }
+
     private class Job implements PeriodicJob, Supplier<Void> {
+
         final int jobId = jobIdAllocator.incrementAndGet();
 
         private final Schedule schedule;
@@ -139,7 +124,9 @@ public class PeriodicExecutorImpl implements PeriodicExecutor, Runnable {
 
         @Override
         public String toString() {
-            StringBuilder builder = new StringBuilder("PeriodicJob[#").append(jobId);
+            StringBuilder builder = new StringBuilder("PeriodicJob[#").append(
+                    jobId
+            );
 
             builder.append(", (").append(name).append(')');
 
@@ -150,7 +137,12 @@ public class PeriodicExecutorImpl implements PeriodicExecutor, Runnable {
             if (canceled) {
                 builder.append(", canceled");
             } else {
-                builder.append(String.format(", next execution %Tk:%<TM:%<TS+%<TL", nextExecution));
+                builder.append(
+                        String.format(
+                                ", next execution %Tk:%<TM:%<TS+%<TL",
+                                nextExecution
+                        )
+                );
             }
 
             return builder.append(']').toString();
@@ -214,18 +206,11 @@ public class PeriodicExecutorImpl implements PeriodicExecutor, Runnable {
 
             return null;
         }
-
-    }
-
-    public PeriodicExecutorImpl(ParallelExecutor parallelExecutor, Logger logger) {
-        this.parallelExecutor = parallelExecutor;
-        this.logger = logger;
     }
 
     @PostInjection
     public void start(RegistryShutdownHub hub) {
         hub.addRegistryShutdownListener((Runnable) () -> registryDidShutdown());
-
     }
 
     public void init() {
@@ -351,5 +336,4 @@ public class PeriodicExecutorImpl implements PeriodicExecutor, Runnable {
 
         return nextExecution;
     }
-
 }

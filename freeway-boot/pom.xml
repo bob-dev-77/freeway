@@ -14,7 +14,7 @@
     <artifactId>freeway-boot</artifactId>
     <packaging>jar</packaging>
 
-    <name>Freeway Boot</name>
+    <name>Freeway :: Boot</name>
     <description>Freeway Boot - application framework layer built on freeway-ioc</description>
 
     <dependencies>

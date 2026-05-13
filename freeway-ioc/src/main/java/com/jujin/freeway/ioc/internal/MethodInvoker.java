@@ -2,16 +2,16 @@ package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.ModuleBuilderSource;
 import com.jujin.freeway.ioc.ServiceLocator;
-import com.jujin.freeway.ioc.advisor.OperationTracker;
 import com.jujin.freeway.ioc.ServiceResources;
+import com.jujin.freeway.ioc.advisor.OperationTracker;
 import com.jujin.freeway.ioc.internal.util.InjectionResources;
 import com.jujin.freeway.ioc.internal.util.InternalUtils;
+import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
+import org.slf4j.Logger;
+
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
-
-import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
-import org.slf4j.Logger;
 
 /**
  * Helper that encapsulates the logic for invoking a module method with

@@ -1,10 +1,10 @@
 package com.jujin.freeway.commons.logging;
 
+import org.slf4j.ILoggerFactory;
+
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Logger;
-
-import org.slf4j.ILoggerFactory;
 
 /**
  * Factory that creates {@link JULLoggerAdapter} instances wrapping

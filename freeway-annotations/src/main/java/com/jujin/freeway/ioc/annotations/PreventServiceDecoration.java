@@ -23,7 +23,7 @@ import java.lang.annotation.*;
  * annotation, to prevent a recursive service build when they attempt to advise
  * themselves.
  *
- * @see com.jujin.freeway.ioc.ServiceDef#isPreventDecoration()
+ * @see com.jujin.freeway.ioc.ServiceDefinition#isPreventDecoration()
  */
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)

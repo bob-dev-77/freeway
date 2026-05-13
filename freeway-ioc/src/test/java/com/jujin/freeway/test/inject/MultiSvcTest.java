@@ -1,12 +1,14 @@
 package com.jujin.freeway.test.inject;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import com.jujin.freeway.ioc.Registry;
-import java.util.Collection;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import java.util.Collection;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Tests for multiple services implementing the same interface: {@code @Primary}

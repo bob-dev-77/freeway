@@ -1,12 +1,12 @@
 package com.jujin.freeway.test.inject;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import com.jujin.freeway.ioc.Registry;
 import com.jujin.freeway.ioc.internal.ServiceProxyGenerator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Tests for proxy mechanism selection (jdk vs classfile).

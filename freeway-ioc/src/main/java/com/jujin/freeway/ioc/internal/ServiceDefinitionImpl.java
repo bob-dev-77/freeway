@@ -1,20 +1,11 @@
 package com.jujin.freeway.ioc.internal;
 
-import com.jujin.freeway.ioc.ServiceDefinition;
 import com.jujin.freeway.ioc.AnnotationProvider;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
-import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 import com.jujin.freeway.ioc.ServiceBuilderResources;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
+import com.jujin.freeway.ioc.ServiceDefinition;
 import com.jujin.freeway.ioc.internal.util.InternalUtils;
+import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
+
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;

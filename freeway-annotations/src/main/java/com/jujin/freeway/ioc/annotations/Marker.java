@@ -9,7 +9,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * Used to define one or more {@link com.jujin.freeway.ioc.ServiceDef} for a
+ * Used to define one or more {@link com.jujin.freeway.ioc.ServiceDefinition} for a
  * service implementation. This allows for injection based on the combination of
  * type and marker interface. These marker interfaces should not have any
  * values. The mere presence of the marker annotation is all that is needed.

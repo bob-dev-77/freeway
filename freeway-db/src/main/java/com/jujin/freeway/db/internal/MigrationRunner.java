@@ -2,7 +2,6 @@ package com.jujin.freeway.db.internal;
 
 import com.jujin.freeway.db.Database;
 import com.jujin.freeway.db.SqlException;
-import com.jujin.freeway.ioc.classpath.ClassPathMatcher;
 import com.jujin.freeway.ioc.classpath.ClassPathScanner;
 import org.slf4j.Logger;
 

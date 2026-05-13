@@ -1,5 +1,4 @@
 package com.jujin.freeway.ioc.config;
-import com.jujin.freeway.ioc.*;
 
 import com.jujin.freeway.ioc.internal.util.InternalUtils;
 

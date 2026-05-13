@@ -1,35 +1,10 @@
 package com.jujin.freeway.db;
 
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
-import com.jujin.freeway.ioc.config.MappedConfiguration;
 import com.jujin.freeway.ioc.Registry;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
 import com.jujin.freeway.ioc.annotations.ApplicationDefaults;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
 import com.jujin.freeway.ioc.annotations.Contribute;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
 import com.jujin.freeway.ioc.annotations.Startup;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
+import com.jujin.freeway.ioc.config.MappedConfiguration;
 import com.jujin.freeway.ioc.symbol.SymbolProvider;
 import org.junit.jupiter.api.Test;
 

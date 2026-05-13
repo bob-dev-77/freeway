@@ -1,6 +1,6 @@
 package com.jujin.freeway.ioc.threading;
-import com.jujin.freeway.ioc.*;
 
+import com.jujin.freeway.ioc.ServiceProvider;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 
 /**

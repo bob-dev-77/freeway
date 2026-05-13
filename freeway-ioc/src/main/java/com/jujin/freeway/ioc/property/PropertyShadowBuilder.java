@@ -1,5 +1,4 @@
 package com.jujin.freeway.ioc.property;
-import com.jujin.freeway.ioc.*;
 
 /**
  * Creates a "shadow" of a property of an object. The shadow has the same type

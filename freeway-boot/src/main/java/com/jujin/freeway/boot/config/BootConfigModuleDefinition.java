@@ -2,11 +2,18 @@ package com.jujin.freeway.boot.config;
 
 import com.jujin.freeway.ioc.*;
 import com.jujin.freeway.ioc.advisor.AdvisorDefinition;
+import com.jujin.freeway.ioc.config.Configuration;
+import com.jujin.freeway.ioc.config.ContributionDef;
+import com.jujin.freeway.ioc.config.MappedConfiguration;
+import com.jujin.freeway.ioc.config.OrderedConfiguration;
+import com.jujin.freeway.ioc.internal.MapSymbolProvider;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 import com.jujin.freeway.ioc.lifecycle.StartupDef;
-import com.jujin.freeway.ioc.internal.MapSymbolProvider;
 import com.jujin.freeway.ioc.symbol.SymbolProvider;
-import java.util.*;
+
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * ModuleDefinition that bridges boot-merged configuration into the SymbolSource.
@@ -91,6 +98,8 @@ public class BootConfigModuleDefinition implements ModuleDefinition {
             public String getServiceId() {
                 return "SymbolSource";
             }
+
+
 
             @Override
             public Set<Class<?>> getMarkers() {

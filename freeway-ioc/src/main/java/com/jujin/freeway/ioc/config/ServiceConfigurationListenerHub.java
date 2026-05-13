@@ -1,10 +1,9 @@
 package com.jujin.freeway.ioc.config;
-import com.jujin.freeway.ioc.*;
+
+import com.jujin.freeway.ioc.annotations.UsesOrderedConfiguration;
 
 import java.util.Collections;
 import java.util.List;
-
-import com.jujin.freeway.ioc.annotations.UsesOrderedConfiguration;
 
 /**
  * Service that collects the {@link ServiceConfigurationListener}s. Don't use

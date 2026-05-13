@@ -25,7 +25,11 @@ Freeway is a lightweight IoC/DI + Boot + Web framework inspired by Apache Tapest
 ```
 freeway-annotations  →  freeway-commons  →  freeway-ioc  →  freeway-boot  →  freeway-boot-starter
                                                             →  freeway-web
+                                                            →  freeway-db
 ```
+
+`freeway-web` and `freeway-db` are peer modules — both depend on `freeway-ioc` (and transitively on
+annotations/commons), but neither depends on the other.
 
 ### IoC container (the core)
 
@@ -60,8 +64,26 @@ Handler-only architecture — no `@Controller` or `@RequestMapping`:
 - Routes contributed via `@Contribute(RouteRegistry.class)` as `RouteDef` objects
 - Filters via `@Contribute(HttpFilterChain.class)` as `HttpFilter` lambdas
 - Exception mappers via `@Contribute(ExceptionMapper.class)`
-- `FreewayContext` is server-agnostic; current impl uses JDK `HttpServer` + robaho httpserver
+- `FreewayContext` is server-agnostic; current impl uses JDK `HttpServer` + robaho httpserver (high-performance impl
+  with HTTP/2 + WebSocket support)
 - `WebModule` (`freeway-web/src/main/java/.../web/WebModule.java`) starts the server on `@Startup`
+
+### DB layer
+
+Zero-dependency database access (`freeway-db`). `Database` is the central object — it IS the connection pool (
+semaphore + ConcurrentLinkedDeque):
+
+- **Query styles**: `?` positional, `:name` / `#name` named params. `Database.sql(...)` returns a `Query` builder.
+- **Row mapping**: Record types (canonical constructor) and JavaBean (MethodHandle setters). Custom mappers via
+  `@Contribute(RowMapperOverrides.class)`.
+- **Transactions**: Lambda-style (`database.transaction(tx -> { ... })`) — normal return commits, exception rolls back.
+  Also try-with-resources manual mode via `tx.sql(...)`.
+- **Migrations**: Classpath-scanned from `db/migration/`, executed sequentially on startup, tracked in `_migrations`
+  table.
+- **Multi-datasource**: `@Primary`/`@ReadOnly` marker annotations on injection points; `Databases` hub for runtime
+  lookup by name. Configurable via `freeway.db.datasources.*` config keys.
+- `DbModule` (auto-discovered via `ModuleProvider` SPI) wires everything — just add the dependency and provide
+  `freeway.db.url`/`username`/`password` in config.
 
 ### JSON library
 
@@ -88,5 +110,5 @@ registry.shutdown();  // or app.shutdown();
 - Internal implementation classes live under `.internal.*` packages
 - `*Impl` suffix for implementation classes, `*Def` for service definition types
 - `*Def2`/`*Def3` variants exist for progressive refinement (similar to Tapestry's pattern)
-- Source count: ~270 files, under 5k lines total — each module is intentionally small
+- Source count: ~350 files, ~36k lines — each module is intentionally small
 - `@SuppressWarnings("all")` is used on many internal classes

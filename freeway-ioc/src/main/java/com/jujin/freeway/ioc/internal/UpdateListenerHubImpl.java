@@ -1,19 +1,14 @@
 package com.jujin.freeway.ioc.internal;
 
-import java.lang.ref.WeakReference;
-import java.util.Iterator;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
-import com.jujin.freeway.ioc.annotations.PreventServiceDecoration;
 import com.jujin.freeway.ioc.UpdateListener;
 import com.jujin.freeway.ioc.UpdateListenerHub;
+import com.jujin.freeway.ioc.annotations.PreventServiceDecoration;
+
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @PreventServiceDecoration
 public class UpdateListenerHubImpl implements UpdateListenerHub {

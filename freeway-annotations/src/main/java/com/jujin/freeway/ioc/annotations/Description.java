@@ -1,17 +1,13 @@
 package com.jujin.freeway.ioc.annotations;
 
 import java.lang.annotation.Documented;
-
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.ElementType.PACKAGE;
-
 import java.lang.annotation.Retention;
-
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
 import java.lang.annotation.Target;
 
 import static com.jujin.freeway.ioc.annotations.AnnotationUseContext.*;
+import static java.lang.annotation.ElementType.PACKAGE;
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
  * Annotation used by Freeway to describe the annotated class or package in

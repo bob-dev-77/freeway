@@ -1,5 +1,4 @@
 package com.jujin.freeway.ioc.config;
-import com.jujin.freeway.ioc.*;
 
 /**
  * Object passed into a service contributor method that allows the method

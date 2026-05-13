@@ -1,18 +1,9 @@
 package com.jujin.freeway.ioc.internal.util;
 
-import com.jujin.freeway.ioc.*;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
-import com.jujin.freeway.ioc.advisor.*;
+import com.jujin.freeway.ioc.ModuleDefinition;
 import com.jujin.freeway.ioc.ServiceDefinition;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
+import com.jujin.freeway.ioc.advisor.AdvisorDefinition;
+import com.jujin.freeway.ioc.config.ContributionDef;
 import com.jujin.freeway.ioc.lifecycle.StartupDef;
 
 import java.io.PrintStream;
@@ -32,45 +23,29 @@ import java.util.stream.Collectors;
  */
 public class ModuleGraphPrinter {
 
-    private static final String HORIZONTAL = "\u2500";   // ─
-    private static final String VERTICAL = "\u2502";     // │
-    private static final String BRANCH = "\u251C";       // ├
-    private static final String LAST = "\u2514";         // └
-    private static final String BULLET_SERVICE = "\u2714";  // ✔
-    private static final String BULLET_ADVISOR = "\u2726";   // ✦
-    private static final String BULLET_CONTRIB = "\u21E2";   // ⇢
-    private static final String BULLET_STARTUP = "\u25B6";   // ▶
+    private static final String HORIZONTAL = "\u2500"; // ─
+    private static final String VERTICAL = "\u2502"; // │
+    private static final String BRANCH = "\u251C"; // ├
+    private static final String LAST = "\u2514"; // └
+    private static final String BULLET_SERVICE = "\u2714"; // ✔
+    private static final String BULLET_ADVISOR = "\u2726"; // ✦
+    private static final String BULLET_CONTRIB = "\u21E2"; // ⇢
+    private static final String BULLET_STARTUP = "\u25B6"; // ▶
 
     private final Collection<? extends ModuleDefinition> moduleDefs;
     private final PrintStream out;
 
     // 全局索引：serviceId → (ModuleDefinition, ServiceDefinition)
-    private final Map<String, ServiceEntry> globalServiceIndex = new LinkedHashMap<>();
+    private final Map<String, ServiceEntry> globalServiceIndex =
+            new LinkedHashMap<>();
 
     // 模块列表（保持顺序）
     private final List<ModuleEntry> modules = new ArrayList<>();
 
-    private static class ServiceEntry {
-        final ModuleDefinition moduleDef;
-        final ServiceDefinition serviceDef;
-        ServiceEntry(ModuleDefinition moduleDef, ServiceDefinition serviceDef) {
-            this.moduleDef = moduleDef;
-            this.serviceDef = serviceDef;
-        }
-    }
-
-    private static class ModuleEntry {
-        final ModuleDefinition moduleDef;
-        final List<ServiceDefinition> services = new ArrayList<>();
-        final List<AdvisorDefinition> advisors = new ArrayList<>();
-        final List<ContributionDef> contributions = new ArrayList<>();
-        final List<StartupDef> startups = new ArrayList<>();
-        ModuleEntry(ModuleDefinition moduleDef) {
-            this.moduleDef = moduleDef;
-        }
-    }
-
-    private ModuleGraphPrinter(Collection<? extends ModuleDefinition> moduleDefs, PrintStream out) {
+    private ModuleGraphPrinter(
+            Collection<? extends ModuleDefinition> moduleDefs,
+            PrintStream out
+    ) {
         this.moduleDefs = moduleDefs;
         this.out = out;
     }
@@ -78,24 +53,20 @@ public class ModuleGraphPrinter {
     /**
      * 打印能力全景图到标准输出。
      */
-    public static void print(Collection<? extends ModuleDefinition> moduleDefs) {
+    public static void print(
+            Collection<? extends ModuleDefinition> moduleDefs
+    ) {
         print(moduleDefs, System.out);
     }
 
     /**
      * 打印能力全景图到指定输出流。
      */
-    public static void print(Collection<? extends ModuleDefinition> moduleDefs, PrintStream out) {
+    public static void print(
+            Collection<? extends ModuleDefinition> moduleDefs,
+            PrintStream out
+    ) {
         new ModuleGraphPrinter(moduleDefs, out).doPrint();
-    }
-
-    private void doPrint() {
-        buildIndex();
-        printHeader();
-        for (int i = 0; i < modules.size(); i++) {
-            printModule(modules.get(i), i == modules.size() - 1);
-        }
-        printFooter();
     }
 
     private void buildIndex() {
@@ -104,7 +75,10 @@ public class ModuleGraphPrinter {
             for (String serviceId : def.getServiceIds()) {
                 ServiceDefinition sd = def.getServiceDef(serviceId);
                 if (sd != null) {
-                    globalServiceIndex.put(serviceId.toLowerCase(), new ServiceEntry(def, sd));
+                    globalServiceIndex.put(
+                            serviceId.toLowerCase(),
+                            new ServiceEntry(def, sd)
+                    );
                 }
             }
         }
@@ -140,8 +114,6 @@ public class ModuleGraphPrinter {
         }
     }
 
-    // ========== 打印方法 ==========
-
     private void printHeader() {
         int totalServices = globalServiceIndex.size();
         int totalModules = modules.size();
@@ -149,20 +121,46 @@ public class ModuleGraphPrinter {
 
         out.println();
         out.println("  " + line);
-        out.println("    Freeway IoC " + color("\u80FD\u529B\u5168\u666F\u56FE", 1)); // 加粗"能力全景图"
+        out.println(
+                "    Freeway IoC " + color("\u80FD\u529B\u5168\u666F\u56FE", 1)
+        ); // 加粗"能力全景图"
         out.println("  " + line);
-        out.println("    \u626B\u63CF\u5230 " + totalModules + " \u4E2A\u6A21\u5757\uFF0C\u5171 " + totalServices + " \u4E2A\u670D\u52A1");
+        out.println(
+                "    \u626B\u63CF\u5230 " +
+                        totalModules +
+                        " \u4E2A\u6A21\u5757\uFF0C\u5171 " +
+                        totalServices +
+                        " \u4E2A\u670D\u52A1"
+        );
         out.println();
     }
 
+    private void doPrint() {
+        buildIndex();
+        printHeader();
+        for (int i = 0; i < modules.size(); i++) {
+            printModule(modules.get(i), i == modules.size() - 1);
+        }
+        printFooter();
+    }
+
     private void printModule(ModuleEntry entry, boolean isLastModule) {
-        String prefix = isLastModule ? "  " + LAST + HORIZONTAL : "  " + BRANCH + HORIZONTAL;
+        String prefix = isLastModule
+                ? "  " + LAST + HORIZONTAL
+                : "  " + BRANCH + HORIZONTAL;
         String connector = isLastModule ? "   " : "  " + VERTICAL + " ";
 
         Class<?> builder = entry.moduleDef.getBuilderClass();
-        String builderName = builder != null ? builder.getCanonicalName() : "(unknown)";
+        String builderName =
+                builder != null ? builder.getCanonicalName() : "(unknown)";
 
-        out.println("  " + prefix + HORIZONTAL + " \u6A21\u5757: " + color(simpleName(builderName), 1));
+        out.println(
+                "  " +
+                        prefix +
+                        HORIZONTAL +
+                        " \u6A21\u5757: " +
+                        color(simpleName(builderName), 1)
+        );
 
         // 构建器路径（缩进）
         out.println("  " + connector + "  \u6784\u5EFA\u5668: " + builderName);
@@ -172,7 +170,8 @@ public class ModuleGraphPrinter {
         int advCnt = entry.advisors.size();
         int conCnt = entry.contributions.size();
         int stuCnt = entry.startups.size();
-        boolean hasChildren = svcCnt > 0 || advCnt > 0 || conCnt > 0 || stuCnt > 0;
+        boolean hasChildren =
+                svcCnt > 0 || advCnt > 0 || conCnt > 0 || stuCnt > 0;
 
         if (!hasChildren) {
             out.println("  " + connector + "  (\u7A7A\u6A21\u5757)");
@@ -181,17 +180,26 @@ public class ModuleGraphPrinter {
 
         List<Section> sections = new ArrayList<>();
         if (svcCnt > 0) sections.add(new Section("\u670D\u52A1", svcCnt, true));
-        if (advCnt > 0) sections.add(new Section("\u987E\u95EE", advCnt, false));
-        if (conCnt > 0) sections.add(new Section("\u8D21\u732E", conCnt, false));
-        if (stuCnt > 0) sections.add(new Section("\u542F\u52A8", stuCnt, false));
+        if (advCnt > 0) sections.add(
+                new Section("\u987E\u95EE", advCnt, false)
+        );
+        if (conCnt > 0) sections.add(
+                new Section("\u8D21\u732E", conCnt, false)
+        );
+        if (stuCnt > 0) sections.add(
+                new Section("\u542F\u52A8", stuCnt, false)
+        );
 
         for (int s = 0; s < sections.size(); s++) {
             Section sec = sections.get(s);
             boolean isLastSection = (s == sections.size() - 1);
-            String sectionPrefix = isLastSection ? "  " + connector + LAST + HORIZONTAL + HORIZONTAL + " "
+            String sectionPrefix = isLastSection
+                    ? "  " + connector + LAST + HORIZONTAL + HORIZONTAL + " "
                     : "  " + connector + BRANCH + HORIZONTAL + HORIZONTAL + " ";
 
-            out.println(sectionPrefix + color(sec.name, 3) + " (" + sec.count + ")");
+            out.println(
+                    sectionPrefix + color(sec.name, 3) + " (" + sec.count + ")"
+            );
 
             List<?> items = getSectionItems(entry, sec);
             for (int i = 0; i < items.size(); i++) {
@@ -199,7 +207,9 @@ public class ModuleGraphPrinter {
                 String itemPrefix = isLastSection
                         ? "  " + connector + "   "
                         : "  " + connector + "  " + VERTICAL + "  ";
-                String itemConn = isLastItem ? LAST + HORIZONTAL + HORIZONTAL + " " : BRANCH + HORIZONTAL + HORIZONTAL + " ";
+                String itemConn = isLastItem
+                        ? LAST + HORIZONTAL + HORIZONTAL + " "
+                        : BRANCH + HORIZONTAL + HORIZONTAL + " ";
 
                 out.print("  " + itemPrefix + itemConn);
                 printItem(entry, items.get(i), sec, isLastItem);
@@ -207,17 +217,14 @@ public class ModuleGraphPrinter {
         }
     }
 
-    private List<?> getSectionItems(ModuleEntry entry, Section sec) {
-        return switch (sec.name) {
-            case "服务" -> entry.services;
-            case "顾问" -> entry.advisors;
-            case "贡献" -> entry.contributions;
-            case "启动" -> entry.startups;
-            default -> List.of();
-        };
-    }
+    // ========== 打印方法 ==========
 
-    private void printItem(ModuleEntry entry, Object item, Section sec, boolean isLastItem) {
+    private void printItem(
+            ModuleEntry entry,
+            Object item,
+            Section sec,
+            boolean isLastItem
+    ) {
         if (item instanceof ServiceDefinition sd) {
             printService(sd);
         } else if (item instanceof AdvisorDefinition ad) {
@@ -233,13 +240,18 @@ public class ModuleGraphPrinter {
     private void printService(ServiceDefinition sd) {
         String id = sd.getServiceId();
         Class<?> iface = sd.getServiceInterface();
-        String ifaceName = iface != null ? simpleName(iface.getCanonicalName()) : "?";
+        String ifaceName =
+                iface != null ? simpleName(iface.getCanonicalName()) : "?";
 
         out.print(BULLET_SERVICE + " " + color(id, 2) + " \u2192 " + ifaceName);
 
         // 生命周期
         String scope = sd.getServiceScope();
-        if (scope != null && !scope.isEmpty() && !"SINGLETON".equalsIgnoreCase(scope)) {
+        if (
+                scope != null &&
+                        !scope.isEmpty() &&
+                        !"SINGLETON".equalsIgnoreCase(scope)
+        ) {
             out.print(" [" + scope.toUpperCase() + "]");
         } else {
             out.print(" [S]");
@@ -253,17 +265,29 @@ public class ModuleGraphPrinter {
         // 标记
         Set<Class<?>> markers = sd.getMarkers();
         if (markers != null && !markers.isEmpty()) {
-            String markerStr = markers.stream()
+            String markerStr = markers
+                    .stream()
                     .map(m -> simpleName(m.getCanonicalName()))
                     .collect(Collectors.joining(", "));
             out.print(" @" + markerStr);
         }
     }
 
+    private List<?> getSectionItems(ModuleEntry entry, Section sec) {
+        return switch (sec.name) {
+            case "服务" -> entry.services;
+            case "顾问" -> entry.advisors;
+            case "贡献" -> entry.contributions;
+            case "启动" -> entry.startups;
+            default -> List.of();
+        };
+    }
+
     private void printAdvisor(AdvisorDefinition ad) {
         String id = ad.getAdvisorId();
         Class<?> iface = ad.getServiceInterface();
-        String target = iface != null && iface != Object.class
+        String target =
+                iface != null && iface != Object.class
                 ? simpleName(iface.getCanonicalName())
                 : "*";
         out.print(BULLET_ADVISOR + " " + color(id, 4) + " \u2192 " + target);
@@ -276,8 +300,16 @@ public class ModuleGraphPrinter {
     private void printContribution(ContributionDef cd) {
         String targetId = cd.getServiceId();
         // 查找目标服务所在的模块
-        ServiceEntry targetEntry = targetId != null ? globalServiceIndex.get(targetId.toLowerCase()) : null;
-        String targetModule = targetEntry != null ? simpleName(targetEntry.moduleDef.getBuilderClass().getCanonicalName()) : "?";
+        ServiceEntry targetEntry =
+                targetId != null
+                        ? globalServiceIndex.get(targetId.toLowerCase())
+                        : null;
+        String targetModule =
+                targetEntry != null
+                        ? simpleName(
+                        targetEntry.moduleDef.getBuilderClass().getCanonicalName()
+                )
+                        : "?";
 
         out.print(BULLET_CONTRIB + " \u2192 \"" + targetId + "\"");
         if (targetEntry != null) {
@@ -289,7 +321,8 @@ public class ModuleGraphPrinter {
         // 标记
         Set<Class<?>> markers = cd.getMarkers();
         if (markers != null && !markers.isEmpty()) {
-            String markerStr = markers.stream()
+            String markerStr = markers
+                    .stream()
                     .map(m -> simpleName(m.getCanonicalName()))
                     .collect(Collectors.joining(", "));
             out.print(" @" + markerStr);
@@ -299,8 +332,34 @@ public class ModuleGraphPrinter {
     private void printFooter() {
         String line = repeat("\u2550", 60);
         out.println("  " + line);
-        out.println("  \u5C3E\u90E8\u8BF4\u660E: [S]=SINGLETON [P]=PROTOTYPE  \u2726=\u987E\u95EE  \u21E2=\u8D21\u732E  \u25B6=\u542F\u52A8");
+        out.println(
+                "  \u5C3E\u90E8\u8BF4\u660E: [S]=SINGLETON [P]=PROTOTYPE  \u2726=\u987E\u95EE  \u21E2=\u8D21\u732E  \u25B6=\u542F\u52A8"
+        );
         out.println();
+    }
+
+    private static class ServiceEntry {
+
+        final ModuleDefinition moduleDef;
+        final ServiceDefinition serviceDef;
+
+        ServiceEntry(ModuleDefinition moduleDef, ServiceDefinition serviceDef) {
+            this.moduleDef = moduleDef;
+            this.serviceDef = serviceDef;
+        }
+    }
+
+    private static class ModuleEntry {
+
+        final ModuleDefinition moduleDef;
+        final List<ServiceDefinition> services = new ArrayList<>();
+        final List<AdvisorDefinition> advisors = new ArrayList<>();
+        final List<ContributionDef> contributions = new ArrayList<>();
+        final List<StartupDef> startups = new ArrayList<>();
+
+        ModuleEntry(ModuleDefinition moduleDef) {
+            this.moduleDef = moduleDef;
+        }
     }
 
     // ========== 工具方法 ==========

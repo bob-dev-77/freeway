@@ -1,5 +1,4 @@
 package com.jujin.freeway.ioc.exception;
-import com.jujin.freeway.ioc.*;
 
 /**
  * Exception class used as a replacement for {@link java.lang.RuntimeException}

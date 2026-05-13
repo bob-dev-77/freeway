@@ -1,41 +1,17 @@
 package com.jujin.freeway.ioc.internal;
 
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
-import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
-import com.jujin.freeway.ioc.advisor.OperationTracker;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
-import com.jujin.freeway.ioc.lifecycle.ReloadAware;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
-import com.jujin.freeway.ioc.internal.util.InternalUtils;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
-import com.jujin.freeway.ioc.internal.util.URLChangeTracker;
 import com.jujin.freeway.ioc.UpdateListener;
+import com.jujin.freeway.ioc.advisor.OperationTracker;
+import com.jujin.freeway.ioc.internal.util.InternalUtils;
+import com.jujin.freeway.ioc.internal.util.URLChangeTracker;
+import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
+import com.jujin.freeway.ioc.lifecycle.ReloadAware;
+import org.slf4j.Logger;
+
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
-import org.slf4j.Logger;
 
 /**
  * Simplified reloadable object creator that uses standard Java reflection

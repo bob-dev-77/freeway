@@ -1,18 +1,10 @@
 package com.jujin.freeway.ioc.internal;
 
-import com.jujin.freeway.ioc.*;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
 import com.jujin.freeway.ioc.annotations.Builtin;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
+import com.jujin.freeway.ioc.property.PropertyAccess;
+import com.jujin.freeway.ioc.property.PropertyAdapter;
 import com.jujin.freeway.ioc.property.PropertyShadowBuilder;
+
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;

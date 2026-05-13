@@ -3,16 +3,14 @@ package com.jujin.freeway.db.internal;
 import com.jujin.freeway.db.RowMapper;
 import com.jujin.freeway.db.RowMapperOverrides;
 import com.jujin.freeway.db.SqlException;
-import com.jujin.freeway.ioc.property.PropertyAccess;
 import com.jujin.freeway.ioc.coercion.TypeCoercer;
+import com.jujin.freeway.ioc.property.PropertyAccess;
 
-import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.RecordComponent;
 import java.math.BigDecimal;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;

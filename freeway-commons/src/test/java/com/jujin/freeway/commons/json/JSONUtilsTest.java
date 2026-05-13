@@ -1,11 +1,14 @@
 package com.jujin.freeway.commons.json;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class JSONUtilsTest {
 

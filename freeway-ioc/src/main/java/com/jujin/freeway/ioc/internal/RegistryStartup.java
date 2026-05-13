@@ -1,20 +1,11 @@
 package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.Registry;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
 import com.jujin.freeway.ioc.internal.util.InternalUtils;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
 import com.jujin.freeway.ioc.internal.util.OneShotLock;
-import java.util.List;
 import org.slf4j.Logger;
+
+import java.util.List;
 
 /**
  * Startup service for Freeway IoC: automatically invoked at

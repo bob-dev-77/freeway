@@ -1,24 +1,12 @@
 package com.jujin.freeway.ioc.internal;
 
-import com.jujin.freeway.ioc.*;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
 import com.jujin.freeway.ioc.exception.ExceptionAnalysis;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
 import com.jujin.freeway.ioc.exception.ExceptionAnalyzer;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
 import com.jujin.freeway.ioc.exception.ExceptionInfo;
+import com.jujin.freeway.ioc.property.BeanPropertyAdapter;
+import com.jujin.freeway.ioc.property.PropertyAccess;
+import com.jujin.freeway.ioc.property.PropertyAdapter;
+
 import java.util.*;
 
 public class ExceptionAnalyzerImpl implements ExceptionAnalyzer {

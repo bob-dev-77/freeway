@@ -1,5 +1,4 @@
 package com.jujin.freeway.ioc.config;
-import com.jujin.freeway.ioc.*;
 
 /**
  * Constructs order constraints for {@link OrderedConfiguration}.

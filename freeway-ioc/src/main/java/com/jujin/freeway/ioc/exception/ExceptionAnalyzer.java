@@ -1,5 +1,4 @@
 package com.jujin.freeway.ioc.exception;
-import com.jujin.freeway.ioc.*;
 
 /**
  * Analyzes an exception, providing an analysis. The analysis easily exposes

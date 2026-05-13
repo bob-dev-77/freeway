@@ -1,47 +1,22 @@
 package com.jujin.freeway.ioc.internal;
 
-import static com.jujin.freeway.ioc.internal.ConfigurationType.*;
-
-import com.jujin.freeway.ioc.*;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
-import com.jujin.freeway.ioc.advisor.*;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
-import com.jujin.freeway.ioc.advisor.OperationTracker;
 import com.jujin.freeway.ioc.ServiceBuilderResources;
+import com.jujin.freeway.ioc.ServiceLocator;
 import com.jujin.freeway.ioc.ServiceResources;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
+import com.jujin.freeway.ioc.advisor.OperationTracker;
 import com.jujin.freeway.ioc.internal.util.DelegatingInjectionResources;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
 import com.jujin.freeway.ioc.internal.util.InjectionResources;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
 import com.jujin.freeway.ioc.internal.util.MapInjectionResources;
+import org.slf4j.Logger;
+
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.slf4j.Logger;
+
+import static com.jujin.freeway.ioc.internal.ConfigurationType.*;
 
 /**
  * Builds {@link InjectionResources} for service creators, combining core

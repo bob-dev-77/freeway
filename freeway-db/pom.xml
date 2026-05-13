@@ -16,7 +16,7 @@
     <artifactId>freeway-db</artifactId>
     <packaging>jar</packaging>
 
-    <name>Freeway DB</name>
+    <name>Freeway :: DB</name>
     <description>Freeway DB — zero-dependency database access with built-in connection pooling</description>
 
     <dependencies>

@@ -1,9 +1,8 @@
 package com.jujin.freeway.ioc.coercion;
 
-import com.jujin.freeway.ioc.property.PropertyAdapter;
-
 import com.jujin.freeway.ioc.annotations.UsesMappedConfiguration;
 import com.jujin.freeway.ioc.annotations.UsesOrderedConfiguration;
+import com.jujin.freeway.ioc.property.PropertyAdapter;
 
 /**
  * Used by {@link com.jujin.freeway.beanmodel.services.BeanModelSource} to

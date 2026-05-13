@@ -1,33 +1,15 @@
 package com.jujin.freeway.ioc.internal;
 
-import com.jujin.freeway.ioc.ServiceDefinition;
-import com.jujin.freeway.ioc.AnnotationProvider;
-import com.jujin.freeway.ioc.ServiceLocator;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
+import com.jujin.freeway.ioc.*;
 import com.jujin.freeway.ioc.advisor.OperationTracker;
-import com.jujin.freeway.ioc.Registry;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
 import com.jujin.freeway.ioc.advisor.ServiceAdvisor;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
 import com.jujin.freeway.ioc.lifecycle.ServiceLifecycle;
-import com.jujin.freeway.ioc.RegistryShutdownHub;
+import org.slf4j.Logger;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.slf4j.Logger;
 
 /**
  * Internal view of the module registry, adding additional methods needed by

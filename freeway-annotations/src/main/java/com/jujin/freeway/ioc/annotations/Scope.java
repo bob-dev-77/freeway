@@ -25,7 +25,7 @@ import java.lang.annotation.Target;
  * when using service binding (via the
  * {@link com.jujin.freeway.ioc.ServiceBinder}).
  *
- * @see com.jujin.freeway.ioc.internal.util.InternalUtils.
+ * @see com.jujin.freeway.ioc.internal.util.InternalUtils
  */
 @Target({ TYPE, METHOD })
 @Retention(RUNTIME)

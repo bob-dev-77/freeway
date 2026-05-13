@@ -3,16 +3,12 @@ package com.jujin.freeway.boot.test;
 import com.jujin.freeway.boot.FreewayApp;
 import com.jujin.freeway.boot.FreewayApplication;
 import com.jujin.freeway.ioc.Registry;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
 import com.jujin.freeway.ioc.symbol.SymbolSource;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Tests configuration injection via SymbolSource.

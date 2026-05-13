@@ -1,17 +1,7 @@
 package com.jujin.freeway.ioc.internal.util;
 
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
-import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
 import com.jujin.freeway.ioc.advisor.OperationTracker;
+import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -35,7 +25,8 @@ public class ConstructionPlan<T> implements ObjectCreator<T> {
     public ConstructionPlan(
         OperationTracker tracker,
         String description,
-        Supplier<T> instanceConstructor) {
+        Supplier<T> instanceConstructor
+    ) {
         this.tracker = tracker;
         this.description = description;
         this.instanceConstructor = instanceConstructor;
@@ -65,7 +56,9 @@ public class ConstructionPlan<T> implements ObjectCreator<T> {
 
     private void executeInitializationPLans(final T newInstance) {
         for (final InitializationPlan<T> plan : initializationPlans) {
-            tracker.run(plan.getDescription(), () -> plan.initialize(newInstance));
+            tracker.run(plan.getDescription(), () ->
+                    plan.initialize(newInstance)
+            );
         }
     }
 }

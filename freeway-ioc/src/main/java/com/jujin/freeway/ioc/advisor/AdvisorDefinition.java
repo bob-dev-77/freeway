@@ -1,6 +1,9 @@
 package com.jujin.freeway.ioc.advisor;
 
-import com.jujin.freeway.ioc.*;
+import com.jujin.freeway.ioc.Markable;
+import com.jujin.freeway.ioc.ModuleBuilderSource;
+import com.jujin.freeway.ioc.ServiceDefinition;
+import com.jujin.freeway.ioc.ServiceResources;
 
 /**
  * Definition of a service advisor, which (by default) is derived from a service

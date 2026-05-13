@@ -1,12 +1,12 @@
 package com.jujin.freeway.commons.logging;
 
-import java.util.logging.Level;
-import java.util.logging.LogRecord;
-import java.util.logging.Logger;
-
 import org.slf4j.Marker;
 import org.slf4j.helpers.LegacyAbstractLogger;
 import org.slf4j.helpers.MessageFormatter;
+
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 /**
  * An SLF4J {@link org.slf4j.Logger} that delegates to

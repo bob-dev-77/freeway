@@ -1,22 +1,19 @@
 package com.jujin.freeway.ioc.internal;
 
-import com.jujin.freeway.ioc.ServiceDefinition;
-import static java.lang.String.format;
-
 import com.jujin.freeway.ioc.*;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.lifecycle.*;
 import com.jujin.freeway.ioc.advisor.AdvisorDefinition;
-import com.jujin.freeway.ioc.Markable;
+import com.jujin.freeway.ioc.advisor.AspectInterceptor;
 import com.jujin.freeway.ioc.advisor.OperationTracker;
-import com.jujin.freeway.ioc.ServiceBuilderResources;
-import com.jujin.freeway.ioc.ServiceResources;
 import com.jujin.freeway.ioc.annotations.Local;
+import com.jujin.freeway.ioc.config.ContributionDef;
 import com.jujin.freeway.ioc.internal.util.ConcurrentBarrier;
 import com.jujin.freeway.ioc.internal.util.InjectionResources;
 import com.jujin.freeway.ioc.internal.util.InternalUtils;
 import com.jujin.freeway.ioc.internal.util.MapInjectionResources;
-import com.jujin.freeway.ioc.advisor.AspectInterceptor;
+import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
+import com.jujin.freeway.ioc.lifecycle.ServiceLifecycle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
@@ -29,8 +26,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static java.lang.String.format;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class ModuleImpl implements Module {

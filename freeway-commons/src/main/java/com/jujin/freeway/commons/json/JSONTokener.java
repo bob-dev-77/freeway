@@ -1,10 +1,10 @@
 package com.jujin.freeway.commons.json;
 
+import com.jujin.freeway.commons.json.exceptions.JSONSyntaxException;
+
 import java.io.IOException;
 import java.io.Reader;
 import java.text.MessageFormat;
-
-import com.jujin.freeway.commons.json.exceptions.JSONSyntaxException;
 
 /**
  * Parses a JSON (<a href="http://www.ietf.org/rfc/rfc4627.txt">RFC 4627</a>)

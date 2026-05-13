@@ -1,10 +1,5 @@
 package com.jujin.freeway.ioc.internal.util;
 
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Method;
@@ -26,7 +21,8 @@ public class MethodHandleInvoker<T> implements Supplier<T> {
     public MethodHandleInvoker(
         Object instance,
         Method method,
-        ObjectCreator<?>[] methodParameters) {
+        ObjectCreator<?>[] methodParameters
+    ) {
         this.instance = instance;
         this.methodHandle = MethodHandleUtils.methodHandle(method);
         this.isStatic = Modifier.isStatic(method.getModifiers());
@@ -55,8 +51,10 @@ public class MethodHandleInvoker<T> implements Supplier<T> {
             throw new RuntimeException(
                 String.format(
                     "Error invoking method via MethodHandle: %s",
-                    InternalUtils.toMessage(t)),
-                t);
+                        InternalUtils.toMessage(t)
+                ),
+                    t
+            );
         }
     }
 }

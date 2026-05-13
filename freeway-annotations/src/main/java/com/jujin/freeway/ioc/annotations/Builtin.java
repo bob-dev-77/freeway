@@ -1,15 +1,12 @@
 package com.jujin.freeway.ioc.annotations;
 
 import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.PARAMETER;
-
-import java.lang.annotation.Retention;
-
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
-import java.lang.annotation.Target;
 
 /**
  * Marks services provided by this module that may need to be unambiguously

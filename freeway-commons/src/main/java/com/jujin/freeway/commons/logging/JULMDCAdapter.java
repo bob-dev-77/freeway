@@ -1,12 +1,8 @@
 package com.jujin.freeway.commons.logging;
 
-import java.util.ArrayDeque;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.slf4j.spi.MDCAdapter;
+
+import java.util.*;
 
 /**
  * A ThreadLocal-based MDC adapter for JDK logging.

@@ -1,5 +1,4 @@
 package com.jujin.freeway.ioc.property;
-import com.jujin.freeway.ioc.*;
 
 import java.lang.annotation.Annotation;
 import java.util.List;

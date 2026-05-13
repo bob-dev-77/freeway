@@ -1,5 +1,6 @@
 package com.jujin.freeway.ioc.internal;
-import com.jujin.freeway.ioc.*;
+
+import com.jujin.freeway.ioc.Registry;
 
 /**
  * Used in {@link ServiceActivity} to identify the state of the service in terms

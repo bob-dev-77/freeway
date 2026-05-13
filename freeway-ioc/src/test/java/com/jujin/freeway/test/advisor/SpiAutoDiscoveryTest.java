@@ -1,11 +1,11 @@
 package com.jujin.freeway.test.advisor;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import com.jujin.freeway.ioc.Registry;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * JUnit tests verifying that modules are auto-discovered via JDK

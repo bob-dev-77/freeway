@@ -1,25 +1,13 @@
 package com.jujin.freeway.ioc.internal;
 
-import com.jujin.freeway.ioc.*;
+import com.jujin.freeway.ioc.AnnotationProvider;
 import com.jujin.freeway.ioc.ObjectInjector;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
+import com.jujin.freeway.ioc.ServiceLocator;
+import com.jujin.freeway.ioc.ServiceProvider;
 import com.jujin.freeway.ioc.advisor.OperationTracker;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
 import com.jujin.freeway.ioc.annotations.PreventServiceDecoration;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
 import com.jujin.freeway.ioc.internal.util.InternalUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;

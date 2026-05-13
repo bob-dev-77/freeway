@@ -1,21 +1,12 @@
 package com.jujin.freeway.ioc.internal;
 
-import static java.lang.String.format;
-
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
 import com.jujin.freeway.ioc.advisor.MethodInvocation;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
 import com.jujin.freeway.ioc.exception.ExceptionTracker;
-import java.util.Iterator;
 import org.slf4j.Logger;
+
+import java.util.Iterator;
+
+import static java.lang.String.format;
 
 /**
  * Used by {@link LoggingInterceptorImpl} to

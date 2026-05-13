@@ -1,10 +1,9 @@
 package com.jujin.freeway.ioc.classpath;
-import com.jujin.freeway.ioc.*;
 
 import java.net.URL;
 
 /**
- * Used by {@link com.jujin.freeway.ioc.ClassNameLocator} to convert URLs from
+ * Used by {@link ClassNameLocator} to convert URLs from
  * one protocol to another. This is a hook for supporting OSGi, allowing
  * "bundleresource" and "bundleentry" protocols to be converted to "jar:" or
  * "file:".

@@ -1,8 +1,8 @@
 package com.jujin.freeway.web;
 
-import java.util.List;
-
 import com.jujin.freeway.ioc.annotations.UsesOrderedConfiguration;
+
+import java.util.List;
 
 /**
  * Collects contributed {@link HttpFilter} instances in order.

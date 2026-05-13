@@ -1,7 +1,7 @@
 package com.jujin.freeway.web.test;
 
-import com.jujin.freeway.ioc.config.OrderedConfiguration;
 import com.jujin.freeway.ioc.annotations.Contribute;
+import com.jujin.freeway.ioc.config.OrderedConfiguration;
 import com.jujin.freeway.web.RouteDef;
 import com.jujin.freeway.web.RouteRegistry;
 

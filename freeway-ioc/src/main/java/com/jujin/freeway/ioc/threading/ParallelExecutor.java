@@ -1,5 +1,4 @@
 package com.jujin.freeway.ioc.threading;
-import com.jujin.freeway.ioc.*;
 
 import java.util.concurrent.Future;
 import java.util.function.Supplier;

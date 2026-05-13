@@ -4,7 +4,7 @@ import java.lang.annotation.*;
 
 /**
  * A documentation-only interface placed on service interfaces for services
- * which have an {@link com.jujin.freeway.ioc.Configuration}, to identify the
+ * which have an {@link com.jujin.freeway.ioc.config.Configuration}, to identify the
  * type of contribution.
  */
 @Target(ElementType.TYPE)

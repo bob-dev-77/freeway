@@ -1,9 +1,9 @@
 package com.jujin.freeway.test.advisor;
 
+import com.jujin.freeway.ioc.ServiceBinder;
 import com.jujin.freeway.ioc.advisor.MethodAdvice;
 import com.jujin.freeway.ioc.advisor.MethodAdviceReceiver;
 import com.jujin.freeway.ioc.advisor.MethodInvocation;
-import com.jujin.freeway.ioc.ServiceBinder;
 import com.jujin.freeway.ioc.annotations.Advise;
 
 import java.lang.reflect.Method;

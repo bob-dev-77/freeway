@@ -1,5 +1,6 @@
 package com.jujin.freeway.ioc.threading;
-import com.jujin.freeway.ioc.*;
+
+import com.jujin.freeway.ioc.Registry;
 
 import java.util.Locale;
 

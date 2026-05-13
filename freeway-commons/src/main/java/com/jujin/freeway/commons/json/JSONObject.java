@@ -1,18 +1,13 @@
 
 package com.jujin.freeway.commons.json;
 
-import java.io.ObjectStreamException;
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.function.BiFunction;
-
 import com.jujin.freeway.commons.json.exceptions.JSONTypeMismatchException;
 import com.jujin.freeway.commons.json.exceptions.JSONValueNotFoundException;
+
+import java.io.ObjectStreamException;
+import java.io.Serializable;
+import java.util.*;
+import java.util.function.BiFunction;
 
 /**
  * A modifiable set of name/value mappings. Names are unique, non-null strings.

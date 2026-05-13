@@ -1,21 +1,11 @@
 package com.jujin.freeway.ioc.internal;
 
-import java.util.List;
-
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
-import com.jujin.freeway.ioc.annotations.Builtin;
 import com.jujin.freeway.ioc.DefaultServiceProxyBuilder;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
 import com.jujin.freeway.ioc.advisor.PipelineBuilder;
+import com.jujin.freeway.ioc.annotations.Builtin;
 import org.slf4j.Logger;
+
+import java.util.List;
 
 public class PipelineBuilderImpl implements PipelineBuilder {
 

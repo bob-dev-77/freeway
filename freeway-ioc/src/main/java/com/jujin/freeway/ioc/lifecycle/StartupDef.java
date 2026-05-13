@@ -1,9 +1,8 @@
 package com.jujin.freeway.ioc.lifecycle;
 
-import com.jujin.freeway.ioc.ServiceLocator;
 import com.jujin.freeway.ioc.ModuleBuilderSource;
+import com.jujin.freeway.ioc.ServiceLocator;
 import com.jujin.freeway.ioc.advisor.OperationTracker;
-
 import org.slf4j.Logger;
 
 /**

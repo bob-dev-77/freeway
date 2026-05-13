@@ -4,10 +4,10 @@ import com.jujin.freeway.ioc.internal.IOOperation;
 
 import java.io.IOException;
 import java.lang.annotation.ElementType;
-import java.util.function.Supplier;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.function.Supplier;
 
 /**
  * Used to track some set of operations in such a way that a failure (a thrown

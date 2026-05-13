@@ -4,10 +4,10 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import static com.jujin.freeway.ioc.annotations.AnnotationUseContext.SERVICE;
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.PARAMETER;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
-import static com.jujin.freeway.ioc.annotations.AnnotationUseContext.*;
 
 /**
  * Used to inject a symbol value, via a symbol name. This is used much like

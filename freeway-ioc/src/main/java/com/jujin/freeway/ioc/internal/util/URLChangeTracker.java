@@ -1,20 +1,15 @@
 package com.jujin.freeway.ioc.internal.util;
 
+import com.jujin.freeway.ioc.classpath.ClassPathURLConverter;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.Set;
-
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
-import com.jujin.freeway.ioc.classpath.ClassPathURLConverter;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Given a (growing) set of URLs, can periodically check to see if any of the

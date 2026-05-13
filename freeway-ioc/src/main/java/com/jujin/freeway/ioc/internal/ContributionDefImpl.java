@@ -1,50 +1,21 @@
 package com.jujin.freeway.ioc.internal;
 
-import com.jujin.freeway.ioc.*;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
-import com.jujin.freeway.ioc.lifecycle.*;
 import com.jujin.freeway.ioc.ModuleBuilderSource;
+import com.jujin.freeway.ioc.ServiceLocator;
 import com.jujin.freeway.ioc.ServiceResources;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
-import com.jujin.freeway.ioc.internal.util.DelegatingInjectionResources;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
-import com.jujin.freeway.ioc.internal.util.InjectionResources;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
-import com.jujin.freeway.ioc.internal.util.InternalUtils;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
-import com.jujin.freeway.ioc.internal.util.MapInjectionResources;
-import com.jujin.freeway.ioc.config.*;
-import com.jujin.freeway.ioc.property.*;
-import com.jujin.freeway.ioc.threading.*;
-import com.jujin.freeway.ioc.classpath.*;
-import com.jujin.freeway.ioc.exception.*;
-import com.jujin.freeway.ioc.internal.util.WrongConfigurationTypeGuard;
+import com.jujin.freeway.ioc.config.Configuration;
+import com.jujin.freeway.ioc.config.ContributionDef;
+import com.jujin.freeway.ioc.config.MappedConfiguration;
+import com.jujin.freeway.ioc.config.OrderedConfiguration;
+import com.jujin.freeway.ioc.internal.util.*;
+import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
+import org.slf4j.Logger;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import org.slf4j.Logger;
 
 public class ContributionDefImpl implements ContributionDef {
 

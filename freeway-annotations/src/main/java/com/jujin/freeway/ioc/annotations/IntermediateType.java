@@ -1,10 +1,6 @@
 package com.jujin.freeway.ioc.annotations;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * Used to guide Freeway when coercing from a raw type to a field or parameter

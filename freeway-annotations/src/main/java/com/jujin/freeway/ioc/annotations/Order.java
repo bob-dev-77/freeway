@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
  * decorations occur. Identifies other decorators which should occur before the
  * annotated decorator.
  *
- * @see com.jujin.freeway.ioc.advisor.DecoratorDef
+ * @see com.jujin.freeway.ioc.advisor.AdvisorDefinition
  */
 @Target(METHOD)
 @Retention(RUNTIME)

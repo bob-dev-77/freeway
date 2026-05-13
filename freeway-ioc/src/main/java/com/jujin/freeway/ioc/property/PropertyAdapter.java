@@ -1,5 +1,6 @@
 package com.jujin.freeway.ioc.property;
-import com.jujin.freeway.ioc.*;
+
+import com.jujin.freeway.ioc.AnnotationProvider;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;

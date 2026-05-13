@@ -1,6 +1,6 @@
 package com.jujin.freeway.test.graph;
 
-import com.jujin.freeway.ioc.*;
+import com.jujin.freeway.ioc.ModuleDefinition;
 import com.jujin.freeway.ioc.internal.DefaultModuleDefinition;
 import com.jujin.freeway.ioc.internal.JdkProxyFactory;
 import com.jujin.freeway.ioc.internal.util.ModuleGraphPrinter;

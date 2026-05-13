@@ -1,5 +1,6 @@
 package com.jujin.freeway.ioc.config;
-import com.jujin.freeway.ioc.*;
+
+import com.jujin.freeway.ioc.ServiceDefinition;
 
 import java.util.Collection;
 import java.util.List;

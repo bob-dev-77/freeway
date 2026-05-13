@@ -1,9 +1,11 @@
 package com.jujin.freeway.web.test;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import com.jujin.freeway.ioc.Registry;
 import com.jujin.freeway.web.WebModule;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.URI;
@@ -11,9 +13,9 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Map;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Integration test: starts a real HTTP server on random port, sends HTTP
