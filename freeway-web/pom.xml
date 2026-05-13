@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project
+    xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+>
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.jujin</groupId>
+        <artifactId>freeway-parent</artifactId>
+        <version>1.0.0</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>freeway-web</artifactId>
+    <packaging>jar</packaging>
+
+    <name>Freeway Web</name>
+    <description
+    >Freeway Web - built-in HTTP server based on JDK jdk.httpserver + robaho httpserver</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.jujin</groupId>
+            <artifactId>freeway-ioc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.jujin</groupId>
+            <artifactId>freeway-commons</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+
+        <!-- robaho httpserver: high-performance JDK HttpServer impl with HTTP/2 + WebSocket -->
+        <dependency>
+            <groupId>io.github.robaho</groupId>
+            <artifactId>httpserver</artifactId>
+            <version>1.0.29</version>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Test -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>${slf4j.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

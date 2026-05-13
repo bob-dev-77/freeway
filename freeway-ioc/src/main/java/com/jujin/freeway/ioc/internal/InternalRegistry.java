@@ -1,0 +1,169 @@
+package com.jujin.freeway.ioc.internal;
+
+import com.jujin.freeway.ioc.ServiceDefinition;
+import com.jujin.freeway.ioc.AnnotationProvider;
+import com.jujin.freeway.ioc.ServiceLocator;
+import com.jujin.freeway.ioc.config.*;
+import com.jujin.freeway.ioc.property.*;
+import com.jujin.freeway.ioc.threading.*;
+import com.jujin.freeway.ioc.classpath.*;
+import com.jujin.freeway.ioc.exception.*;
+import com.jujin.freeway.ioc.advisor.OperationTracker;
+import com.jujin.freeway.ioc.Registry;
+import com.jujin.freeway.ioc.config.*;
+import com.jujin.freeway.ioc.property.*;
+import com.jujin.freeway.ioc.threading.*;
+import com.jujin.freeway.ioc.classpath.*;
+import com.jujin.freeway.ioc.exception.*;
+import com.jujin.freeway.ioc.advisor.ServiceAdvisor;
+import com.jujin.freeway.ioc.config.*;
+import com.jujin.freeway.ioc.property.*;
+import com.jujin.freeway.ioc.threading.*;
+import com.jujin.freeway.ioc.classpath.*;
+import com.jujin.freeway.ioc.exception.*;
+import com.jujin.freeway.ioc.lifecycle.ServiceLifecycle;
+import com.jujin.freeway.ioc.RegistryShutdownHub;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import org.slf4j.Logger;
+
+/**
+ * Internal view of the module registry, adding additional methods needed by
+ * modules.
+ */
+public interface InternalRegistry
+    extends Registry, RegistryShutdownHub, OperationTracker {
+    /**
+     * As with
+     * {@link com.jujin.freeway.ioc.Registry#getObject(Class, com.jujin.freeway.ioc.AnnotationProvider)},
+     * but handles the {@link com.jujin.freeway.ioc.annotations.Local} annotation.
+     *
+     * @param objectType
+     *            type of object o be injected
+     * @param annotationProvider
+     *            access to annotations at point of injection
+     * @param locator
+     *            used to resolve any subsequent injections
+     * @param localModule
+     *            module to limit services to, if Local annotaton present
+     * @return the service or object
+     */
+    <T> T getObject(
+        Class<T> objectType,
+        AnnotationProvider annotationProvider,
+        ServiceLocator locator,
+        Module localModule);
+
+    /**
+     * Returns a service lifecycle by service scope name.
+     *
+     * @param scope
+     *            the name of the service scope (case insensitive)
+     * @return the lifecycle corresponding to the scope
+     * @throws RuntimeException
+     *             if the lifecycle name does not match a known lifecycle
+     */
+    ServiceLifecycle getServiceLifecycle(String scope);
+
+    /**
+     * Searches for advisors for a particular service, returning them in order of
+     * application.
+     *
+     */
+    List<ServiceAdvisor> findAdvisorsForService(ServiceDefinition serviceDef);
+
+    /**
+     * Builds up an unordered collection by invoking service contributor methods
+     * that target the service (from any module, unless the service is private).
+     *
+     * @param <T>
+     * @param serviceDef
+     *            defines the service for which configuration data is being
+     *            assembled
+     * @param valueType
+     *            identifies the type of object allowed into the collection
+     * @return the final collection
+     */
+    <T> Collection<T> getUnorderedConfiguration(
+        ServiceDefinition serviceDef,
+        Class<T> valueType);
+
+    /**
+     * Builds up an ordered collection by invoking service contributor methods that
+     * target the service (from any module, unless the service is private). Once all
+     * values have been added (each with an id, and pre/post constraints), the
+     * values are ordered, null values dropped, and the final sorted list is
+     * returned.
+     *
+     * @param <T>
+     * @param serviceDef
+     *            defines the service for which configuration data is being
+     *            assembled
+     * @param valueType
+     *            identifies the type of object allowed into the collection
+     * @return the final ordered list
+     */
+    <T> List<T> getOrderedConfiguration(
+        ServiceDefinition serviceDef,
+        Class<T> valueType);
+
+    /**
+     * Builds up a map of key/value pairs by invoking service contribution methods
+     * that target the service (from any module, unless the service is private).
+     * Values and keys may not be null. Invalid values (keys or values that are the
+     * wrong type, or duplicate keys) result in warnings and are ignored.
+     *
+     * @param <K>
+     * @param <V>
+     * @param serviceDef
+     *            defines the service for which configuration data is being
+     *            assembled
+     * @param keyType
+     *            identifies the type of key object allowed into the map
+     * @param valueType
+     *            identifies the type of value object allowed into the map
+     * @return the final ordered list
+     */
+    <K, V> Map<K, V> getMappedConfiguration(
+        ServiceDefinition serviceDef,
+        Class<K> keyType,
+        Class<V> valueType);
+
+    /**
+     * Given an input string that <em>may</em> contain symbols, returns the string
+     * with any and all symbols fully expanded.
+     *
+     * @param input
+     * @return expanded input
+     */
+    String expandSymbols(String input);
+
+    /**
+     * Returns a logger for the service, which consists of the Module's
+     * {@link Module#getLoggerName() log name} suffixed with a period and the
+     * service id.
+     *
+     * @param serviceId
+     * @return the logger for the service
+     */
+    Logger getServiceLogger(String serviceId);
+
+    /**
+     * Creates a just-in-time (and possibly, live reloading) proxy for the indicated
+     * class and interface, using the provided locator to autobuild the
+     * implementationClass (when necessary).
+     *
+     */
+    <T> T proxy(
+        Class<T> interfaceClass,
+        Class<? extends T> implementationClass,
+        ServiceLocator locator);
+
+    /**
+     * Returns a Set of Annotation classes that are used as service markers.
+     *
+     */
+    Set<Class<?>> getMarkerAnnotations();
+}

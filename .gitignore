@@ -1,0 +1,33 @@
+# === Maven ===
+target/
+*.flattened-pom.xml
+
+# === IDE - IntelliJ ===
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# === IDE - Eclipse / STS ===
+.classpath
+.project
+.settings/
+.factorypath
+.springBeans
+.apt_generated
+
+# === IDE - VS Code ===
+.vscode/
+
+# === OS ===
+.DS_Store
+Thumbs.db
+
+# === Claude Code ===
+.claude/
+
+# === Misc local tools ===
+.soloncode/
+
+# === Logs ===
+*.log

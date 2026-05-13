@@ -1,0 +1,120 @@
+package com.jujin.freeway.ioc.internal.util;
+
+import com.jujin.freeway.ioc.config.*;
+import com.jujin.freeway.ioc.property.*;
+import com.jujin.freeway.ioc.threading.*;
+import com.jujin.freeway.ioc.classpath.*;
+import com.jujin.freeway.ioc.exception.*;
+import com.jujin.freeway.ioc.config.Orderable;
+import org.slf4j.Logger;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Used by {@link com.jujin.freeway.ioc.internal.util.Orderer} to establish
+ * backward dependencies for {@link com.jujin.freeway.ioc.Orderable} objects.
+ *
+ * @param <T>
+ */
+
+class DependencyNode<T> {
+    private final Logger logger;
+
+    private final Orderable<T> orderable;
+
+    private final List<DependencyNode<T>> dependencies = new ArrayList<>();
+
+    DependencyNode(Logger logger, Orderable<T> orderable) {
+        this.logger = logger;
+        this.orderable = orderable;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder buffer = new StringBuilder(String.format("[%s", getId()));
+
+        boolean first = true;
+
+        for (DependencyNode<T> node : dependencies) {
+
+            buffer.append(first ? ": " : ", ");
+
+            buffer.append(node.toString());
+
+            first = false;
+        }
+
+        buffer.append(']');
+
+        return buffer.toString();
+    }
+
+    /**
+     * Returns the underlying {@link Orderable}'s id.
+     */
+    public String getId() {
+        return orderable.getId();
+    }
+
+    void addDependency(DependencyNode<T> node) {
+        if (node.isReachable(this)) {
+            logger.warn(UtilMessages.dependencyCycle(node, this));
+            return;
+        }
+
+        // Make this node depend on the other node.
+        // That forces the other node's orderable
+        // to appear before this node's orderable.
+
+        dependencies.add(node);
+    }
+
+    boolean isReachable(DependencyNode<T> node) {
+        if (this == node)
+            return true;
+
+        // Quick fast pass for immediate dependencies
+
+        for (DependencyNode<T> d : dependencies) {
+            if (d == node)
+                return true;
+        }
+
+        // Slower second pass looks for
+        // indirect dependencies
+
+        for (DependencyNode<T> d : dependencies) {
+            if (d.isReachable(node))
+                return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Returns the {@link Orderable} objects for this node ordered based on
+     * dependencies.
+     */
+    List<Orderable<T>> getOrdered() {
+        List<Orderable<T>> result = new ArrayList<>();
+
+        fillOrder(result);
+
+        return result;
+    }
+
+    private void fillOrder(List<Orderable<T>> list) {
+        if (list.contains(orderable))
+            return;
+
+        // Recusively add dependencies
+
+        for (DependencyNode<T> node : dependencies) {
+            node.fillOrder(list);
+        }
+
+        list.add(orderable);
+    }
+
+}
