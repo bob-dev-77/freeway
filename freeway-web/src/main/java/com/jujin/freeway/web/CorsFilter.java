@@ -29,9 +29,9 @@ import com.jujin.freeway.ioc.annotations.Symbol;
  *   <tr><td>cors.allow-credentials</td><td>boolean, default false</td></tr>
  * </table>
  *
- * <h3>application.yml</h3>
- * <pre>
- * cors:
+ * <h3>application.json</h3>
+ * <pre>{
+ *   "cors": {
  *   allowed-origins: "https://app.example.com,https://admin.example.com"
  *   allow-credentials: true
  * </pre>
@@ -50,27 +50,65 @@ public class CorsFilter implements HttpFilter {
 
     /** Builder for programmatic CORS configuration. */
     public static class Builder {
+
         private String allowedOrigins;
-        private String allowedMethods = "GET, POST, PUT, DELETE, PATCH, OPTIONS";
+        private String allowedMethods =
+            "GET, POST, PUT, DELETE, PATCH, OPTIONS";
         private String allowedHeaders = "Content-Type, Authorization";
         private String exposedHeaders;
         private String maxAge = "3600";
         private boolean allowCredentials;
 
-        public Builder allowAllOrigins() { this.allowedOrigins = "*"; return this; }
-        public Builder allowedOrigins(String origins) { this.allowedOrigins = origins; return this; }
-        public Builder allowedMethods(String methods) { this.allowedMethods = methods; return this; }
-        public Builder allowedHeaders(String headers) { this.allowedHeaders = headers; return this; }
-        public Builder exposedHeaders(String headers) { this.exposedHeaders = headers; return this; }
-        public Builder maxAge(String maxAge) { this.maxAge = maxAge; return this; }
-        public Builder allowCredentials(boolean allow) { this.allowCredentials = allow; return this; }
+        public Builder allowAllOrigins() {
+            this.allowedOrigins = "*";
+            return this;
+        }
+
+        public Builder allowedOrigins(String origins) {
+            this.allowedOrigins = origins;
+            return this;
+        }
+
+        public Builder allowedMethods(String methods) {
+            this.allowedMethods = methods;
+            return this;
+        }
+
+        public Builder allowedHeaders(String headers) {
+            this.allowedHeaders = headers;
+            return this;
+        }
+
+        public Builder exposedHeaders(String headers) {
+            this.exposedHeaders = headers;
+            return this;
+        }
+
+        public Builder maxAge(String maxAge) {
+            this.maxAge = maxAge;
+            return this;
+        }
+
+        public Builder allowCredentials(boolean allow) {
+            this.allowCredentials = allow;
+            return this;
+        }
 
         public CorsFilter build() {
-            if ("*".equals(allowedOrigins) && allowCredentials)
-                throw new IllegalStateException(
-                    "Access-Control-Allow-Origin '*' cannot be used with Access-Control-Allow-Credentials: true");
-            return new CorsFilter(true, allowedOrigins, allowedMethods,
-                allowedHeaders, exposedHeaders, maxAge, allowCredentials);
+            if (
+                "*".equals(allowedOrigins) && allowCredentials
+            ) throw new IllegalStateException(
+                "Access-Control-Allow-Origin '*' cannot be used with Access-Control-Allow-Credentials: true"
+            );
+            return new CorsFilter(
+                true,
+                allowedOrigins,
+                allowedMethods,
+                allowedHeaders,
+                exposedHeaders,
+                maxAge,
+                allowCredentials
+            );
         }
     }
 
@@ -92,14 +130,15 @@ public class CorsFilter implements HttpFilter {
         @Symbol("cors.allowed-headers") String allowedHeaders,
         @Symbol("cors.exposed-headers") String exposedHeaders,
         @Symbol("cors.max-age") String maxAge,
-        @Symbol("cors.allow-credentials") boolean allowCredentials) {
-
+        @Symbol("cors.allow-credentials") boolean allowCredentials
+    ) {
         this.enabled = enabled;
         boolean all = "*".equals(allowedOrigins);
         this.allowAll = all;
-        this.allowedOriginList = all || allowedOrigins == null || allowedOrigins.isBlank()
-            ? new String[0]
-            : allowedOrigins.split("\\s*,\\s*");
+        this.allowedOriginList =
+            all || allowedOrigins == null || allowedOrigins.isBlank()
+                ? new String[0]
+                : allowedOrigins.split("\\s*,\\s*");
         this.allowedMethods = allowedMethods;
         this.allowedHeaders = allowedHeaders;
         this.exposedHeaders = blankToNull(exposedHeaders);

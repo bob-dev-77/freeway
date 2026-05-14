@@ -1,0 +1,11 @@
+{
+  "app": {
+    "name": "Freeway Boot",
+    "version": "1.0.0",
+    "description": "Standalone IoC container"
+  },
+  "server": {
+    "port": 8080,
+    "host": "localhost"
+  }
+}

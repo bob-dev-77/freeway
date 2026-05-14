@@ -2,10 +2,7 @@ package com.jujin.freeway.db.internal;
 
 import com.jujin.freeway.db.Database;
 import com.jujin.freeway.db.SqlException;
-import com.jujin.freeway.ioc.classpath.ClassPathMatcher;
 import com.jujin.freeway.ioc.classpath.ClassPathScanner;
-import org.slf4j.Logger;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -13,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.slf4j.Logger;
 
 /**
  * Runs database migrations from SQL files on the classpath. Scans
@@ -39,11 +37,16 @@ public class MigrationRunner {
     private final String migrationPath;
     private final Logger logger;
 
-    public MigrationRunner(Database db, ClassPathScanner scanner, String migrationPath,
-                           Logger logger) {
+    public MigrationRunner(
+        Database db,
+        ClassPathScanner scanner,
+        String migrationPath,
+        Logger logger
+    ) {
         this.db = db;
         this.scanner = scanner;
-        this.migrationPath = migrationPath != null ? migrationPath : DEFAULT_PATH;
+        this.migrationPath =
+            migrationPath != null ? migrationPath : DEFAULT_PATH;
         this.logger = logger;
     }
 
@@ -53,7 +56,10 @@ public class MigrationRunner {
 
         List<String> files = scanMigrationFiles();
         if (files.isEmpty()) {
-            logger.debug("Freeway DB: no migration files found in {}", migrationPath);
+            logger.debug(
+                "Freeway DB: no migration files found in {}",
+                migrationPath
+            );
             return;
         }
 
@@ -81,29 +87,41 @@ public class MigrationRunner {
     private List<String> scanMigrationFiles() {
         try {
             Set<String> paths = scanner.scan(
-                migrationPath.endsWith("/") ? migrationPath : migrationPath + "/",
-                (packagePath, fileName) -> fileName.endsWith(".sql"));
+                migrationPath.endsWith("/")
+                    ? migrationPath
+                    : migrationPath + "/",
+                (packagePath, fileName) -> fileName.endsWith(".sql")
+            );
             var sorted = new ArrayList<>(paths);
             sorted.sort(String::compareTo);
             return sorted;
         } catch (IOException e) {
-            throw new SqlException("Failed to scan migration path: " + migrationPath, e);
+            throw new SqlException(
+                "Failed to scan migration path: " + migrationPath,
+                e
+            );
         }
     }
 
     // ── Database bookkeeping ─────────────────────────────────────────
 
     private void ensureMigrationTable() {
-        db.sql("""
-            CREATE TABLE IF NOT EXISTS %s (
-                version VARCHAR(255) PRIMARY KEY,
-                description VARCHAR(512),
-                executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )""".formatted(TABLE)).execute();
+        db
+            .sql(
+                """
+                CREATE TABLE IF NOT EXISTS %s (
+                    version VARCHAR(255) PRIMARY KEY,
+                    description VARCHAR(512),
+                    executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )""".formatted(TABLE)
+            )
+            .execute();
     }
 
     private Set<String> completedVersions() {
-        var versions = db.sql("SELECT version FROM " + TABLE).list(String.class);
+        var versions = db
+            .sql("SELECT version FROM " + TABLE)
+            .list(String.class);
         return new HashSet<>(versions);
     }
 
@@ -112,7 +130,9 @@ public class MigrationRunner {
     private void runMigration(String version, String sql) {
         db.transaction(tx -> {
             tx.sql(sql).execute();
-            tx.sql("INSERT INTO " + TABLE + " (version) VALUES (?)", version).execute();
+            tx
+                .sql("INSERT INTO " + TABLE + " (version) VALUES (?)", version)
+                .execute();
         });
         logger.info("Freeway DB: migrated {}", version);
     }

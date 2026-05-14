@@ -7,12 +7,12 @@ import java.util.Map;
 /**
  * Entry point for bootstrapping a freeway-boot application.
  * <p>
- * Loads external configuration (CLI args, YAML, properties, env vars), injects
- * it into the IoC {@link Registry} via {@link BootConfigModuleDefinition}, discovers
+ * Loads external configuration (CLI args, JSON, properties, env vars), injects
+ * it into the IoC {@link Registry} via {@link BootModuleDefinition}, discovers
  * SPI modules via {@code autoDiscover()}, then starts the container.
  * <p>
  * Usage:
- * 
+ *
  * <pre>{@code
  * @FreewayBootApplication
  * public class MyApp {
@@ -50,7 +50,8 @@ public class FreewayApplication {
         Map<String, String> config = loadConfig();
 
         // 2. Build the configuration module and feed it into the Registry.Builder
-        BootConfigModuleDefinition bootConfigModule = new BootConfigModuleDefinition(config);
+        BootModuleDefinition bootConfigModule =
+            new BootModuleDefinition(config);
 
         Registry.Builder builder = new Registry.Builder();
 
@@ -78,29 +79,25 @@ public class FreewayApplication {
 
     private Map<String, String> loadConfig() {
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        var configSources = new com.jujin.freeway.boot.config.ConfigSources();
+        var configSources = new com.jujin.freeway.boot.config.ConfigSource();
 
         // Priority 100: Command-line arguments (--key=value)
-        configSources.add(new CommandLineArgsConfigSource(args));
+        configSources.add(new CommandLineArgsProvider(args));
 
-        // Priority 300: Application YAML (classpath:application.yml / application.yaml)
-        var yamlResource = cl.getResourceAsStream("application.yml");
-        if (yamlResource != null) {
-            configSources.add(new YamlConfigSource(yamlResource, 300));
-        }
-        var yamlAltResource = cl.getResourceAsStream("application.yaml");
-        if (yamlAltResource != null) {
-            configSources.add(new YamlConfigSource(yamlAltResource, 300));
+        // Priority 300: Application JSON (classpath:application.json)
+        var jsonResource = cl.getResourceAsStream("application.json");
+        if (jsonResource != null) {
+            configSources.add(new JsonConfigProvider(jsonResource, 300));
         }
 
         // Priority 400: Application properties (classpath:application.properties)
         var propsResource = cl.getResourceAsStream("application.properties");
         if (propsResource != null) {
-            configSources.add(new PropertiesConfigSource(propsResource, 400));
+            configSources.add(new PropertiesConfigProvider(propsResource, 400));
         }
 
         // Priority 500: Environment variables (prefixed with FREEWAY_)
-        configSources.add(new EnvironmentConfigSource());
+        configSources.add(new EnvironmentConfigProvider());
 
         // Merge all sources into a single map (higher priority overrides lower)
         return configSources.merge();

@@ -1,28 +1,66 @@
 package com.jujin.freeway.boot.config;
 
-import java.util.Set;
+import java.util.*;
 
 /**
- * A source of configuration key-value pairs with an associated priority.
+ * Aggregates multiple {@link ConfigProvider} instances into a unified view,
+ * sorted by priority.
  * <p>
- * Lower priority values mean higher precedence.
+ * This is the public entry point for reading boot configuration — analogous to
+ * {@code SymbolSource} in the IoC layer. Call {@link #add(ConfigProvider)} to
+ * register sources, then {@link #merge()} or {@link #getValue(String)} to read
+ * values.
  */
-public interface ConfigSource extends Comparable<ConfigSource> {
+public class ConfigSource {
 
-    /** Returns true if this source contains the given key. */
-    boolean containsKey(String key);
+    private final List<ConfigProvider> providers = new ArrayList<>();
 
-    /** Returns the value for the given key, or null if not present. */
-    String getValue(String key);
+    /** Adds a configuration provider. Providers are sorted by priority. */
+    public void add(ConfigProvider provider) {
+        providers.add(provider);
+        Collections.sort(providers);
+    }
 
-    /** Returns all keys available in this source. */
-    Set<String> keys();
+    /** Returns all registered providers (sorted by priority). */
+    public List<ConfigProvider> getProviders() {
+        return Collections.unmodifiableList(providers);
+    }
 
-    /** Priority value; lower values have higher precedence. */
-    int priority();
+    /**
+     * Merges all providers into a single flat map. Higher-priority (lower priority
+     * number) values override lower-priority ones.
+     */
+    public Map<String, String> merge() {
+        Map<String, String> result = new LinkedHashMap<>();
+        for (int i = providers.size() - 1; i >= 0; i--) {
+            ConfigProvider source = providers.get(i);
+            for (String key : source.keys()) {
+                String value = source.getValue(key);
+                if (value != null) {
+                    result.put(key, value);
+                }
+            }
+        }
+        return result;
+    }
 
-    @Override
-    default int compareTo(ConfigSource other) {
-        return Integer.compare(this.priority(), other.priority());
+    /** Returns the value from the highest-priority provider that has it. */
+    public String getValue(String key) {
+        for (ConfigProvider source : providers) {
+            if (source.containsKey(key)) {
+                return source.getValue(key);
+            }
+        }
+        return null;
+    }
+
+    /** Returns true if any provider contains the key. */
+    public boolean containsKey(String key) {
+        for (ConfigProvider source : providers) {
+            if (source.containsKey(key)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

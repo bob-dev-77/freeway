@@ -10,7 +10,6 @@ import com.jujin.freeway.ioc.internal.MapSymbolProvider;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 import com.jujin.freeway.ioc.lifecycle.StartupDef;
 import com.jujin.freeway.ioc.symbol.SymbolProvider;
-
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -22,11 +21,11 @@ import java.util.Set;
  * contributes it into the ordered {@link SymbolProvider} chain after
  * {@code EnvironmentVariables} and before {@code ApplicationDefaults}.
  */
-public class BootConfigModuleDefinition implements ModuleDefinition {
+public class BootModuleDefinition implements ModuleDefinition {
 
     private final Map<String, String> config;
 
-    public BootConfigModuleDefinition(Map<String, String> config) {
+    public BootModuleDefinition(Map<String, String> config) {
         this.config = Objects.requireNonNull(config, "config");
     }
 
@@ -37,8 +36,7 @@ public class BootConfigModuleDefinition implements ModuleDefinition {
 
     @Override
     public ServiceDefinition getServiceDef(String serviceId) {
-        if (!"BootConfig".equalsIgnoreCase(serviceId))
-            return null;
+        if (!"BootConfig".equalsIgnoreCase(serviceId)) return null;
         return new ServiceDefinition() {
             @Override
             public String getServiceId() {
@@ -67,26 +65,31 @@ public class BootConfigModuleDefinition implements ModuleDefinition {
 
             @Override
             public ObjectCreator<?> createServiceCreator(
-                ServiceBuilderResources resources) {
+                ServiceBuilderResources resources
+            ) {
                 return () -> new MapSymbolProvider(config);
             }
 
             @Override
             public AnnotationProvider getClassAnnotationProvider() {
                 return com.jujin.freeway.ioc.internal.util.InternalUtils.toAnnotationProvider(
-                    getServiceInterface());
+                    getServiceInterface()
+                );
             }
 
             @Override
             @SuppressWarnings("rawtypes")
             public AnnotationProvider getMethodAnnotationProvider(
                 String methodName,
-                Class... argumentTypes) {
+                Class... argumentTypes
+            ) {
                 return com.jujin.freeway.ioc.internal.util.InternalUtils.toAnnotationProvider(
                     com.jujin.freeway.ioc.internal.util.InternalUtils.findMethod(
                         getServiceInterface(),
                         methodName,
-                        argumentTypes));
+                        argumentTypes
+                    )
+                );
             }
         };
     }
@@ -98,8 +101,6 @@ public class BootConfigModuleDefinition implements ModuleDefinition {
             public String getServiceId() {
                 return "SymbolSource";
             }
-
-
 
             @Override
             public Set<Class<?>> getMarkers() {
@@ -116,9 +117,11 @@ public class BootConfigModuleDefinition implements ModuleDefinition {
             public void contribute(
                 ModuleBuilderSource moduleSource,
                 ServiceResources resources,
-                Configuration configuration) {
+                Configuration configuration
+            ) {
                 throw new UnsupportedOperationException(
-                    "Unordered configuration not supported");
+                    "Unordered configuration not supported"
+                );
             }
 
             @Override
@@ -126,13 +129,15 @@ public class BootConfigModuleDefinition implements ModuleDefinition {
             public void contribute(
                 ModuleBuilderSource moduleSource,
                 ServiceResources resources,
-                OrderedConfiguration ordered) {
+                OrderedConfiguration ordered
+            ) {
                 SymbolProvider bootProvider = new MapSymbolProvider(config);
                 ordered.add(
                     "BootConfig",
                     bootProvider,
                     "after:EnvironmentVariables",
-                    "before:ApplicationDefaults");
+                    "before:ApplicationDefaults"
+                );
             }
 
             @Override
@@ -140,9 +145,11 @@ public class BootConfigModuleDefinition implements ModuleDefinition {
             public void contribute(
                 ModuleBuilderSource moduleSource,
                 ServiceResources resources,
-                MappedConfiguration mapped) {
+                MappedConfiguration mapped
+            ) {
                 throw new UnsupportedOperationException(
-                    "Mapped configuration not supported");
+                    "Mapped configuration not supported"
+                );
             }
         };
         return Set.of(contribution);
@@ -160,7 +167,7 @@ public class BootConfigModuleDefinition implements ModuleDefinition {
 
     @Override
     public Class<?> getBuilderClass() {
-        return BootConfigModuleDefinition.class;
+        return BootModuleDefinition.class;
     }
 
     @Override

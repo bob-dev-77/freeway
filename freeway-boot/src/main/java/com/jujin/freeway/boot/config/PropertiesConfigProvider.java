@@ -7,9 +7,9 @@ import java.util.Properties;
 import java.util.Set;
 
 /**
- * A {@link ConfigSource} backed by a {@code .properties} file.
+ * A {@link ConfigProvider} backed by a {@code .properties} file.
  */
-public class PropertiesConfigSource implements ConfigSource {
+public class PropertiesConfigProvider implements ConfigProvider {
 
     private final Map<String, String> props = new LinkedHashMap<>();
     private final int priority;
@@ -20,7 +20,7 @@ public class PropertiesConfigSource implements ConfigSource {
      * @param priority
      *            priority value (lower = higher precedence)
      */
-    public PropertiesConfigSource(InputStream inputStream, int priority) {
+    public PropertiesConfigProvider(InputStream inputStream, int priority) {
         this.priority = priority;
         try (inputStream) {
             Properties p = new Properties();
