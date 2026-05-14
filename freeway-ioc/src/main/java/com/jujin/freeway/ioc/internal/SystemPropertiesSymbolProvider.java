@@ -8,8 +8,9 @@ import com.jujin.freeway.ioc.symbol.SymbolProvider;
  * properties, can take effect.
  */
 public class SystemPropertiesSymbolProvider implements SymbolProvider {
+
     @Override
-    public String valueForSymbol(String symbolName) {
+    public String lookup(String symbolName) {
         return System.getProperty(symbolName);
     }
 }

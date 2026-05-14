@@ -3,7 +3,6 @@ package com.jujin.freeway.ioc.internal;
 import com.jujin.freeway.ioc.Resource;
 import com.jujin.freeway.ioc.internal.util.InternalUtils;
 import com.jujin.freeway.ioc.symbol.SymbolProvider;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
@@ -16,9 +15,12 @@ import java.util.TreeMap;
  *
  */
 public class ResourceSymbolProvider implements SymbolProvider {
+
     private final Resource resource;
 
-    private final Map<String, String> properties = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    private final Map<String, String> properties = new TreeMap<>(
+        String.CASE_INSENSITIVE_ORDER
+    );
 
     public ResourceSymbolProvider(final Resource resource) {
         this.resource = resource;
@@ -53,7 +55,7 @@ public class ResourceSymbolProvider implements SymbolProvider {
     }
 
     @Override
-    public String valueForSymbol(String symbolName) {
+    public String lookup(String symbolName) {
         return properties.get(symbolName);
     }
 }

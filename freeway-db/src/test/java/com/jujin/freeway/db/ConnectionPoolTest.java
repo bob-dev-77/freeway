@@ -4,6 +4,7 @@ import com.jujin.freeway.db.internal.ConnectionPool;
 import com.jujin.freeway.db.internal.PoolConfig;
 import org.junit.jupiter.api.Test;
 
+import java.sql.SQLException;
 import java.time.Duration;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;

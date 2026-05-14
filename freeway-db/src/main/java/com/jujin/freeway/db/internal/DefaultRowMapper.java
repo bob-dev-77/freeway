@@ -3,20 +3,23 @@ package com.jujin.freeway.db.internal;
 import com.jujin.freeway.db.RowMapper;
 import com.jujin.freeway.db.RowMapperOverrides;
 import com.jujin.freeway.db.SqlException;
-import com.jujin.freeway.ioc.coercion.TypeCoercer;
 import com.jujin.freeway.ioc.property.PropertyAccess;
+import com.jujin.freeway.ioc.coercion.TypeCoercer;
 
+import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.RecordComponent;
 import java.math.BigDecimal;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -149,22 +152,30 @@ public class DefaultRowMapper {
     /** Bean mapper using IoC PropertyAccess (MethodHandle-based setters). */
     private <T> RowMapper<T> createIocBeanMapper(Class<T> type) {
         var adapter = propertyAccess.getAdapter(type);
+        var writableProps = adapter.getPropertyNames().stream()
+            .filter(n -> adapter.getPropertyAdapter(n).isUpdate())
+            .toArray(String[]::new);
+        int[] columnIndexes = new int[writableProps.length];
 
         return (rs, rowNum) -> {
+            if (rowNum == 0) {
+                var meta = rs.getMetaData();
+                for (int i = 0; i < writableProps.length; i++) {
+                    columnIndexes[i] = findColumn(meta, writableProps[i]);
+                }
+            }
             T instance;
             try {
                 instance = type.getDeclaredConstructor().newInstance();
             } catch (Exception e) {
                 throw new SqlException("Failed to instantiate " + type.getName(), e);
             }
-
-            for (String propName : adapter.getPropertyNames()) {
-                var prop = adapter.getPropertyAdapter(propName);
-                if (!prop.isUpdate()) continue;
-                int col = findColumn(rs.getMetaData(), propName);
+            for (int i = 0; i < writableProps.length; i++) {
+                int col = columnIndexes[i];
                 if (col < 1) continue;
+                var prop = adapter.getPropertyAdapter(writableProps[i]);
                 Object value = coerce(rs.getObject(col), prop.getType());
-                adapter.set(instance, propName, value);
+                adapter.set(instance, writableProps[i], value);
             }
             return instance;
         };
@@ -172,24 +183,35 @@ public class DefaultRowMapper {
 
     /** Fallback bean mapper using java.beans.Introspector directly. */
     private <T> RowMapper<T> createReflectionBeanMapper(Class<T> type) {
-        PropertyDescriptor[] props;
+        PropertyDescriptor[] allProps;
         try {
-            props = Introspector.getBeanInfo(type).getPropertyDescriptors();
+            allProps = Introspector.getBeanInfo(type).getPropertyDescriptors();
         } catch (Exception e) {
             throw new SqlException("Failed to introspect " + type.getName(), e);
         }
+        var writableProps = new ArrayList<PropertyDescriptor>();
+        for (var pd : allProps) {
+            if (pd.getWriteMethod() != null) writableProps.add(pd);
+        }
+        int[] columnIndexes = new int[writableProps.size()];
 
         return (rs, rowNum) -> {
+            if (rowNum == 0) {
+                var meta = rs.getMetaData();
+                for (int i = 0; i < writableProps.size(); i++) {
+                    columnIndexes[i] = findColumn(meta, writableProps.get(i).getName());
+                }
+            }
             T instance;
             try {
                 instance = type.getDeclaredConstructor().newInstance();
             } catch (Exception e) {
                 throw new SqlException("Failed to instantiate " + type.getName(), e);
             }
-            for (var pd : props) {
-                if (pd.getWriteMethod() == null) continue;
-                int col = findColumn(rs.getMetaData(), pd.getName());
+            for (int i = 0; i < writableProps.size(); i++) {
+                int col = columnIndexes[i];
                 if (col < 1) continue;
+                var pd = writableProps.get(i);
                 Object value = coerce(rs.getObject(col), pd.getPropertyType());
                 try {
                     pd.getWriteMethod().invoke(instance, value);
@@ -220,18 +242,30 @@ public class DefaultRowMapper {
         return -1;
     }
 
+    private static final Map<String, String> SNAKE_CACHE = new ConcurrentHashMap<>();
+
     static String camelToSnake(String camel) {
-        var sb = new StringBuilder();
-        for (int i = 0; i < camel.length(); i++) {
-            char c = camel.charAt(i);
-            if (Character.isUpperCase(c)) {
-                if (i > 0) sb.append('_');
-                sb.append(Character.toLowerCase(c));
-            } else {
-                sb.append(c);
+        return SNAKE_CACHE.computeIfAbsent(camel, k -> {
+            var sb = new StringBuilder();
+            for (int i = 0; i < camel.length(); i++) {
+                char c = camel.charAt(i);
+                if (Character.isUpperCase(c)) {
+                    char prev = i > 0 ? camel.charAt(i - 1) : '\0';
+                    char next = i + 1 < camel.length() ? camel.charAt(i + 1) : '\0';
+                    // Only insert underscore when this is the start of a new word:
+                    // prev is lowercase → start of new word (e.g. "userId" → "user_id")
+                    // OR next is lowercase and prev is uppercase → end of an abbreviation (e.g. "HTMLParser" → "html_parser")
+                    if ((prev != '\0' && Character.isLowerCase(prev))
+                        || (next != '\0' && Character.isLowerCase(next) && !Character.isLowerCase(prev))) {
+                        sb.append('_');
+                    }
+                    sb.append(Character.toLowerCase(c));
+                } else {
+                    sb.append(c);
+                }
             }
-        }
-        return sb.toString();
+            return sb.toString();
+        });
     }
 
     // ── Type coercion ────────────────────────────────────────────────

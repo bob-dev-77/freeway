@@ -1,10 +1,17 @@
 package com.jujin.freeway.db.internal;
 
-import com.jujin.freeway.db.*;
+import com.jujin.freeway.db.BatchQuery;
+import com.jujin.freeway.db.Database;
+import com.jujin.freeway.db.DatabaseStats;
+import com.jujin.freeway.db.Query;
+import com.jujin.freeway.db.SqlException;
+import com.jujin.freeway.db.Transaction;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.function.Consumer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Default {@link Database} implementation backed by a {@link ConnectionPool}.
@@ -13,16 +20,24 @@ import java.util.function.Consumer;
  */
 public class DatabaseImpl implements Database {
 
+    private static final Logger logger = LoggerFactory.getLogger(DatabaseImpl.class);
+
     final ConnectionPool pool;
     final DefaultRowMapper rowMapper;
+    final int queryTimeoutSeconds;
 
     public DatabaseImpl(ConnectionPool pool) {
-        this(pool, new DefaultRowMapper());
+        this(pool, new DefaultRowMapper(), 30);
     }
 
     public DatabaseImpl(ConnectionPool pool, DefaultRowMapper rowMapper) {
+        this(pool, rowMapper, 30);
+    }
+
+    public DatabaseImpl(ConnectionPool pool, DefaultRowMapper rowMapper, int queryTimeoutSeconds) {
         this.pool = pool;
         this.rowMapper = rowMapper;
+        this.queryTimeoutSeconds = queryTimeoutSeconds;
     }
 
     @Override
@@ -138,7 +153,8 @@ public class DatabaseImpl implements Database {
             try {
                 conn.jdbcConnection().rollback();
                 conn.jdbcConnection().setAutoCommit(true);
-            } catch (SQLException ignored) {
+            } catch (SQLException e) {
+                logger.warn("Transaction rollback failed", e);
             }
         }
 
@@ -155,7 +171,8 @@ public class DatabaseImpl implements Database {
                 if (!conn.jdbcConnection().getAutoCommit()) {
                     conn.jdbcConnection().setAutoCommit(true);
                 }
-            } catch (SQLException ignored) {
+            } catch (SQLException e) {
+                logger.trace("Error restoring autoCommit on connection close", e);
             }
             db.pool.release(conn);
         }

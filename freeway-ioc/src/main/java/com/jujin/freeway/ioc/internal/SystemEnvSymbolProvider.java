@@ -1,7 +1,6 @@
 package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.symbol.SymbolProvider;
-
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -11,10 +10,13 @@ import java.util.TreeMap;
  *
  */
 public class SystemEnvSymbolProvider implements SymbolProvider {
-    private final Map<String, String> symbols = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+
+    private final Map<String, String> symbols = new TreeMap<>(
+        String.CASE_INSENSITIVE_ORDER
+    );
 
     @Override
-    public synchronized String valueForSymbol(String symbolName) {
+    public synchronized String lookup(String symbolName) {
         if (symbols.isEmpty()) {
             Map<String, String> env = System.getenv();
 

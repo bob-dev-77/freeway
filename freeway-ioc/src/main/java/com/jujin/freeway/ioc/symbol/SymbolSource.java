@@ -10,30 +10,41 @@ import com.jujin.freeway.ioc.annotations.Value;
  * appear inside some annotation, such as {@link Value}.
  * <p>
  * The SymbolSource service configuration is an ordered list of
- * {@link com.jujin.freeway.ioc.symbol.SymbolProvider}s. Two key SymbolProvider
- * services are FactoryDefaults and ApplicationDefaults.
+ * {@link SymbolProvider}s. Two key providers are FactoryDefaults and
+ * ApplicationDefaults.
+ * <p>
+ * This is the <em>public API</em> for reading symbols. The lower-level
+ * {@link SymbolProvider} SPI is for implementing custom symbol sources.
  */
 @UsesOrderedConfiguration(SymbolProvider.class)
 public interface SymbolSource {
     /**
-     * Expands the value for a particular symbol. This may involve recursive
-     * expansion, if the immediate value for the symbol itself contains symbols.
+     * Returns the fully expanded value for a symbol. Resolution spans all
+     * configured {@link SymbolProvider}s, with caching and recursive
+     * expansion of {@code ${...}} references.
      *
-     * @param symbolName
-     * @return the expanded string
-     * @throws RuntimeException
-     *             if the symbol name can not be expanded (no {@link SymbolProvider}
-     *             can provide its value), or if an expansion is directly or
-     *             indirectly recursive
+     * @param symbolName the symbol name (never {@code null})
+     * @return the expanded value
+     * @throws RuntimeException if the symbol is not defined in any provider
      */
-    String valueForSymbol(String symbolName);
+    String resolve(String symbolName);
 
     /**
-     * Given an input string that <em>may</em> contain symbols, returns the string
-     * with any and all symbols fully expanded.
+     * Checks whether a symbol is defined in any of the configured
+     * {@link SymbolProvider}s.
      *
-     * @param input
-     * @return expanded input
+     * @param symbolName the symbol name
+     * @return {@code true} if the symbol is defined, {@code false} otherwise
      */
-    String expandSymbols(String input);
+    boolean contains(String symbolName);
+
+    /**
+     * Expands {@code ${...}} symbol references in the given input string.
+     * Each symbol is resolved via {@link #resolve(String)} and replaced
+     * inline.
+     *
+     * @param input string that may contain symbols
+     * @return the input with all symbols expanded
+     */
+    String expand(String input);
 }

@@ -1,7 +1,6 @@
 package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.symbol.SymbolProvider;
-
 import java.util.Map;
 
 /**
@@ -9,6 +8,7 @@ import java.util.Map;
  * (typically provided by a Freeway IOC service configuration).
  */
 public class MapSymbolProvider implements SymbolProvider {
+
     private final Map<String, String> configuration;
 
     public MapSymbolProvider(final Map<String, String> configuration) {
@@ -16,8 +16,7 @@ public class MapSymbolProvider implements SymbolProvider {
     }
 
     @Override
-    public String valueForSymbol(String symbolName) {
+    public String lookup(String symbolName) {
         return configuration.get(symbolName);
     }
-
 }

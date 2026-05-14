@@ -27,6 +27,11 @@ public class PooledConnection {
         this.lastReturned = Instant.now();
     }
 
+    /** Returns true if this connection was returned to the pool recently. */
+    boolean isFresh(Duration threshold) {
+        return Duration.between(lastReturned, Instant.now()).compareTo(threshold) < 0;
+    }
+
     boolean isExpired(Instant now, Duration maxLifetime, Duration maxIdleTime) {
         if (Duration.between(createdAt, now).compareTo(maxLifetime) > 0)
             return true;

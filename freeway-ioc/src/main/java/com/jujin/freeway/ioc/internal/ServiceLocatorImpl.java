@@ -22,7 +22,7 @@ public class ServiceLocatorImpl implements ServiceLocator {
 
     @Override
     public <T> T getService(String serviceId, Class<T> serviceInterface) {
-        String expandedServiceId = registry.expandSymbols(serviceId);
+        String expandedServiceId = registry.expand(serviceId);
 
         return registry.getService(expandedServiceId, serviceInterface);
     }
@@ -36,7 +36,8 @@ public class ServiceLocatorImpl implements ServiceLocator {
     @SuppressWarnings("unchecked")
     public <T> T getService(
         Class<T> serviceInterface,
-        Class<? extends Annotation>... markerTypes) {
+        Class<? extends Annotation>... markerTypes
+    ) {
         return registry.getService(serviceInterface, markerTypes);
     }
 
@@ -48,7 +49,8 @@ public class ServiceLocatorImpl implements ServiceLocator {
     @Override
     public <T> T getObject(
         Class<T> objectType,
-        AnnotationProvider annotationProvider) {
+        AnnotationProvider annotationProvider
+    ) {
         return registry.getObject(objectType, annotationProvider, this, module);
     }
 
@@ -65,7 +67,8 @@ public class ServiceLocatorImpl implements ServiceLocator {
     @Override
     public <T> T proxy(
         Class<T> interfaceClass,
-        Class<? extends T> implementationClass) {
+        Class<? extends T> implementationClass
+    ) {
         return registry.proxy(interfaceClass, implementationClass, this);
     }
 }

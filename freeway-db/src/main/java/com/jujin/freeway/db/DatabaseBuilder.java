@@ -2,8 +2,8 @@ package com.jujin.freeway.db;
 
 import com.jujin.freeway.db.internal.ConnectionPool;
 import com.jujin.freeway.db.internal.DatabaseImpl;
+import com.jujin.freeway.db.internal.DefaultRowMapper;
 import com.jujin.freeway.db.internal.PoolConfig;
-
 import java.sql.DriverManager;
 import java.time.Duration;
 import java.util.Properties;
@@ -28,15 +28,22 @@ public class DatabaseBuilder {
     String username;
     String password;
     Properties extraProperties = new Properties();
-    int maxSize = 10;
-    int minIdle = 2;
-    Duration connectionTimeout = Duration.ofSeconds(30);
-    Duration maxLifetime = Duration.ofMinutes(30);
-    Duration maxIdleTime = Duration.ofMinutes(10);
-    Duration cleanInterval = Duration.ofMinutes(1);
-    String healthCheckQuery = "SELECT 1";
-    Duration healthCheckTimeout = Duration.ofSeconds(5);
+    int maxSize = DatabaseConfig.DEFAULT_MAX_SIZE;
+    int minIdle = DatabaseConfig.DEFAULT_MIN_IDLE;
+    Duration connectionTimeout = DatabaseConfig.DEFAULT_CONNECTION_TIMEOUT;
+    Duration maxLifetime = DatabaseConfig.DEFAULT_MAX_LIFETIME;
+    Duration maxIdleTime = DatabaseConfig.DEFAULT_MAX_IDLE_TIME;
+    Duration cleanInterval = DatabaseConfig.DEFAULT_CLEAN_INTERVAL;
+    String healthCheckQuery = DatabaseConfig.DEFAULT_HEALTH_CHECK_QUERY;
+    Duration healthCheckTimeout = DatabaseConfig.DEFAULT_HEALTH_CHECK_TIMEOUT;
+    Duration queryTimeout = DatabaseConfig.DEFAULT_QUERY_TIMEOUT;
     com.jujin.freeway.db.internal.DefaultRowMapper rowMapper;
+
+    /** Timeout for SQL queries. Default 30s. */
+    public DatabaseBuilder queryTimeout(Duration timeout) {
+        this.queryTimeout = timeout;
+        return this;
+    }
 
     public DatabaseBuilder url(String url) {
         this.url = url;
@@ -77,6 +84,27 @@ public class DatabaseBuilder {
         return this;
     }
 
+    /** Set all values from a {@link DatabaseConfig} at once. */
+    public DatabaseBuilder fromConfig(DatabaseConfig config) {
+        this.url = config.url();
+        this.username = config.username();
+        this.password = config.password();
+        this.extraProperties =
+            config.extraProperties() != null
+                ? config.extraProperties()
+                : new Properties();
+        this.maxSize = config.maxSize();
+        this.minIdle = config.minIdle();
+        this.connectionTimeout = config.connectionTimeout();
+        this.maxLifetime = config.maxLifetime();
+        this.maxIdleTime = config.maxIdleTime();
+        this.cleanInterval = config.cleanInterval();
+        this.healthCheckQuery = config.healthCheckQuery();
+        this.healthCheckTimeout = config.healthCheckTimeout();
+        this.queryTimeout = config.queryTimeout();
+        return this;
+    }
+
     /** Maximum age of a connection before it is evicted. Default 30m. */
     public DatabaseBuilder maxLifetime(Duration lifetime) {
         this.maxLifetime = lifetime;
@@ -114,7 +142,8 @@ public class DatabaseBuilder {
      * {@link com.jujin.freeway.ioc.PropertyAccess} for richer conversions.
      */
     public DatabaseBuilder rowMapper(
-        com.jujin.freeway.db.internal.DefaultRowMapper mapper) {
+        com.jujin.freeway.db.internal.DefaultRowMapper mapper
+    ) {
         this.rowMapper = mapper;
         return this;
     }
@@ -124,16 +153,45 @@ public class DatabaseBuilder {
      * connections.
      */
     public Database build() {
-        if (url == null || url.isBlank())
-            throw new IllegalStateException("url is required");
-        if (username == null)
-            throw new IllegalStateException("username is required");
-        if (password == null)
-            throw new IllegalStateException("password is required");
-        if (maxSize < 1)
-            throw new IllegalStateException("maxSize must be >= 1");
-        if (minIdle < 0 || minIdle > maxSize)
-            throw new IllegalStateException("minIdle must be between 0 and maxSize");
+        if (url == null || url.isBlank()) throw new IllegalStateException(
+            "url is required"
+        );
+        if (!url.startsWith("jdbc:")) throw new IllegalStateException(
+            "url must start with 'jdbc:'"
+        );
+        if (username == null) throw new IllegalStateException(
+            "username is required"
+        );
+        if (password == null) throw new IllegalStateException(
+            "password is required"
+        );
+        if (maxSize < 1 || maxSize > 1024) throw new IllegalStateException(
+            "maxSize must be between 1 and 1024, got " + maxSize
+        );
+        if (minIdle < 0 || minIdle > maxSize) throw new IllegalStateException(
+            "minIdle must be between 0 and maxSize"
+        );
+        if (
+            connectionTimeout == null || connectionTimeout.toMillis() <= 0
+        ) throw new IllegalStateException("connectionTimeout must be positive");
+        if (
+            maxLifetime == null || maxLifetime.toMillis() <= 0
+        ) throw new IllegalStateException("maxLifetime must be positive");
+        if (
+            maxIdleTime == null || maxIdleTime.toMillis() <= 0
+        ) throw new IllegalStateException("maxIdleTime must be positive");
+        if (
+            cleanInterval == null || cleanInterval.toMillis() <= 0
+        ) throw new IllegalStateException("cleanInterval must be positive");
+        // healthCheckQuery is optional — null means use Connection.isValid()
+        if (
+            healthCheckTimeout == null || healthCheckTimeout.toMillis() <= 0
+        ) throw new IllegalStateException(
+            "healthCheckTimeout must be positive"
+        );
+        if (
+            queryTimeout == null || queryTimeout.toMillis() <= 0
+        ) throw new IllegalStateException("queryTimeout must be positive");
 
         // Build JDBC connection properties
         var props = new Properties(extraProperties);
@@ -141,15 +199,23 @@ public class DatabaseBuilder {
         props.setProperty("password", password);
 
         var config = new PoolConfig(
-            url, props,
-            maxSize, minIdle,
-            connectionTimeout, maxLifetime, maxIdleTime, cleanInterval,
-            healthCheckQuery, healthCheckTimeout);
+            url,
+            props,
+            maxSize,
+            minIdle,
+            connectionTimeout,
+            maxLifetime,
+            maxIdleTime,
+            cleanInterval,
+            healthCheckQuery,
+            healthCheckTimeout
+        );
 
         var pool = new ConnectionPool(config);
+        var qTimeout = (int) queryTimeout.toSeconds();
         if (rowMapper != null) {
-            return new DatabaseImpl(pool, rowMapper);
+            return new DatabaseImpl(pool, rowMapper, qTimeout);
         }
-        return new DatabaseImpl(pool);
+        return new DatabaseImpl(pool, new DefaultRowMapper(), qTimeout);
     }
 }

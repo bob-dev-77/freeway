@@ -2,11 +2,11 @@ package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.symbol.SymbolProvider;
 import com.jujin.freeway.ioc.symbol.SymbolSource;
-
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SymbolSourceImpl implements SymbolSource {
+
     private final List<SymbolProvider> providers;
 
     /**
@@ -21,6 +21,7 @@ public class SymbolSourceImpl implements SymbolSource {
      * check for endless recursion).
      */
     private class SymbolExpansion {
+
         private final LinkedList<String> expandingSymbols = new LinkedList<>();
 
         String expandSymbols(String input) {
@@ -33,13 +34,11 @@ public class SymbolSourceImpl implements SymbolSource {
 
                 // Special case: if the string contains no symbols then return it as is.
 
-                if (startx == 0 && symbolx < 0)
-                    return input;
+                if (startx == 0 && symbolx < 0) return input;
 
                 // The string has at least one symbol, so its OK to create the StringBuilder
 
-                if (builder == null)
-                    builder = new StringBuilder();
+                if (builder == null) builder = new StringBuilder();
 
                 // No more symbols found, so add in the rest of the string.
 
@@ -54,8 +53,15 @@ public class SymbolSourceImpl implements SymbolSource {
 
                 if (endx < 0) {
                     String message = expandingSymbols.isEmpty()
-                        ? String.format("Input string '%s' is missing a symbol closing brace.", input)
-                        : String.format("Input string '%s' is missing a symbol closing brace (in %s).", input, path());
+                        ? String.format(
+                              "Input string '%s' is missing a symbol closing brace.",
+                              input
+                          )
+                        : String.format(
+                              "Input string '%s' is missing a symbol closing brace (in %s).",
+                              input,
+                              path()
+                          );
 
                     throw new RuntimeException(message);
                 }
@@ -90,9 +96,13 @@ public class SymbolSourceImpl implements SymbolSource {
         String expandSymbol(String symbolName) {
             if (expandingSymbols.contains(symbolName)) {
                 expandingSymbols.add(symbolName);
-                throw new RuntimeException(String.format("Symbol '%s' is defined in terms of itself (%s).",
-                    symbolName,
-                    pathFrom(symbolName)));
+                throw new RuntimeException(
+                    String.format(
+                        "Symbol '%s' is defined in terms of itself (%s).",
+                        symbolName,
+                        pathFrom(symbolName)
+                    )
+                );
             }
 
             expandingSymbols.addLast(symbolName);
@@ -100,17 +110,23 @@ public class SymbolSourceImpl implements SymbolSource {
             String value = null;
 
             for (SymbolProvider provider : providers) {
-                value = provider.valueForSymbol(symbolName);
+                value = provider.lookup(symbolName);
 
-                if (value != null)
-                    break;
+                if (value != null) break;
             }
 
             if (value == null) {
-
-                String message = expandingSymbols.size() == 1
-                    ? String.format("Symbol '%s' is not defined.", symbolName)
-                    : String.format("Symbol '%s' is not defined (in %s).", symbolName, path());
+                String message =
+                    expandingSymbols.size() == 1
+                        ? String.format(
+                              "Symbol '%s' is not defined.",
+                              symbolName
+                          )
+                        : String.format(
+                              "Symbol '%s' is not defined (in %s).",
+                              symbolName,
+                              path()
+                          );
 
                 throw new RuntimeException(message);
             }
@@ -124,7 +140,6 @@ public class SymbolSourceImpl implements SymbolSource {
             expandingSymbols.removeLast();
 
             return result;
-
         }
 
         String path() {
@@ -133,8 +148,7 @@ public class SymbolSourceImpl implements SymbolSource {
             boolean first = true;
 
             for (String symbolName : expandingSymbols) {
-                if (!first)
-                    builder.append(" --> ");
+                if (!first) builder.append(" --> ");
 
                 builder.append(symbolName);
 
@@ -152,14 +166,11 @@ public class SymbolSourceImpl implements SymbolSource {
 
             for (String symbolName : expandingSymbols) {
                 if (!match) {
-                    if (symbolName.equals(startSymbolName))
-                        match = true;
-                    else
-                        continue;
+                    if (symbolName.equals(startSymbolName)) match = true;
+                    else continue;
                 }
 
-                if (!first)
-                    builder.append(" --> ");
+                if (!first) builder.append(" --> ");
 
                 builder.append(symbolName);
 
@@ -171,23 +182,41 @@ public class SymbolSourceImpl implements SymbolSource {
     }
 
     public SymbolSourceImpl(final List<SymbolProvider> providers) {
-        this.providers = new ArrayList<>(Objects.requireNonNull(providers, "providers"));
+        this.providers = new ArrayList<>(
+            Objects.requireNonNull(providers, "providers")
+        );
     }
 
     @Override
-    public String expandSymbols(String input) {
+    public String expand(String input) {
         return new SymbolExpansion().expandSymbols(input);
     }
 
     @Override
-    public String valueForSymbol(String symbolName) {
+    public String resolve(String symbolName) {
         String value = cache.get(symbolName);
 
         // If already in the cache, then return it. Otherwise, let the SE find the value
         // and
         // update the cache.
 
-        return value != null ? value : new SymbolExpansion().valueForSymbol(symbolName);
+        return value != null
+            ? value
+            : new SymbolExpansion().valueForSymbol(symbolName);
     }
 
+    @Override
+    public boolean contains(String symbolName) {
+        // Quick cache check first
+        if (cache.containsKey(symbolName)) {
+            return true;
+        }
+        // Ask each provider without triggering recursive expansion or caching
+        for (SymbolProvider provider : providers) {
+            if (provider.lookup(symbolName) != null) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

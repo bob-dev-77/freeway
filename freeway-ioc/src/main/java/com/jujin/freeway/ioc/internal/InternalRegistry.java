@@ -4,19 +4,19 @@ import com.jujin.freeway.ioc.*;
 import com.jujin.freeway.ioc.advisor.OperationTracker;
 import com.jujin.freeway.ioc.advisor.ServiceAdvisor;
 import com.jujin.freeway.ioc.lifecycle.ServiceLifecycle;
-import org.slf4j.Logger;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.slf4j.Logger;
 
 /**
  * Internal view of the module registry, adding additional methods needed by
  * modules.
  */
 public interface InternalRegistry
-    extends Registry, RegistryShutdownHub, OperationTracker {
+    extends Registry, RegistryShutdownHub, OperationTracker
+{
     /**
      * As with
      * {@link com.jujin.freeway.ioc.Registry#getObject(Class, com.jujin.freeway.ioc.AnnotationProvider)},
@@ -36,7 +36,8 @@ public interface InternalRegistry
         Class<T> objectType,
         AnnotationProvider annotationProvider,
         ServiceLocator locator,
-        Module localModule);
+        Module localModule
+    );
 
     /**
      * Returns a service lifecycle by service scope name.
@@ -70,7 +71,8 @@ public interface InternalRegistry
      */
     <T> Collection<T> getUnorderedConfiguration(
         ServiceDefinition serviceDef,
-        Class<T> valueType);
+        Class<T> valueType
+    );
 
     /**
      * Builds up an ordered collection by invoking service contributor methods that
@@ -89,7 +91,8 @@ public interface InternalRegistry
      */
     <T> List<T> getOrderedConfiguration(
         ServiceDefinition serviceDef,
-        Class<T> valueType);
+        Class<T> valueType
+    );
 
     /**
      * Builds up a map of key/value pairs by invoking service contribution methods
@@ -111,7 +114,8 @@ public interface InternalRegistry
     <K, V> Map<K, V> getMappedConfiguration(
         ServiceDefinition serviceDef,
         Class<K> keyType,
-        Class<V> valueType);
+        Class<V> valueType
+    );
 
     /**
      * Given an input string that <em>may</em> contain symbols, returns the string
@@ -120,7 +124,7 @@ public interface InternalRegistry
      * @param input
      * @return expanded input
      */
-    String expandSymbols(String input);
+    String expand(String input);
 
     /**
      * Returns a logger for the service, which consists of the Module's
@@ -141,7 +145,8 @@ public interface InternalRegistry
     <T> T proxy(
         Class<T> interfaceClass,
         Class<? extends T> implementationClass,
-        ServiceLocator locator);
+        ServiceLocator locator
+    );
 
     /**
      * Returns a Set of Annotation classes that are used as service markers.

@@ -22,7 +22,8 @@ public class ConfigServiceProvider implements ServiceProvider {
 
     public ConfigServiceProvider(
         @Builtin SymbolSource symbolSource,
-        @Builtin TypeCoercer typeCoercer) {
+        @Builtin TypeCoercer typeCoercer
+    ) {
         this.symbolSource = symbolSource;
         this.typeCoercer = typeCoercer;
     }
@@ -31,21 +32,24 @@ public class ConfigServiceProvider implements ServiceProvider {
     public <T> T resolve(
         Class<T> objectType,
         AnnotationProvider annotationProvider,
-        ServiceLocator locator) {
+        ServiceLocator locator
+    ) {
         Symbol symbolAnno = annotationProvider.getAnnotation(Symbol.class);
         Value valueAnno = annotationProvider.getAnnotation(Value.class);
-        if (symbolAnno == null && valueAnno == null)
-            return null;
+        if (symbolAnno == null && valueAnno == null) return null;
 
-        Object raw = symbolAnno != null
-            ? symbolSource.valueForSymbol(symbolAnno.value())
-            : symbolSource.expandSymbols(valueAnno.value());
+        Object raw =
+            symbolAnno != null
+                ? symbolSource.resolve(symbolAnno.value())
+                : symbolSource.expand(valueAnno.value());
 
         IntermediateType intermediate = annotationProvider.getAnnotation(
-            IntermediateType.class);
-        Object coerced = intermediate != null
-            ? typeCoercer.coerce(raw, intermediate.value())
-            : raw;
+            IntermediateType.class
+        );
+        Object coerced =
+            intermediate != null
+                ? typeCoercer.coerce(raw, intermediate.value())
+                : raw;
 
         return typeCoercer.coerce(coerced, objectType);
     }

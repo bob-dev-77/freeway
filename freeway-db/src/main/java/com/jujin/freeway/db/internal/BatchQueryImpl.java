@@ -52,6 +52,7 @@ class BatchQueryImpl implements BatchQuery {
         try {
             var stmt = conn.jdbcConnection()
                 .prepareStatement(parsed.jdbcSql(), Statement.NO_GENERATED_KEYS);
+            stmt.setQueryTimeout(db.queryTimeoutSeconds);
             try {
                 if (namedRows != null && !namedRows.isEmpty()) {
                     for (var row : namedRows) {

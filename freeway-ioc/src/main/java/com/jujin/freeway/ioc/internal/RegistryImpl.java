@@ -19,8 +19,6 @@ import com.jujin.freeway.ioc.lifecycle.ServiceLifecycleSource;
 import com.jujin.freeway.ioc.lifecycle.StartupDef;
 import com.jujin.freeway.ioc.symbol.SymbolSource;
 import com.jujin.freeway.ioc.threading.PerthreadManager;
-import org.slf4j.Logger;
-
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
@@ -32,18 +30,22 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
+import org.slf4j.Logger;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class RegistryImpl
-    implements Registry, InternalRegistry, ServiceProxyProvider {
+    implements Registry, InternalRegistry, ServiceProxyProvider
+{
 
     private static final String SYMBOL_SOURCE_SERVICE_ID = "SymbolSource";
 
-    private static final String REGISTRY_SHUTDOWN_HUB_SERVICE_ID = "RegistryShutdownHub";
+    private static final String REGISTRY_SHUTDOWN_HUB_SERVICE_ID =
+        "RegistryShutdownHub";
 
     static final String PERTHREAD_MANAGER_SERVICE_ID = "PerthreadManager";
 
-    private static final String SERVICE_ACTIVITY_SCOREBOARD_SERVICE_ID = "ServiceActivityScoreboard";
+    private static final String SERVICE_ACTIVITY_SCOREBOARD_SERVICE_ID =
+        "ServiceActivityScoreboard";
 
     /**
      * The set of marker annotations for a builtin service.
@@ -64,10 +66,12 @@ public class RegistryImpl
     private final OneShotLock eagerLoadLock = new OneShotLock();
 
     private final Map<String, Object> builtinServices = new TreeMap<>(
-        String.CASE_INSENSITIVE_ORDER);
+        String.CASE_INSENSITIVE_ORDER
+    );
 
     private final Map<String, Class> builtinTypes = new TreeMap<>(
-        String.CASE_INSENSITIVE_ORDER);
+        String.CASE_INSENSITIVE_ORDER
+    );
 
     private final RegistryShutdownHubImpl registryShutdownHub;
 
@@ -77,10 +81,12 @@ public class RegistryImpl
      * Map from service id to the Module that contains the service.
      */
     private final Map<String, Module> serviceIdToModule = new TreeMap<>(
-        String.CASE_INSENSITIVE_ORDER);
+        String.CASE_INSENSITIVE_ORDER
+    );
 
     private final Map<String, ServiceLifecycle> lifecycles = new TreeMap<>(
-        String.CASE_INSENSITIVE_ORDER);
+        String.CASE_INSENSITIVE_ORDER
+    );
 
     private final PerthreadManager perthreadManager;
 
@@ -92,21 +98,27 @@ public class RegistryImpl
 
     private SymbolSource symbolSource;
 
-    private final Map<Module, Set<ServiceDefinition>> moduleToServiceDefs = new HashMap<>();
+    private final Map<Module, Set<ServiceDefinition>> moduleToServiceDefs =
+        new HashMap<>();
 
     /**
      * From marker type to a list of marked service instances.
      */
-    private final Map<Class<?>, List<ServiceDefinition>> markerToServiceDef = new HashMap<>();
+    private final Map<Class<?>, List<ServiceDefinition>> markerToServiceDef =
+        new HashMap<>();
 
     private final Set<ServiceDefinition> serviceDefs = new HashSet<>();
 
     private final OperationTracker operationTracker;
 
     private final TypeCoercerProxy typeCoercerProxy = new TypeCoercerProxyImpl(
-        this);
+        this
+    );
 
-    private final Map<Class<? extends Annotation>, Annotation> cachedAnnotationProxies = new ConcurrentHashMap<>();
+    private final Map<
+        Class<? extends Annotation>,
+        Annotation
+    > cachedAnnotationProxies = new ConcurrentHashMap<>();
 
     private final Set<Runnable> startups = new HashSet<>();
 
@@ -127,7 +139,8 @@ public class RegistryImpl
         Collection<ModuleDefinition> moduleDefs,
         JdkProxyFactory proxyFactory,
         LoggerSource loggerSource,
-        OperationTracker operationTracker) {
+        OperationTracker operationTracker
+    ) {
         assert moduleDefs != null;
         assert proxyFactory != null;
         assert loggerSource != null;
@@ -138,9 +151,12 @@ public class RegistryImpl
 
         this.proxyFactory = proxyFactory;
 
-        serviceConfigurationListener = new DelegatingServiceConfigurationListener(
-            loggerForBuiltinService(
-                ServiceConfigurationListener.class.getSimpleName()));
+        serviceConfigurationListener =
+            new DelegatingServiceConfigurationListener(
+                loggerForBuiltinService(
+                    ServiceConfigurationListener.class.getSimpleName()
+                )
+            );
 
         var logger = loggerForBuiltinService(PERTHREAD_MANAGER_SERVICE_ID);
 
@@ -148,8 +164,7 @@ public class RegistryImpl
 
         perthreadManager = ptmImpl;
 
-        trackerImpl = new ServiceActivityTrackerImpl(
-            perthreadManager);
+        trackerImpl = new ServiceActivityTrackerImpl(perthreadManager);
 
         tracker = trackerImpl;
 
@@ -161,7 +176,8 @@ public class RegistryImpl
         lifecycles.put("singleton", new SingletonServiceLifecycle());
 
         registryShutdownHub.addRegistryShutdownListener(
-            (Runnable) () -> trackerImpl.shutdown());
+            (Runnable) () -> trackerImpl.shutdown()
+        );
 
         for (ModuleDefinition def : moduleDefs) {
             logger = this.loggerSource.getLogger(def.getLoggerName());
@@ -171,7 +187,8 @@ public class RegistryImpl
                 tracker,
                 def,
                 proxyFactory,
-                logger);
+                logger
+            );
 
             var moduleServiceDefs = new HashSet<ServiceDefinition>();
 
@@ -183,12 +200,13 @@ public class RegistryImpl
 
                 var existing = serviceIdToModule.get(serviceId);
 
-                if (existing != null)
-                    throw new RuntimeException(
-                        IOCMessages.serviceIdConflict(
-                            serviceId,
-                            existing.getServiceDef(serviceId),
-                            serviceDef));
+                if (existing != null) throw new RuntimeException(
+                    IOCMessages.serviceIdConflict(
+                        serviceId,
+                        existing.getServiceDef(serviceId),
+                        serviceDef
+                    )
+                );
 
                 serviceIdToModule.put(serviceId, module);
 
@@ -199,7 +217,8 @@ public class RegistryImpl
                     InternalUtils.addToMapList(
                         markerToServiceDef,
                         marker,
-                        serviceDef);
+                        serviceDef
+                    );
             }
 
             moduleToServiceDefs.put(module, moduleServiceDefs);
@@ -210,28 +229,34 @@ public class RegistryImpl
         addBuiltin(
             SERVICE_ACTIVITY_SCOREBOARD_SERVICE_ID,
             ServiceActivityScoreboard.class,
-            trackerImpl);
+            trackerImpl
+        );
         addBuiltin(
             LOGGER_SOURCE_SERVICE_ID,
             LoggerSource.class,
-            this.loggerSource);
+            this.loggerSource
+        );
         addBuiltin(
             PERTHREAD_MANAGER_SERVICE_ID,
             PerthreadManager.class,
-            perthreadManager);
+            perthreadManager
+        );
         addBuiltin(
             REGISTRY_SHUTDOWN_HUB_SERVICE_ID,
             RegistryShutdownHub.class,
-            registryShutdownHub);
+            registryShutdownHub
+        );
         addBuiltin(
             JDK_PROXY_FACTORY_SERVICE_ID,
             JdkProxyFactory.class,
-            proxyFactory);
+            proxyFactory
+        );
 
         validateContributeDefs(moduleDefs);
 
         serviceConfigurationListener.setDelegates(
-            getService(ServiceConfigurationListenerHub.class).getListeners());
+            getService(ServiceConfigurationListenerHub.class).getListeners()
+        );
 
         SerializationSupport.setProvider(this);
     }
@@ -239,20 +264,26 @@ public class RegistryImpl
     private void addStartupsInModule(
         ModuleDefinition def,
         final Module module,
-        final Logger logger) {
+        final Logger logger
+    ) {
         for (final StartupDef startup : def.getStartups()) {
-            startups.add(() -> startup.invoke(
-                module,
-                RegistryImpl.this,
-                RegistryImpl.this,
-                logger));
+            startups.add(() ->
+                startup.invoke(
+                    module,
+                    RegistryImpl.this,
+                    RegistryImpl.this,
+                    logger
+                )
+            );
         }
     }
 
     /**
      * Validate that each module's ContributeDefs correspond to an actual service.
      */
-    private void validateContributeDefs(Collection<ModuleDefinition> moduleDefs) {
+    private void validateContributeDefs(
+        Collection<ModuleDefinition> moduleDefs
+    ) {
         for (ModuleDefinition module : moduleDefs) {
             var contributionDefs = module.getContributionDefs();
 
@@ -271,11 +302,13 @@ public class RegistryImpl
                 if (cd.getServiceId() != null) {
                     if (!serviceIdToModule.containsKey(serviceId)) {
                         throw new IllegalArgumentException(
-                            IOCMessages.contributionForNonexistentService(cd));
+                            IOCMessages.contributionForNonexistentService(cd)
+                        );
                     }
                 } else if (!isContributionForExistentService(module, cd)) {
                     throw new IllegalArgumentException(
-                        IOCMessages.contributionForUnqualifiedService(cd));
+                        IOCMessages.contributionForUnqualifiedService(cd)
+                    );
                 }
             }
         }
@@ -288,7 +321,8 @@ public class RegistryImpl
      */
     private boolean isContributionForExistentService(
         ModuleDefinition moduleDef,
-        final ContributionDef cd) {
+        final ContributionDef cd
+    ) {
         var contributionMarkers = new HashSet<>(cd.getMarkers());
 
         boolean localOnly = contributionMarkers.contains(Local.class);
@@ -305,11 +339,15 @@ public class RegistryImpl
         // anyMatch will short-circuit as soon as it finds a single match.
 
         return serviceDefs.anyMatch(
-            sd -> sd.getServiceInterface().equals(cd.getServiceInterface()) &&
-                sd.getMarkers().containsAll(contributionMarkers));
+            sd ->
+                sd.getServiceInterface().equals(cd.getServiceInterface()) &&
+                sd.getMarkers().containsAll(contributionMarkers)
+        );
     }
 
-    private Stream<ServiceDefinition> getLocalServiceDefs(final ModuleDefinition moduleDef) {
+    private Stream<ServiceDefinition> getLocalServiceDefs(
+        final ModuleDefinition moduleDef
+    ) {
         return moduleDef
             .getServiceIds()
             .stream()
@@ -361,13 +399,15 @@ public class RegistryImpl
 
     private Logger loggerForBuiltinService(String serviceId) {
         return loggerSource.getLogger(
-            FreewayIOCModule.class.getName() + "." + serviceId);
+            FreewayIOCModule.class.getName() + "." + serviceId
+        );
     }
 
     private <T> void addBuiltin(
         final String serviceId,
         final Class<T> serviceInterface,
-        T service) {
+        T service
+    ) {
         builtinTypes.put(serviceId, serviceInterface);
         builtinServices.put(serviceId, service);
 
@@ -378,7 +418,8 @@ public class RegistryImpl
         ServiceDefinition serviceDef = new ServiceDefinition() {
             @Override
             public ObjectCreator createServiceCreator(
-                ServiceBuilderResources resources) {
+                ServiceBuilderResources resources
+            ) {
                 return null;
             }
 
@@ -415,26 +456,31 @@ public class RegistryImpl
             @Override
             public AnnotationProvider getClassAnnotationProvider() {
                 return InternalUtils.toAnnotationProvider(
-                    getServiceInterface());
+                    getServiceInterface()
+                );
             }
 
             @Override
             @SuppressWarnings("rawtypes")
             public AnnotationProvider getMethodAnnotationProvider(
                 String methodName,
-                Class... argumentTypes) {
+                Class... argumentTypes
+            ) {
                 return InternalUtils.toAnnotationProvider(
                     InternalUtils.findMethod(
                         getServiceInterface(),
                         methodName,
-                        argumentTypes));
+                        argumentTypes
+                    )
+                );
             }
 
             @Override
             public int hashCode() {
                 final int prime = 31;
                 int result = 1;
-                result = prime * result +
+                result =
+                    prime * result +
                     ((serviceId == null) ? 0 : serviceId.hashCode());
                 return result;
             }
@@ -483,11 +529,10 @@ public class RegistryImpl
     public <T> T getService(String serviceId, Class<T> serviceInterface) {
         lock.check();
 
-        serviceId = expandSymbols(serviceId);
+        serviceId = expand(serviceId);
 
         var result = checkForBuiltinService(serviceId, serviceInterface);
-        if (result != null)
-            return result;
+        if (result != null) return result;
 
         // Checking serviceId and serviceInterface is overkill; they have been checked
         // and rechecked
@@ -500,11 +545,11 @@ public class RegistryImpl
 
     private <T> T checkForBuiltinService(
         String serviceId,
-        Class<T> serviceInterface) {
+        Class<T> serviceInterface
+    ) {
         var service = builtinServices.get(serviceId);
 
-        if (service == null)
-            return null;
+        if (service == null) return null;
 
         try {
             return serviceInterface.cast(service);
@@ -513,7 +558,9 @@ public class RegistryImpl
                 IOCMessages.serviceWrongInterface(
                     serviceId,
                     builtinTypes.get(serviceId),
-                    serviceInterface));
+                    serviceInterface
+                )
+            );
         }
     }
 
@@ -527,17 +574,18 @@ public class RegistryImpl
     private Module locateModuleForService(String serviceId) {
         var module = serviceIdToModule.get(serviceId);
 
-        if (module == null)
-            throw new UnknownValueException(
-                String.format(
-                    "Service id '%s' is not defined by any module.",
-                    serviceId),
-                serviceIdToModule
-                    .keySet()
-                    .stream()
-                    .map(Object::toString)
-                    .sorted()
-                    .toList());
+        if (module == null) throw new UnknownValueException(
+            String.format(
+                "Service id '%s' is not defined by any module.",
+                serviceId
+            ),
+            serviceIdToModule
+                .keySet()
+                .stream()
+                .map(Object::toString)
+                .sorted()
+                .toList()
+        );
 
         return module;
     }
@@ -545,7 +593,8 @@ public class RegistryImpl
     @Override
     public <T> Collection<T> getUnorderedConfiguration(
         ServiceDefinition serviceDef,
-        Class<T> objectType) {
+        Class<T> objectType
+    ) {
         lock.check();
 
         final Collection<T> result = new ArrayList<>();
@@ -562,7 +611,8 @@ public class RegistryImpl
         if (!isServiceConfigurationListenerServiceDef(serviceDef)) {
             serviceConfigurationListener.onUnorderedConfiguration(
                 serviceDef,
-                result);
+                result
+            );
         }
 
         return result;
@@ -572,7 +622,8 @@ public class RegistryImpl
     @SuppressWarnings("unchecked")
     public <T> List<T> getOrderedConfiguration(
         ServiceDefinition serviceDef,
-        Class<T> objectType) {
+        Class<T> objectType
+    ) {
         lock.check();
 
         String serviceId = serviceDef.getServiceId();
@@ -580,7 +631,8 @@ public class RegistryImpl
 
         var orderer = new Orderer<T>(logger);
         var overrides = new TreeMap<String, OrderedConfigurationOverride<T>>(
-            String.CASE_INSENSITIVE_ORDER);
+            String.CASE_INSENSITIVE_ORDER
+        );
 
         // . NOTICE: if someday an ordering between modules is added, this should be
         // reverted
@@ -594,7 +646,8 @@ public class RegistryImpl
                 overrides,
                 objectType,
                 serviceDef,
-                m);
+                m
+            );
 
         // An ugly hack ... perhaps we should introduce a new builtin service so that
         // this can be
@@ -606,11 +659,13 @@ public class RegistryImpl
                 public <T> T resolve(
                     Class<T> objectType,
                     AnnotationProvider annotationProvider,
-                    ServiceLocator locator) {
+                    ServiceLocator locator
+                ) {
                     return findServiceByMarkerAndType(
                         objectType,
                         annotationProvider,
-                        null);
+                        null
+                    );
                 }
             };
 
@@ -625,33 +680,39 @@ public class RegistryImpl
         if (!isServiceConfigurationListenerServiceDef(serviceDef)) {
             serviceConfigurationListener.onOrderedConfiguration(
                 serviceDef,
-                result);
+                result
+            );
         }
 
         return result;
     }
 
     private boolean isServiceConfigurationListenerServiceDef(
-        ServiceDefinition serviceDef) {
+        ServiceDefinition serviceDef
+    ) {
         return serviceDef
             .getServiceId()
             .equalsIgnoreCase(
-                ServiceConfigurationListener.class.getSimpleName());
+                ServiceConfigurationListener.class.getSimpleName()
+            );
     }
 
     @Override
     public <K, V> Map<K, V> getMappedConfiguration(
         ServiceDefinition serviceDef,
         Class<K> keyType,
-        Class<V> objectType) {
+        Class<V> objectType
+    ) {
         lock.check();
 
         // When the key type is String, then a case insensitive map is used.
 
         Map<K, V> result = newConfigurationMap(keyType);
         Map<K, ContributionDef> keyToContribution = newConfigurationMap(
-            keyType);
-        Map<K, MappedConfigurationOverride<K, V>> overrides = newConfigurationMap(keyType);
+            keyType
+        );
+        Map<K, MappedConfigurationOverride<K, V>> overrides =
+            newConfigurationMap(keyType);
 
         for (Module m : moduleToServiceDefs.keySet())
             addToMappedConfiguration(
@@ -661,7 +722,8 @@ public class RegistryImpl
                 keyType,
                 objectType,
                 serviceDef,
-                m);
+                m
+            );
 
         for (MappedConfigurationOverride<K, V> override : overrides.values()) {
             override.apply();
@@ -670,7 +732,8 @@ public class RegistryImpl
         if (!isServiceConfigurationListenerServiceDef(serviceDef)) {
             serviceConfigurationListener.onMappedConfiguration(
                 serviceDef,
-                result);
+                result
+            );
         }
 
         return result;
@@ -680,7 +743,8 @@ public class RegistryImpl
     private <K, V> Map<K, V> newConfigurationMap(Class<K> keyType) {
         if (keyType.equals(String.class)) {
             Map<String, K> result = new TreeMap<>(
-                String.CASE_INSENSITIVE_ORDER);
+                String.CASE_INSENSITIVE_ORDER
+            );
 
             return (Map<K, V>) result;
         }
@@ -695,12 +759,13 @@ public class RegistryImpl
         Class<K> keyClass,
         Class<V> valueType,
         ServiceDefinition serviceDef,
-        final Module module) {
+        final Module module
+    ) {
         String serviceId = serviceDef.getServiceId();
-        Set<ContributionDef> contributions = module.getContributorDefsForService(serviceDef);
+        Set<ContributionDef> contributions =
+            module.getContributorDefsForService(serviceDef);
 
-        if (contributions.isEmpty())
-            return;
+        if (contributions.isEmpty()) return;
 
         Logger logger = getServiceLogger(serviceId);
 
@@ -709,25 +774,30 @@ public class RegistryImpl
             module,
             serviceDef,
             proxyFactory,
-            logger);
+            logger
+        );
 
         for (final ContributionDef def : contributions) {
-            final MappedConfiguration<K, V> validating = new ValidatingMappedConfigurationWrapper<K, V>(
-                valueType,
-                resources,
-                typeCoercerProxy,
-                map,
-                overrides,
-                serviceId,
-                def,
-                keyClass,
-                keyToContribution);
+            final MappedConfiguration<K, V> validating =
+                new ValidatingMappedConfigurationWrapper<K, V>(
+                    valueType,
+                    resources,
+                    typeCoercerProxy,
+                    map,
+                    overrides,
+                    serviceId,
+                    def,
+                    keyClass,
+                    keyToContribution
+                );
 
             String description = "Invoking " + def;
 
             logger.debug(description);
 
-            operationTracker.run(description, () -> def.contribute(module, resources, validating));
+            operationTracker.run(description, () ->
+                def.contribute(module, resources, validating)
+            );
         }
     }
 
@@ -735,12 +805,13 @@ public class RegistryImpl
         Collection<T> collection,
         Class<T> valueType,
         ServiceDefinition serviceDef,
-        final Module module) {
+        final Module module
+    ) {
         String serviceId = serviceDef.getServiceId();
-        Set<ContributionDef> contributions = module.getContributorDefsForService(serviceDef);
+        Set<ContributionDef> contributions =
+            module.getContributorDefsForService(serviceDef);
 
-        if (contributions.isEmpty())
-            return;
+        if (contributions.isEmpty()) return;
 
         Logger logger = getServiceLogger(serviceId);
 
@@ -749,21 +820,26 @@ public class RegistryImpl
             module,
             serviceDef,
             proxyFactory,
-            logger);
+            logger
+        );
 
         for (final ContributionDef def : contributions) {
-            final Configuration<T> validating = new ValidatingConfigurationWrapper<T>(
-                valueType,
-                resources,
-                typeCoercerProxy,
-                collection,
-                serviceId);
+            final Configuration<T> validating =
+                new ValidatingConfigurationWrapper<T>(
+                    valueType,
+                    resources,
+                    typeCoercerProxy,
+                    collection,
+                    serviceId
+                );
 
             String description = "Invoking " + def;
 
             logger.debug(description);
 
-            operationTracker.run(description, () -> def.contribute(module, resources, validating));
+            operationTracker.run(description, () ->
+                def.contribute(module, resources, validating)
+            );
         }
     }
 
@@ -772,12 +848,13 @@ public class RegistryImpl
         Map<String, OrderedConfigurationOverride<T>> overrides,
         Class<T> valueType,
         ServiceDefinition serviceDef,
-        final Module module) {
+        final Module module
+    ) {
         String serviceId = serviceDef.getServiceId();
-        Set<ContributionDef> contributions = module.getContributorDefsForService(serviceDef);
+        Set<ContributionDef> contributions =
+            module.getContributorDefsForService(serviceDef);
 
-        if (contributions.isEmpty())
-            return;
+        if (contributions.isEmpty()) return;
 
         Logger logger = getServiceLogger(serviceId);
 
@@ -786,22 +863,27 @@ public class RegistryImpl
             module,
             serviceDef,
             proxyFactory,
-            logger);
+            logger
+        );
 
         for (final ContributionDef def : contributions) {
-            final OrderedConfiguration<T> validating = new ValidatingOrderedConfigurationWrapper<T>(
-                valueType,
-                resources,
-                typeCoercerProxy,
-                orderer,
-                overrides,
-                def);
+            final OrderedConfiguration<T> validating =
+                new ValidatingOrderedConfigurationWrapper<T>(
+                    valueType,
+                    resources,
+                    typeCoercerProxy,
+                    orderer,
+                    overrides,
+                    def
+                );
 
             String description = "Invoking " + def;
 
             logger.debug(description);
 
-            operationTracker.run(description, () -> def.contribute(module, resources, validating));
+            operationTracker.run(description, () ->
+                def.contribute(module, resources, validating)
+            );
         }
     }
 
@@ -815,7 +897,8 @@ public class RegistryImpl
     @Override
     public <T> T getService(
         Class<T> serviceInterface,
-        Class<? extends Annotation>... markerTypes) {
+        Class<? extends Annotation>... markerTypes
+    ) {
         lock.check();
 
         return getServiceByTypeAndMarkers(serviceInterface, markerTypes);
@@ -826,8 +909,7 @@ public class RegistryImpl
         lock.check();
 
         var serviceIds = findServiceIdsForInterface(serviceInterface);
-        if (serviceIds == null || serviceIds.isEmpty())
-            return List.of();
+        if (serviceIds == null || serviceIds.isEmpty()) return List.of();
 
         List<T> result = new ArrayList<>(serviceIds.size());
         for (String id : serviceIds) {
@@ -839,13 +921,13 @@ public class RegistryImpl
     private <T> T getServiceByTypeAlone(Class<T> serviceInterface) {
         var serviceIds = findServiceIdsForInterface(serviceInterface);
 
-        if (serviceIds == null)
-            serviceIds = Collections.emptyList();
+        if (serviceIds == null) serviceIds = Collections.emptyList();
 
         switch (serviceIds.size()) {
             case 0:
                 throw new RuntimeException(
-                    IOCMessages.noServiceMatchesType(serviceInterface));
+                    IOCMessages.noServiceMatchesType(serviceInterface)
+                );
             case 1:
                 String serviceId = serviceIds.get(0);
 
@@ -860,7 +942,8 @@ public class RegistryImpl
                 }
 
                 throw new RuntimeException(
-                    IOCMessages.manyServiceMatches(serviceInterface, serviceIds));
+                    IOCMessages.manyServiceMatches(serviceInterface, serviceIds)
+                );
         }
     }
 
@@ -874,11 +957,14 @@ public class RegistryImpl
             Module m = serviceIdToModule.get(id);
             if (m != null) {
                 var def = m.getServiceDef(id);
-                if (def != null &&
+                if (
+                    def != null &&
                     def
                         .getMarkers()
                         .contains(
-                            com.jujin.freeway.ioc.annotations.Primary.class)) {
+                            com.jujin.freeway.ioc.annotations.Primary.class
+                        )
+                ) {
                     if (found != null) {
                         // Multiple @Primary services — ambiguous
                         return null;
@@ -892,7 +978,8 @@ public class RegistryImpl
 
     private <T> T getServiceByTypeAndMarkers(
         Class<T> serviceInterface,
-        Class<? extends Annotation>... markerTypes) {
+        Class<? extends Annotation>... markerTypes
+    ) {
         if (markerTypes.length == 0) {
             return getServiceByTypeAlone(serviceInterface);
         }
@@ -907,13 +994,15 @@ public class RegistryImpl
             provider,
             null,
             markers,
-            matches);
+            matches
+        );
 
         return extractServiceFromMatches(serviceInterface, markers, matches);
     }
 
     private AnnotationProvider createAnnotationProvider(
-        Class<? extends Annotation>... markerTypes) {
+        Class<? extends Annotation>... markerTypes
+    ) {
         var map = new HashMap<Class<? extends Annotation>, Annotation>();
 
         for (Class<? extends Annotation> markerType : markerTypes) {
@@ -923,14 +1012,16 @@ public class RegistryImpl
         return new AnnotationProvider() {
             @Override
             public <T extends Annotation> T getAnnotation(
-                Class<T> annotationClass) {
+                Class<T> annotationClass
+            ) {
                 return annotationClass.cast(map.get(annotationClass));
             }
         };
     }
 
     private <A extends Annotation> Annotation createAnnotationProxy(
-        final Class<A> annotationType) {
+        final Class<A> annotationType
+    ) {
         Annotation result = cachedAnnotationProxies.get(annotationType);
 
         if (result == null) {
@@ -950,8 +1041,9 @@ public class RegistryImpl
 
             result = (Annotation) Proxy.newProxyInstance(
                 Thread.currentThread().getContextClassLoader(),
-                new Class[]{ annotationType },
-                handler);
+                new Class[] { annotationType },
+                handler
+            );
 
             cachedAnnotationProxies.put(annotationType, result);
         }
@@ -966,9 +1058,9 @@ public class RegistryImpl
             result.addAll(module.findServiceIdsForInterface(serviceInterface));
 
         for (Map.Entry<String, Object> entry : builtinServices.entrySet()) {
-            if (serviceInterface.isInstance(entry.getValue()))
-                result.add(
-                    entry.getKey());
+            if (serviceInterface.isInstance(entry.getValue())) result.add(
+                entry.getKey()
+            );
         }
 
         Collections.sort(result);
@@ -985,20 +1077,23 @@ public class RegistryImpl
         if (result == null) {
             var source = getService(
                 "ServiceLifecycleSource",
-                ServiceLifecycleSource.class);
+                ServiceLifecycleSource.class
+            );
 
             result = source.get(scope);
         }
 
-        if (result == null)
-            throw new RuntimeException(
-                IOCMessages.unknownScope(scope));
+        if (result == null) throw new RuntimeException(
+            IOCMessages.unknownScope(scope)
+        );
 
         return result;
     }
 
     @Override
-    public List<ServiceAdvisor> findAdvisorsForService(ServiceDefinition serviceDef) {
+    public List<ServiceAdvisor> findAdvisorsForService(
+        ServiceDefinition serviceDef
+    ) {
         lock.check();
 
         assert serviceDef != null;
@@ -1010,23 +1105,20 @@ public class RegistryImpl
         for (Module module : moduleToServiceDefs.keySet()) {
             var advisorDefs = module.findMatchingServiceAdvisors(serviceDef);
 
-            if (advisorDefs.isEmpty())
-                continue;
+            if (advisorDefs.isEmpty()) continue;
 
             var resources = new ServiceResourcesImpl(
                 this,
                 module,
                 serviceDef,
                 proxyFactory,
-                logger);
+                logger
+            );
 
             for (AdvisorDefinition def : advisorDefs) {
                 var advisor = def.createAdvisor(module, resources);
 
-                orderer.add(
-                    def.getAdvisorId(),
-                    advisor,
-                    def.getConstraints());
+                orderer.add(def.getAdvisorId(), advisor, def.getConstraints());
             }
         }
 
@@ -1038,12 +1130,14 @@ public class RegistryImpl
         Class<T> objectType,
         AnnotationProvider annotationProvider,
         ServiceLocator locator,
-        Module localModule) {
+        Module localModule
+    ) {
         lock.check();
 
-        AnnotationProvider effectiveProvider = annotationProvider != null
-            ? annotationProvider
-            : new NullAnnotationProvider();
+        AnnotationProvider effectiveProvider =
+            annotationProvider != null
+                ? annotationProvider
+                : new NullAnnotationProvider();
 
         // We do a check here for known marker/type combinations, so that you can use a
         // marker
@@ -1055,21 +1149,23 @@ public class RegistryImpl
         var result = findServiceByMarkerAndType(
             objectType,
             annotationProvider,
-            localModule);
+            localModule
+        );
 
-        if (result != null)
-            return result;
+        if (result != null) return result;
 
         var injector = getService(
             InternalUtils.INJECTOR_SERVICE_ID,
-            ObjectInjector.class);
+            ObjectInjector.class
+        );
 
         return injector.inject(objectType, effectiveProvider, locator, true);
     }
 
     private Collection<ServiceDefinition> filterByType(
         Class<?> objectType,
-        Collection<ServiceDefinition> serviceDefs) {
+        Collection<ServiceDefinition> serviceDefs
+    ) {
         Collection<ServiceDefinition> result = new HashSet<>();
 
         for (ServiceDefinition sd : serviceDefs) {
@@ -1085,9 +1181,9 @@ public class RegistryImpl
     private <T> T findServiceByMarkerAndType(
         Class<T> objectType,
         AnnotationProvider provider,
-        Module localModule) {
-        if (provider == null)
-            return null;
+        Module localModule
+    ) {
+        if (provider == null) return null;
 
         Set<ServiceDefinition> matches = new HashSet<>();
         List<Class<?>> markers = new ArrayList<>();
@@ -1097,7 +1193,8 @@ public class RegistryImpl
             provider,
             localModule,
             markers,
-            matches);
+            matches
+        );
 
         // If didn't see @Local or any recognized marker annotation, then don't try to
         // filter that
@@ -1118,7 +1215,8 @@ public class RegistryImpl
     private <T> T extractServiceFromMatches(
         Class<T> objectType,
         List<Class<?>> markers,
-        Set<ServiceDefinition> matches) {
+        Set<ServiceDefinition> matches
+    ) {
         switch (matches.size()) {
             case 1:
                 var def = matches.iterator().next();
@@ -1134,13 +1232,16 @@ public class RegistryImpl
                 // but isn't really a marker (because no service is marked by the annotation).
 
                 throw new RuntimeException(
-                    IOCMessages.noServicesMatchMarker(objectType, markers));
+                    IOCMessages.noServicesMatchMarker(objectType, markers)
+                );
             default:
                 throw new RuntimeException(
                     IOCMessages.manyServicesMatchMarker(
                         objectType,
                         markers,
-                        matches));
+                        matches
+                    )
+                );
         }
     }
 
@@ -1149,23 +1250,28 @@ public class RegistryImpl
         AnnotationProvider provider,
         Module localModule,
         List<Class<?>> markers,
-        Set<ServiceDefinition> matches) {
+        Set<ServiceDefinition> matches
+    ) {
         assert provider != null;
 
-        boolean localOnly = localModule != null && provider.getAnnotation(Local.class) != null;
+        boolean localOnly =
+            localModule != null && provider.getAnnotation(Local.class) != null;
 
         matches.addAll(
             filterByType(
                 objectType,
-                localOnly
-                    ? moduleToServiceDefs.get(localModule)
-                    : serviceDefs));
+                localOnly ? moduleToServiceDefs.get(localModule) : serviceDefs
+            )
+        );
 
         if (localOnly) {
             markers.add(Local.class);
         }
 
-        for (Entry<Class<?>, List<ServiceDefinition>> entry : markerToServiceDef.entrySet()) {
+        for (Entry<
+            Class<?>,
+            List<ServiceDefinition>
+        > entry : markerToServiceDef.entrySet()) {
             Class<?> marker = entry.getKey();
             if (provider.getAnnotation((Class) marker) == null) {
                 continue;
@@ -1184,7 +1290,8 @@ public class RegistryImpl
     @Override
     public <T> T getObject(
         Class<T> objectType,
-        AnnotationProvider annotationProvider) {
+        AnnotationProvider annotationProvider
+    ) {
         return getObject(objectType, annotationProvider, this, null);
     }
 
@@ -1203,26 +1310,25 @@ public class RegistryImpl
     }
 
     @Override
-    public String expandSymbols(String input) {
+    public String expand(String input) {
         lock.check();
 
         // Again, a bit of work to avoid instantiating the SymbolSource until absolutely
         // necessary.
 
-        if (!InternalUtils.containsSymbols(input))
-            return input;
+        if (!InternalUtils.containsSymbols(input)) return input;
 
-        return getSymbolSource().expandSymbols(input);
+        return getSymbolSource().expand(input);
     }
 
     /**
      * Defers obtaining the symbol source until actually needed.
      */
     private SymbolSource getSymbolSource() {
-        if (symbolSource == null)
-            symbolSource = getService(
-                SYMBOL_SOURCE_SERVICE_ID,
-                SymbolSource.class);
+        if (symbolSource == null) symbolSource = getService(
+            SYMBOL_SOURCE_SERVICE_ID,
+            SymbolSource.class
+        );
 
         return symbolSource;
     }
@@ -1236,11 +1342,13 @@ public class RegistryImpl
     public <T> T autobuild(final Class<T> clazz) {
         assert clazz != null;
         final Constructor constructor = InternalUtils.findAutobuildConstructor(
-            clazz);
+            clazz
+        );
 
         if (constructor == null) {
             throw new RuntimeException(
-                IOCMessages.noAutobuildConstructor(clazz));
+                IOCMessages.noAutobuildConstructor(clazz)
+            );
         }
 
         Map<Class<?>, Object> resourcesMap = new HashMap<>();
@@ -1254,7 +1362,8 @@ public class RegistryImpl
             resources,
             null,
             "Invoking " + constructor.getName(),
-            constructor);
+            constructor
+        );
 
         return plan.create();
     }
@@ -1262,7 +1371,8 @@ public class RegistryImpl
     @Override
     public <T> T proxy(
         Class<T> interfaceClass,
-        Class<? extends T> implementationClass) {
+        Class<? extends T> implementationClass
+    ) {
         return proxy(interfaceClass, implementationClass, this);
     }
 
@@ -1270,36 +1380,41 @@ public class RegistryImpl
     public <T> T proxy(
         Class<T> interfaceClass,
         Class<? extends T> implementationClass,
-        ServiceLocator locator) {
+        ServiceLocator locator
+    ) {
         assert interfaceClass != null;
         assert implementationClass != null;
 
-        if (InternalUtils.SERVICE_CLASS_RELOADING_ENABLED &&
-            InternalUtils.isLocalFile(implementationClass))
-            return createReloadingProxy(
-                interfaceClass,
-                implementationClass,
-                locator);
+        if (
+            InternalUtils.SERVICE_CLASS_RELOADING_ENABLED &&
+            InternalUtils.isLocalFile(implementationClass)
+        ) return createReloadingProxy(
+            interfaceClass,
+            implementationClass,
+            locator
+        );
 
         return createNonReloadingProxy(
             interfaceClass,
             implementationClass,
-            locator);
+            locator
+        );
     }
 
     private <T> T createNonReloadingProxy(
         Class<T> interfaceClass,
         final Class<? extends T> implementationClass,
-        final ServiceLocator locator) {
-        final ObjectCreator<T> autobuildCreator = () -> locator.autobuild(implementationClass);
+        final ServiceLocator locator
+    ) {
+        final ObjectCreator<T> autobuildCreator = () ->
+            locator.autobuild(implementationClass);
 
         ObjectCreator<T> justInTime = new ObjectCreator<T>() {
             private T delegate;
 
             @Override
             public synchronized T create() {
-                if (delegate == null)
-                    delegate = autobuildCreator.create();
+                if (delegate == null) delegate = autobuildCreator.create();
 
                 return delegate;
             }
@@ -1311,20 +1426,24 @@ public class RegistryImpl
             String.format(
                 "<Autobuild proxy %s(%s)>",
                 implementationClass.getName(),
-                interfaceClass.getName()));
+                interfaceClass.getName()
+            )
+        );
     }
 
     private <T> T createReloadingProxy(
         Class<T> interfaceClass,
         final Class<? extends T> implementationClass,
-        ServiceLocator locator) {
+        ServiceLocator locator
+    ) {
         var creator = new ReloadableObjectCreator(
             proxyFactory,
             implementationClass.getClassLoader(),
             implementationClass.getName(),
             loggerSource.getLogger(implementationClass),
             this,
-            locator);
+            locator
+        );
 
         getService(UpdateListenerHub.class).addUpdateListener(creator);
 
@@ -1334,7 +1453,9 @@ public class RegistryImpl
             String.format(
                 "<Autoreload proxy %s(%s)>",
                 implementationClass.getName(),
-                interfaceClass.getName()));
+                interfaceClass.getName()
+            )
+        );
     }
 
     @Override
@@ -1373,7 +1494,8 @@ public class RegistryImpl
     }
 
     private static final class DelegatingServiceConfigurationListener
-        implements ServiceConfigurationListener {
+        implements ServiceConfigurationListener
+    {
 
         private final Logger logger;
 
@@ -1393,15 +1515,20 @@ public class RegistryImpl
                 for (ServiceConfigurationListener delegate : delegates) {
                     delegate.onMappedConfiguration(
                         entry.getKey(),
-                        Collections.unmodifiableMap(entry.getValue()));
+                        Collections.unmodifiableMap(entry.getValue())
+                    );
                 }
             }
 
-            for (Entry<ServiceDefinition, Collection> entry : unordered.entrySet()) {
+            for (Entry<
+                ServiceDefinition,
+                Collection
+            > entry : unordered.entrySet()) {
                 for (ServiceConfigurationListener delegate : delegates) {
                     delegate.onUnorderedConfiguration(
                         entry.getKey(),
-                        Collections.unmodifiableCollection(entry.getValue()));
+                        Collections.unmodifiableCollection(entry.getValue())
+                    );
                 }
             }
 
@@ -1409,7 +1536,8 @@ public class RegistryImpl
                 for (ServiceConfigurationListener delegate : delegates) {
                     delegate.onOrderedConfiguration(
                         entry.getKey(),
-                        Collections.unmodifiableList(entry.getValue()));
+                        Collections.unmodifiableList(entry.getValue())
+                    );
                 }
             }
 
@@ -1424,7 +1552,8 @@ public class RegistryImpl
         @Override
         public void onOrderedConfiguration(
             ServiceDefinition serviceDef,
-            List configuration) {
+            List configuration
+        ) {
             log("ordered", serviceDef, configuration);
             if (delegates == null) {
                 ordered.put(serviceDef, configuration);
@@ -1432,7 +1561,8 @@ public class RegistryImpl
                 for (ServiceConfigurationListener delegate : delegates) {
                     delegate.onOrderedConfiguration(
                         serviceDef,
-                        Collections.unmodifiableList(configuration));
+                        Collections.unmodifiableList(configuration)
+                    );
                 }
             }
         }
@@ -1440,7 +1570,8 @@ public class RegistryImpl
         @Override
         public void onUnorderedConfiguration(
             ServiceDefinition serviceDef,
-            Collection configuration) {
+            Collection configuration
+        ) {
             log("unordered", serviceDef, configuration);
             if (delegates == null) {
                 unordered.put(serviceDef, configuration);
@@ -1448,7 +1579,8 @@ public class RegistryImpl
                 for (ServiceConfigurationListener delegate : delegates) {
                     delegate.onUnorderedConfiguration(
                         serviceDef,
-                        Collections.unmodifiableCollection(configuration));
+                        Collections.unmodifiableCollection(configuration)
+                    );
                 }
             }
         }
@@ -1456,7 +1588,8 @@ public class RegistryImpl
         @Override
         public void onMappedConfiguration(
             ServiceDefinition serviceDef,
-            Map configuration) {
+            Map configuration
+        ) {
             log("mapped", serviceDef, configuration);
             if (delegates == null) {
                 mapped.put(serviceDef, configuration);
@@ -1464,7 +1597,8 @@ public class RegistryImpl
                 for (ServiceConfigurationListener delegate : delegates) {
                     delegate.onMappedConfiguration(
                         serviceDef,
-                        Collections.unmodifiableMap(configuration));
+                        Collections.unmodifiableMap(configuration)
+                    );
                 }
             }
         }
@@ -1472,13 +1606,15 @@ public class RegistryImpl
         private void log(
             String type,
             ServiceDefinition serviceDef,
-            Object configuration) {
+            Object configuration
+        ) {
             if (logger.isDebugEnabled()) {
                 logger.debug(
                     "Service {} {} configuration: {}",
                     serviceDef.getServiceId(),
                     type,
-                    configuration.toString());
+                    configuration.toString()
+                );
             }
         }
     }
