@@ -4,7 +4,7 @@ import com.jujin.freeway.ioc.ServiceResources;
 import com.jujin.freeway.ioc.annotations.Builtin;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 import com.jujin.freeway.ioc.lifecycle.ServiceLifecycle;
-import com.jujin.freeway.ioc.threading.PerthreadManager;
+import com.jujin.freeway.ioc.threading.PerThreadManager;
 
 /**
  * Allows a service to exist "per thread" (in each thread). Creates a proxy that
@@ -19,12 +19,12 @@ import com.jujin.freeway.ioc.threading.PerthreadManager;
 @SuppressWarnings("rawtypes")
 public class PerThreadServiceLifecycle implements ServiceLifecycle {
 
-    private final PerthreadManager perthreadManager;
+    private final PerThreadManager perthreadManager;
 
     private final JdkProxyFactory proxyFactory;
 
     public PerThreadServiceLifecycle(
-        @Builtin PerthreadManager perthreadManager,
+        @Builtin PerThreadManager perthreadManager,
         @Builtin JdkProxyFactory proxyFactory) {
         this.perthreadManager = perthreadManager;
         this.proxyFactory = proxyFactory;

@@ -2,8 +2,9 @@ package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.RegistryShutdownHub;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
+import com.jujin.freeway.ioc.threading.PerThreadManager;
 import com.jujin.freeway.ioc.threading.PerThreadValue;
-import com.jujin.freeway.ioc.threading.PerthreadManager;
+import com.jujin.freeway.ioc.threading.PerThreadManager;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -14,7 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
-public class PerthreadManagerImpl implements PerthreadManager {
+public class PerThreadManagerImpl implements PerThreadManager {
     private final PerThreadValue<List<Runnable>> callbacksValue;
 
     private static final ScopedValue<Map> PER_THREAD_MAP = ScopedValue.newInstance();
@@ -25,7 +26,7 @@ public class PerthreadManagerImpl implements PerthreadManager {
 
     private volatile boolean shutdown = false;
 
-    public PerthreadManagerImpl(Logger logger) {
+    public PerThreadManagerImpl(Logger logger) {
         this.logger = logger;
 
         callbacksValue = createValue();

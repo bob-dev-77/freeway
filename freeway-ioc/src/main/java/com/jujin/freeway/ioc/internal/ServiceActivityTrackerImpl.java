@@ -5,7 +5,7 @@ import com.jujin.freeway.ioc.advisor.ServiceActivity;
 import com.jujin.freeway.ioc.advisor.ServiceActivityScoreboard;
 import com.jujin.freeway.ioc.internal.util.InternalUtils;
 import com.jujin.freeway.ioc.threading.PerThreadValue;
-import com.jujin.freeway.ioc.threading.PerthreadManager;
+import com.jujin.freeway.ioc.threading.PerThreadManager;
 
 import java.util.*;
 
@@ -22,7 +22,7 @@ public class ServiceActivityTrackerImpl
 
         public MutableServiceActivity(
             ServiceDefinition serviceDef,
-            PerthreadManager perthreadManager,
+            PerThreadManager perthreadManager,
             ServiceStatus status) {
             this.serviceDef = serviceDef;
             if (serviceDef.getServiceScope().equals(InternalUtils.PERTHREAD)) {
@@ -76,9 +76,9 @@ public class ServiceActivityTrackerImpl
         }
     }
 
-    private final PerthreadManager perthreadManager;
+    private final PerThreadManager perthreadManager;
 
-    public ServiceActivityTrackerImpl(PerthreadManager perthreadManager) {
+    public ServiceActivityTrackerImpl(PerThreadManager perthreadManager) {
         this.perthreadManager = perthreadManager;
     }
 

@@ -18,7 +18,7 @@ import com.jujin.freeway.ioc.lifecycle.ServiceLifecycle;
 import com.jujin.freeway.ioc.lifecycle.ServiceLifecycleSource;
 import com.jujin.freeway.ioc.lifecycle.StartupDef;
 import com.jujin.freeway.ioc.symbol.SymbolSource;
-import com.jujin.freeway.ioc.threading.PerthreadManager;
+import com.jujin.freeway.ioc.threading.PerThreadManager;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
@@ -88,7 +88,7 @@ public class RegistryImpl
         String.CASE_INSENSITIVE_ORDER
     );
 
-    private final PerthreadManager perthreadManager;
+    private final PerThreadManager perthreadManager;
 
     private final JdkProxyFactory proxyFactory;
 
@@ -160,7 +160,7 @@ public class RegistryImpl
 
         var logger = loggerForBuiltinService(PERTHREAD_MANAGER_SERVICE_ID);
 
-        var ptmImpl = new PerthreadManagerImpl(logger);
+        var ptmImpl = new PerThreadManagerImpl(logger);
 
         perthreadManager = ptmImpl;
 
@@ -238,7 +238,7 @@ public class RegistryImpl
         );
         addBuiltin(
             PERTHREAD_MANAGER_SERVICE_ID,
-            PerthreadManager.class,
+            PerThreadManager.class,
             perthreadManager
         );
         addBuiltin(

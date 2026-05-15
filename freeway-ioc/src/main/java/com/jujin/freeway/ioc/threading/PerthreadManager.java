@@ -1,7 +1,6 @@
 package com.jujin.freeway.ioc.threading;
 
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
-
 import java.util.function.Supplier;
 
 /**
@@ -11,7 +10,7 @@ import java.util.function.Supplier;
  * need to know when this event occurs, so that they can clean up any
  * per-thread/per-request state.
  */
-public interface PerthreadManager {
+public interface PerThreadManager {
     /**
      * Adds a callback to be invoked when {@link #cleanup()} is invoked; callbacks
      * are then removed.

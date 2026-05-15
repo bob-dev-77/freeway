@@ -2,7 +2,7 @@ package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 import com.jujin.freeway.ioc.threading.ParallelExecutor;
-import com.jujin.freeway.ioc.threading.PerthreadManager;
+import com.jujin.freeway.ioc.threading.PerThreadManager;
 import com.jujin.freeway.ioc.threading.ThunkCreator;
 
 import java.util.concurrent.Callable;
@@ -16,12 +16,12 @@ public class ParallelExecutorImpl implements ParallelExecutor {
 
     private final ExecutorService executorService;
 
-    private final PerthreadManager perthreadManager;
+    private final PerThreadManager perthreadManager;
 
     public ParallelExecutorImpl(
         ExecutorService executorService,
         ThunkCreator thunkCreator,
-        PerthreadManager perthreadManager) {
+        PerThreadManager perthreadManager) {
         this.executorService = executorService;
         this.thunkCreator = thunkCreator;
         this.perthreadManager = perthreadManager;

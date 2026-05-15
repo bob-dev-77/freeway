@@ -6,7 +6,7 @@ import com.jujin.freeway.ioc.ServiceLocator;
 import com.jujin.freeway.ioc.annotations.*;
 import com.jujin.freeway.ioc.config.MappedConfiguration;
 import com.jujin.freeway.ioc.config.OrderedConfiguration;
-import com.jujin.freeway.ioc.threading.PerthreadManager;
+import com.jujin.freeway.ioc.threading.PerThreadManager;
 import com.sun.net.httpserver.HttpServer;
 import org.slf4j.Logger;
 
@@ -105,7 +105,7 @@ public class WebModule {
         HttpFilterChain filterChain,
         ExceptionMapperChain exceptionMapperChain,
         RegistryShutdownHub shutdownHub,
-        PerthreadManager perthreadManager,
+        PerThreadManager perthreadManager,
         ServiceLocator serviceLocator,
         Logger logger,
         @Symbol(PREFIX + ".port") int port,

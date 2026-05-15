@@ -24,7 +24,7 @@ import com.jujin.freeway.ioc.schedule.TimeInterval;
 import com.jujin.freeway.ioc.symbol.SymbolProvider;
 import com.jujin.freeway.ioc.symbol.SymbolSource;
 import com.jujin.freeway.ioc.threading.ParallelExecutor;
-import com.jujin.freeway.ioc.threading.PerthreadManager;
+import com.jujin.freeway.ioc.threading.PerThreadManager;
 import com.jujin.freeway.ioc.threading.ThreadLocale;
 import com.jujin.freeway.ioc.threading.ThunkCreator;
 
@@ -307,7 +307,7 @@ public final class FreewayIOCModule {
         @Symbol(InternalUtils.THREAD_POOL_KEEP_ALIVE) @IntermediateType(TimeInterval.class) int keepAliveMillis,
         @Symbol(InternalUtils.THREAD_POOL_ENABLED) boolean threadPoolEnabled,
         @Symbol(InternalUtils.THREAD_POOL_QUEUE_SIZE) int queueSize,
-        PerthreadManager perthreadManager,
+        PerThreadManager perthreadManager,
         RegistryShutdownHub shutdownHub,
         ThunkCreator thunkCreator) {
         if (!threadPoolEnabled)
