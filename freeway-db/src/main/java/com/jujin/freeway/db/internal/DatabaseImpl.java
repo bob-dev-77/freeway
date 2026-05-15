@@ -30,13 +30,26 @@ public class DatabaseImpl implements Database {
         this(pool, new DefaultRowMapper(), 30);
     }
 
-    public DatabaseImpl(ConnectionPool pool, DefaultRowMapper rowMapper) {
-        this(pool, rowMapper, 30);
+    public DatabaseImpl(ConnectionPool pool, Object userMapper) {
+        this.pool = pool;
+        // If a custom RowMapper is provided, it should be a DefaultRowMapper
+        if (userMapper instanceof DefaultRowMapper) {
+            this.rowMapper = (DefaultRowMapper) userMapper;
+        } else {
+            // Fallback: create a default mapper
+            this.rowMapper = new DefaultRowMapper();
+        }
+        this.queryTimeoutSeconds = 30;
     }
 
-    public DatabaseImpl(ConnectionPool pool, DefaultRowMapper rowMapper, int queryTimeoutSeconds) {
+    public DatabaseImpl(ConnectionPool pool, Object userMapper, int queryTimeoutSeconds) {
         this.pool = pool;
-        this.rowMapper = rowMapper;
+        // If a custom RowMapper is provided, it should be a DefaultRowMapper
+        if (userMapper instanceof DefaultRowMapper) {
+            this.rowMapper = (DefaultRowMapper) userMapper;
+        } else {
+            this.rowMapper = new DefaultRowMapper();
+        }
         this.queryTimeoutSeconds = queryTimeoutSeconds;
     }
 

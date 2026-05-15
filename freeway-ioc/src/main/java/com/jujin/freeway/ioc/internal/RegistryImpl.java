@@ -1031,11 +1031,31 @@ public class RegistryImpl
                 @Override
                 public Object invoke(Object proxy, Method method, Object[] args)
                     throws Throwable {
-                    if (method.getName().equals("annotationType")) {
+                    String methodName = method.getName();
+                    
+                    // Explicitly handle standard annotation methods
+                    if (methodName.equals("annotationType")) {
                         return annotationType;
                     }
-
-                    return method.invoke(proxy, args);
+                    
+                    if (methodName.equals("toString")) {
+                        return "@" + annotationType.getName();
+                    }
+                    
+                    if (methodName.equals("hashCode")) {
+                        return System.identityHashCode(proxy);
+                    }
+                    
+                    if (methodName.equals("equals")) {
+                        // For marker annotation proxies, equality is based on reference identity
+                        // since we cache one proxy per annotation type
+                        return proxy == args[0];
+                    }
+                    
+                    // Any other method invocation is not supported
+                    throw new UnsupportedOperationException(
+                        String.format("Method '%s' is not supported on marker annotation proxy for %s",
+                            methodName, annotationType.getName()));
                 }
             };
 

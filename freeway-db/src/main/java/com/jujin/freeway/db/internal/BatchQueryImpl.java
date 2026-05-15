@@ -80,6 +80,25 @@ class BatchQueryImpl implements BatchQuery {
 
     private void bindRow(PreparedStatement stmt, Map<String, Object> row)
         throws SQLException {
+        // Validate that all named parameters have corresponding values
+        for (String name : parsed.names()) {
+            if (!row.containsKey(name)) {
+                throw new SqlException(
+                    "Missing value for named parameter '" + name +
+                        "' in batch SQL: " + sql
+                );
+            }
+        }
+        // Check for extra parameters
+        for (String paramName : row.keySet()) {
+            if (!parsed.names().contains(paramName)) {
+                throw new SqlException(
+                    "Unknown named parameter '" + paramName +
+                        "' in batch SQL: " + sql
+                );
+            }
+        }
+        // Bind parameters
         for (int i = 0; i < parsed.names().size(); i++) {
             String name = parsed.names().get(i);
             Object value = row.get(name);

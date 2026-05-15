@@ -93,7 +93,7 @@ public class TypeCoercerImpl implements TypeCoercer {
 
     public TypeCoercerImpl(Map<CoercionTuple.Key, CoercionTuple> tuples) {
         for (CoercionTuple tuple : tuples.values()) {
-            Class key = tuple.getSourceType();
+            Class key = tuple.sourceType();
 
             InternalUtils.addToMapList(sourceTypeToTuple, key, tuple);
         }
@@ -202,12 +202,12 @@ public class TypeCoercerImpl implements TypeCoercer {
         Optional<CoercionTuple> maybeTuple = getTuples(sourceType, targetType)
             .stream()
             .filter(
-                t -> sourceType.equals(t.getSourceType()) &&
-                    targetType.equals(t.getTargetType()))
+                t -> sourceType.equals(t.sourceType()) &&
+                    targetType.equals(t.targetType()))
             .findFirst();
 
         if (maybeTuple.isPresent()) {
-            return maybeTuple.get().getCoercion();
+            return maybeTuple.get().coercion();
         }
 
         // These are instance variables because this method may be called concurrently.
@@ -231,10 +231,10 @@ public class TypeCoercerImpl implements TypeCoercer {
             // is currently implicit, as compound tuples are stored deeper in the queue,
             // so simpler coercions will be located earlier.
 
-            var tupleTargetType = tuple.getTargetType();
+            var tupleTargetType = tuple.targetType();
 
             if (targetType.isAssignableFrom(tupleTargetType)) {
-                return tuple.getCoercion();
+                return tuple.coercion();
             }
 
             // So .. this tuple doesn't get us directly to the target type.
@@ -278,10 +278,10 @@ public class TypeCoercerImpl implements TypeCoercer {
         List<CoercionTuple> tuples = getTuples(Void.class, targetType);
 
         for (CoercionTuple tuple : tuples) {
-            var tupleTargetType = tuple.getTargetType();
+            var tupleTargetType = tuple.targetType();
 
             if (targetType.equals(tupleTargetType))
-                return tuple.getCoercion();
+                return tuple.coercion();
         }
 
         // Typical case: no match, this coercion passes the null through
@@ -324,7 +324,7 @@ public class TypeCoercerImpl implements TypeCoercer {
 
             for (CoercionTuple tuple : tuples) {
                 queue.addLast(tuple);
-                consideredTuples.add(tuple.getKey());
+                consideredTuples.add(tuple.key());
             }
 
             // Don't pull in Object -> type coercions when doing
@@ -360,15 +360,15 @@ public class TypeCoercerImpl implements TypeCoercer {
         CoercionTuple intermediateTuple,
         Set<CoercionTuple.Key> consideredTuples,
         LinkedList<CoercionTuple> queue) {
-        Class intermediateType = intermediateTuple.getTargetType();
+        Class intermediateType = intermediateTuple.targetType();
 
         for (Class c : new InheritanceSearch(intermediateType)) {
             for (CoercionTuple tuple : getTuples(c, targetType)) {
-                if (consideredTuples.contains(tuple.getKey())) {
+                if (consideredTuples.contains(tuple.key())) {
                     continue;
                 }
 
-                Class newIntermediateType = tuple.getTargetType();
+                Class newIntermediateType = tuple.targetType();
 
                 // If this tuple is for coercing from an intermediate type back towards our
                 // initial source type, then ignore it. This should only be an optimization,
@@ -385,14 +385,13 @@ public class TypeCoercerImpl implements TypeCoercer {
                 // intermediate type, hopefully closer to our eventual target type.
 
                 var compoundCoercer = new CompoundCoercion(
-                    intermediateTuple.getCoercion(),
-                    tuple.getCoercion());
+                    intermediateTuple.coercion(),
+                    tuple.coercion());
 
                 var compoundTuple = new CoercionTuple(
                     sourceType,
                     newIntermediateType,
-                    compoundCoercer,
-                    false);
+                    compoundCoercer);
 
                 // So, every tuple that is added to the queue can take as input the sourceType.
                 // The target type may be another intermediate type, or may be something
@@ -400,7 +399,7 @@ public class TypeCoercerImpl implements TypeCoercer {
                 // conclusion.
 
                 queue.addLast(compoundTuple);
-                consideredTuples.add(tuple.getKey());
+                consideredTuples.add(compoundTuple.key()); // Fixed: was tuple.key()
             }
         }
     }

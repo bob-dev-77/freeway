@@ -152,18 +152,24 @@ public class ConnectionPool implements AutoCloseable {
     public void close() {
         closed = true;
 
-        // 1. Drain all idle connections
+        // 1. Drain all idle connections immediately
         PooledConnection conn;
         while ((conn = idle.pollFirst()) != null) {
             closePhysical(conn);
             total.decrementAndGet();
         }
 
-        // 2. Wait briefly for active connections to be returned
-        long deadline =
-            System.nanoTime() + config.connectionTimeout().toNanos();
+        // 2. Wait for active connections to be returned (with timeout)
+        // Use a more efficient wait strategy than busy-waiting
+        long deadline = System.nanoTime() + config.connectionTimeout().toNanos();
         while (total.get() > 0 && System.nanoTime() < deadline) {
-            Thread.yield();
+            try {
+                // Sleep briefly to avoid busy-waiting, but allow quick response
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
         }
 
         // 3. Drain any connections returned during the wait
@@ -179,6 +185,15 @@ public class ConnectionPool implements AutoCloseable {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
+        }
+
+        // 5. Log warning if connections are still active (leak detected)
+        int remaining = total.get();
+        if (remaining > 0) {
+            logger.warn(
+                "Connection pool closed with {} connection(s) still active — possible leak",
+                remaining
+            );
         }
     }
 
@@ -213,9 +228,12 @@ public class ConnectionPool implements AutoCloseable {
             jdbcConn.setAutoCommit(true);
 
             // Lightweight health check on newly created connections
-            if (
-                !jdbcConn.isValid((int) config.healthCheckTimeout().toSeconds())
-            ) {
+            // Convert timeout to seconds, rounding up to avoid truncating sub-second values
+            int healthCheckTimeoutSec = (int) Math.max(
+                1,
+                (config.healthCheckTimeout().toMillis() + 999) / 1000
+            );
+            if (!jdbcConn.isValid(healthCheckTimeoutSec)) {
                 try {
                     jdbcConn.close();
                 } catch (SQLException ignored) {}
@@ -246,7 +264,11 @@ public class ConnectionPool implements AutoCloseable {
     private boolean healthCheck(PooledConnection conn) {
         try {
             Connection jdbcConn = conn.jdbcConnection();
-            int timeoutSec = (int) config.healthCheckTimeout().toSeconds();
+            // Convert timeout to seconds, rounding up to avoid truncating sub-second values
+            int timeoutSec = (int) Math.max(
+                1,
+                (config.healthCheckTimeout().toMillis() + 999) / 1000
+            );
 
             // JDBC4 Connection.isValid() is the primary health check.
             // It's a wire-protocol-level ping with no SQL round-trip.

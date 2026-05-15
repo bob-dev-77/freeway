@@ -160,10 +160,6 @@ public class ServiceResourcesImpl
         return registry;
     }
 
-    public Class getImplementationClass() {
-        return null;
-    }
-
     @Override
     public AnnotationProvider getClassAnnotationProvider() {
         return serviceDef.getClassAnnotationProvider();

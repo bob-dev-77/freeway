@@ -25,7 +25,15 @@ import org.slf4j.Logger;
  * <p>
  * Multi-instance safety: the {@code version} column in {@code _migrations}
  * has a unique constraint. If two instances try to run the same migration,
- * one INSERT will fail and both will safely skip it on next startup.
+ * one INSERT will fail with a constraint violation and both will safely skip
+ * it on next startup.
+ *
+ * <p>
+ * <b>Note on transactional DDL:</b> Not all databases support transactional
+ * DDL (e.g., MySQL MyISAM, Oracle). For databases that do (PostgreSQL, H2,
+ * SQLite), migrations are fully atomic. For others, partial execution may
+ * occur if a migration fails mid-way. Always test migrations on a copy of
+ * production data first.
  */
 public class MigrationRunner {
 
@@ -71,7 +79,12 @@ public class MigrationRunner {
             if (completed.contains(version)) continue;
 
             String sql = readFile(file);
-            if (sql.isBlank()) continue;
+            // Fail fast on blank migration files — this is likely a mistake
+            if (sql.isBlank()) {
+                throw new SqlException(
+                    "Migration file is empty or contains only whitespace: " + file
+                );
+            }
 
             runMigration(version, sql);
             ran++;
@@ -139,11 +152,13 @@ public class MigrationRunner {
 
     // ── Helpers ──────────────────────────────────────────────────────
 
-    /** Read a classpath resource as a UTF-8 string. */
+    /** Read a classpath resource as a UTF-8 string. Fails if file is missing. */
     private String readFile(String path) {
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
         try (InputStream in = cl.getResourceAsStream(path)) {
-            if (in == null) return "";
+            if (in == null) {
+                throw new SqlException("Migration file not found on classpath: " + path);
+            }
             return new String(in.readAllBytes(), StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new SqlException("Failed to read migration file: " + path, e);

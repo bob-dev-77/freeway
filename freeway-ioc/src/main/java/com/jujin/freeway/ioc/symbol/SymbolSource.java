@@ -43,8 +43,21 @@ public interface SymbolSource {
      * Each symbol is resolved via {@link #resolve(String)} and replaced
      * inline.
      *
+     * <p>Supports default value syntax: {@code ${symbol:default_value}}.
+     * If the symbol is not defined, the default value is used instead.</p>
+     *
+     * <p>Examples:</p>
+     * <pre>{@code
+     * symbols.expand("Welcome to ${app.name}!");
+     * // → "Welcome to MyApp!"
+     *
+     * symbols.expand("${undefined.symbol:fallback}");
+     * // → "fallback"
+     * }</pre>
+     *
      * @param input string that may contain symbols
      * @return the input with all symbols expanded
+     * @throws RuntimeException if a symbol is not defined and has no default value
      */
     String expand(String input);
 }

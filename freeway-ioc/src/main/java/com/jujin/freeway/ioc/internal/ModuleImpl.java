@@ -42,37 +42,10 @@ public class ModuleImpl implements Module {
 
     private final Logger logger;
 
-    private static final Predicate<Class<?>> canBeProxiedPredicate;
-
-    static {
-        Predicate<Class<?>> predicate = null;
-        try {
-            final MethodHandles.Lookup lookup = MethodHandles.lookup();
-            final MethodType methodType = MethodType.methodType(boolean.class);
-            final java.lang.invoke.MethodHandle isSealedMethodHandle = MethodHandles.lookup().findVirtual(
-                Class.class,
-                "isSealed",
-                methodType);
-            predicate = c -> c.isInterface() && !callIsSealed(isSealedMethodHandle, c);
-        } catch (NoSuchMethodException e) {
-            LoggerFactory.getLogger(ModuleImpl.class).info(
-                "Method Class.isSealed() not found, so we're running in a pre-15 JVM.");
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-
-        canBeProxiedPredicate = predicate != null ? predicate : c -> c.isInterface();
-    }
-
-    private static boolean callIsSealed(
-        final java.lang.invoke.MethodHandle isSealedMethodHandle,
-        Class<?> clasz) {
-        try {
-            return (Boolean) isSealedMethodHandle.invoke(clasz);
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
-    }
+    // For JDK 25+, we can directly use Class.isSealed()
+    // A class can be proxied if it's an interface and not sealed
+    private static final Predicate<Class<?>> canBeProxiedPredicate = 
+        c -> c.isInterface() && !c.isSealed();
 
     /**
      * Lazily instantiated. Access is guarded by BARRIER.
@@ -360,7 +333,7 @@ public class ModuleImpl implements Module {
 
                 return proxy;
             } catch (Exception ex) {
-                ex.printStackTrace();
+                logger.error("Failed to create service '{}': {}", serviceId, ex.getMessage(), ex);
                 throw new RuntimeException(
                     IOCMessages.errorBuildingService(serviceId, def, ex),
                     ex);

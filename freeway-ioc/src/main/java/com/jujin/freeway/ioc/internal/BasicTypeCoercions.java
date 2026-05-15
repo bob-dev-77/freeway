@@ -553,6 +553,6 @@ public class BasicTypeCoercions {
             sourceType,
             targetType,
             coercion);
-        configuration.add(tuple.getKey(), tuple);
+        configuration.add(tuple.key(), tuple);
     }
 }

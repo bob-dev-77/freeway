@@ -203,8 +203,12 @@ public class ServiceBinderImpl implements ServiceBinder, ServiceBindingOptions {
     public <T> ServiceBindingOptions bind(
         Class<T> serviceInterface,
         final ServiceBuilder<T> builder) {
-        assert serviceInterface != null;
-        assert builder != null;
+        if (serviceInterface == null) {
+            throw new IllegalArgumentException("serviceInterface must not be null");
+        }
+        if (builder == null) {
+            throw new IllegalArgumentException("builder must not be null");
+        }
         lock.check();
 
         flush();
@@ -234,8 +238,12 @@ public class ServiceBinderImpl implements ServiceBinder, ServiceBindingOptions {
     public <T> ServiceBindingOptions bind(
         Class<T> serviceInterface,
         Class<? extends T> serviceImplementation) {
-        assert serviceInterface != null;
-        assert serviceImplementation != null;
+        if (serviceInterface == null) {
+            throw new IllegalArgumentException("serviceInterface must not be null");
+        }
+        if (serviceImplementation == null) {
+            throw new IllegalArgumentException("serviceImplementation must not be null");
+        }
         lock.check();
 
         flush();
@@ -309,7 +317,9 @@ public class ServiceBinderImpl implements ServiceBinder, ServiceBindingOptions {
 
     @Override
     public ServiceBindingOptions withId(String id) {
-        assert InternalUtils.isNonBlank(id);
+        if (!InternalUtils.isNonBlank(id)) {
+            throw new IllegalArgumentException("id must not be null or blank");
+        }
         lock.check();
 
         serviceId = id;
@@ -329,7 +339,9 @@ public class ServiceBinderImpl implements ServiceBinder, ServiceBindingOptions {
 
     @Override
     public ServiceBindingOptions scope(String scope) {
-        assert InternalUtils.isNonBlank(scope);
+        if (!InternalUtils.isNonBlank(scope)) {
+            throw new IllegalArgumentException("scope must not be null or blank");
+        }
         lock.check();
 
         this.scope = scope;

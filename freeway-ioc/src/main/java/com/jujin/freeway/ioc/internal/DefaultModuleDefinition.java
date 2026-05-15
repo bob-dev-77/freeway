@@ -155,20 +155,23 @@ public class DefaultModuleDefinition implements ModuleDefinition, ServiceDefAccu
     }
 
     private static boolean signaturesAreEqual(Method m1, Method m2) {
-        if (m1.getName() == m2.getName()) {
-            if (!m1.getReturnType().equals(m2.getReturnType()))
+        if (!m1.getName().equals(m2.getName())) {
+            return false;
+        }
+        if (!m1.getReturnType().equals(m2.getReturnType())) {
+            return false;
+        }
+        Class<?>[] params1 = m1.getParameterTypes();
+        Class<?>[] params2 = m2.getParameterTypes();
+        if (params1.length != params2.length) {
+            return false;
+        }
+        for (int i = 0; i < params1.length; i++) {
+            if (!params1[i].equals(params2[i])) {
                 return false;
-            Class<?>[] params1 = m1.getParameterTypes();
-            Class<?>[] params2 = m2.getParameterTypes();
-            if (params1.length == params2.length) {
-                for (int i = 0; i < params1.length; i++) {
-                    if (params1[i] != params2[i])
-                        return false;
-                }
-                return true;
             }
         }
-        return false;
+        return true;
     }
 
     /**
@@ -302,9 +305,10 @@ public class DefaultModuleDefinition implements ModuleDefinition, ServiceDefAccu
             : stripMethodPrefix(method, CONTRIBUTE_METHOD_NAME_PREFIX);
 
         Class<?> returnType = method.getReturnType();
-        if (!returnType.equals(void.class))
-            logger.warn(
+        if (!returnType.equals(void.class)) {
+            throw new RuntimeException(
                 IOCMessages.contributionWrongReturnType(method));
+        }
 
         ConfigurationType type = null;
 
@@ -365,7 +369,19 @@ public class DefaultModuleDefinition implements ModuleDefinition, ServiceDefAccu
             ? stripMethodPrefix(method, ADVISE_METHOD_NAME_PREFIX)
             : extractId(serviceInterface, annotation.id());
 
-        // TODO: Check for duplicates
+        // Check for duplicate advisor IDs - fail fast
+        if (advisorDefs.containsKey(advisorId)) {
+            AdvisorDefinition existing = advisorDefs.get(advisorId);
+            throw new RuntimeException(
+                String.format(
+                    "Duplicate advisor id '%s' in module %s.\n" +
+                        "Previous definition: %s\n" +
+                        "New definition: %s",
+                    advisorId,
+                    moduleClass.getName(),
+                    existing.toString(),
+                    InternalUtils.asString(method)));
+        }
 
         Class<?> returnType = method.getReturnType();
 

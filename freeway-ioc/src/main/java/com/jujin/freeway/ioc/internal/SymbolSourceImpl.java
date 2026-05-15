@@ -68,7 +68,15 @@ public class SymbolSourceImpl implements SymbolSource {
 
                 String symbolName = input.substring(symbolx + 2, endx);
 
-                builder.append(valueForSymbol(symbolName));
+                // Support default value syntax: ${symbol:default_value}
+                int colonIndex = symbolName.indexOf(':');
+                String defaultValue = null;
+                if (colonIndex > 0) {
+                    defaultValue = symbolName.substring(colonIndex + 1);
+                    symbolName = symbolName.substring(0, colonIndex).trim();
+                }
+
+                builder.append(valueForSymbol(symbolName, defaultValue));
 
                 // Restart the search after the '}'
 
@@ -79,10 +87,14 @@ public class SymbolSourceImpl implements SymbolSource {
         }
 
         String valueForSymbol(String symbolName) {
+            return valueForSymbol(symbolName, null);
+        }
+
+        String valueForSymbol(String symbolName, String defaultValue) {
             String value = cache.get(symbolName);
 
             if (value == null) {
-                value = expandSymbol(symbolName);
+                value = expandSymbol(symbolName, defaultValue);
 
                 if (cache.size() >= MAX_CACHE_SIZE) {
                     cache.clear();
@@ -93,7 +105,7 @@ public class SymbolSourceImpl implements SymbolSource {
             return value;
         }
 
-        String expandSymbol(String symbolName) {
+        String expandSymbol(String symbolName, String defaultValue) {
             if (expandingSymbols.contains(symbolName)) {
                 expandingSymbols.add(symbolName);
                 throw new RuntimeException(
@@ -116,19 +128,24 @@ public class SymbolSourceImpl implements SymbolSource {
             }
 
             if (value == null) {
-                String message =
-                    expandingSymbols.size() == 1
-                        ? String.format(
-                              "Symbol '%s' is not defined.",
-                              symbolName
-                          )
-                        : String.format(
-                              "Symbol '%s' is not defined (in %s).",
-                              symbolName,
-                              path()
-                          );
+                // Use default value if provided
+                if (defaultValue != null) {
+                    value = defaultValue;
+                } else {
+                    String message =
+                        expandingSymbols.size() == 1
+                            ? String.format(
+                                  "Symbol '%s' is not defined.",
+                                  symbolName
+                              )
+                            : String.format(
+                                  "Symbol '%s' is not defined (in %s).",
+                                  symbolName,
+                                  path()
+                              );
 
-                throw new RuntimeException(message);
+                    throw new RuntimeException(message);
+                }
             }
 
             // The value may have symbols that need expansion.

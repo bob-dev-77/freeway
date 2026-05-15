@@ -184,6 +184,23 @@ class QueryImpl implements Query {
     }
 
     private void bindPositional(PreparedStatement stmt) throws SQLException {
+        // Count actual placeholders in the SQL (after expansion if any)
+        String sqlToCheck = expandedSql != null ? expandedSql : originalSql;
+        int placeholderCount = 0;
+        for (int i = 0; i < sqlToCheck.length(); i++) {
+            if (sqlToCheck.charAt(i) == '?') {
+                placeholderCount++;
+            }
+        }
+        
+        if (positionalParams.length != placeholderCount) {
+            throw new SqlException(
+                "Parameter count mismatch: SQL has " + placeholderCount +
+                    " placeholder(s) but " + positionalParams.length +
+                    " value(s) provided. SQL: " + originalSql
+            );
+        }
+        
         for (int i = 0; i < positionalParams.length; i++) {
             stmt.setObject(i + 1, positionalParams[i]);
         }
@@ -193,6 +210,25 @@ class QueryImpl implements Query {
         if (parsed == null) {
             parsed = NamedParamParser.parse(originalSql);
         }
+        // Validate that all named parameters have corresponding values
+        for (String name : parsed.names()) {
+            if (!namedParams.containsKey(name)) {
+                throw new SqlException(
+                    "Missing value for named parameter '" + name +
+                        "' in SQL: " + originalSql
+                );
+            }
+        }
+        // Check for extra parameters that don't exist in SQL
+        for (String paramName : namedParams.keySet()) {
+            if (!parsed.names().contains(paramName)) {
+                throw new SqlException(
+                    "Unknown named parameter '" + paramName +
+                        "' — not found in SQL: " + originalSql
+                );
+            }
+        }
+        // Bind parameters
         for (int i = 0; i < parsed.names().size(); i++) {
             String name = parsed.names().get(i);
             Object value = namedParams.get(name);

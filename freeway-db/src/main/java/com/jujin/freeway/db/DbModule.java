@@ -19,6 +19,7 @@ import com.jujin.freeway.ioc.config.MappedConfiguration;
 import com.jujin.freeway.ioc.property.PropertyAccess;
 import com.jujin.freeway.ioc.symbol.SymbolProvider;
 import com.jujin.freeway.ioc.symbol.SymbolSource;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -146,6 +147,7 @@ public class DbModule {
         Map<String, Database> map = new HashMap<>();
         map.put("primary", primary);
 
+        var errors = new ArrayList<String>();
         for (String name : names.split(",")) {
             name = name.trim();
             if (name.isEmpty() || map.containsKey(name)) continue;
@@ -153,14 +155,13 @@ public class DbModule {
             String dsPrefix = PREFIX_DS + "." + name;
             var config = DatabaseConfig.fromSymbols(symbols, dsPrefix);
 
-            if (
-                config.url() == null ||
-                config.username() == null ||
-                config.password() == null
-            ) {
-                logger.warn(
-                    "Freeway DB: skipping datasource '{}' — url/username/password not set",
-                    name
+            // Fail fast on incomplete datasource configuration
+            if (config.url() == null || config.username() == null || config.password() == null) {
+                errors.add(
+                    "Datasource '" + name + "' is missing required config: " +
+                        (config.url() == null ? "url " : "") +
+                        (config.username() == null ? "username " : "") +
+                        (config.password() == null ? "password" : "")
                 );
                 continue;
             }
@@ -179,6 +180,13 @@ public class DbModule {
             shutdownHub.addRegistryShutdownListener(db::close);
             map.put(name, db);
             logger.info("Freeway DB: datasource '{}' ready", name);
+        }
+
+        if (!errors.isEmpty()) {
+            throw new IllegalStateException(
+                "Freeway DB: Failed to initialize named datasources:\n" +
+                    String.join("\n", errors)
+            );
         }
 
         return new DbHubImpl(map);
