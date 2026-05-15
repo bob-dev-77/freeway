@@ -2,6 +2,8 @@ package com.jujin.freeway.boot;
 
 import com.jujin.freeway.boot.config.*;
 import com.jujin.freeway.ioc.Registry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.Map;
 
 /**
@@ -14,7 +16,6 @@ import java.util.Map;
  * Usage:
  *
  * <pre>{@code
- * @FreewayBootApplication
  * public class MyApp {
  *     public static void main(String[] args) {
  *         FreewayApp app = FreewayApplication.run(MyApp.class, args);
@@ -23,6 +24,8 @@ import java.util.Map;
  * }</pre>
  */
 public class FreewayApplication {
+
+    private static final Logger LOG = LoggerFactory.getLogger(FreewayApplication.class);
 
     private final Class<?> primarySource;
     private final String[] args;
@@ -36,7 +39,8 @@ public class FreewayApplication {
      * Static factory: creates and runs a freeway-boot application.
      *
      * @param primarySource
-     *            the class annotated with {@code @FreewayBootApplication}
+     *            the primary application class (can contain bind() / build*()
+     *            methods as an IoC module)
      * @param args
      *            command-line arguments
      * @return a running {@link FreewayApp} handle
@@ -100,6 +104,13 @@ public class FreewayApplication {
         configSources.add(new EnvironmentConfigProvider());
 
         // Merge all sources into a single map (higher priority overrides lower)
-        return configSources.merge();
+        Map<String, String> config = configSources.merge();
+        
+        // Debug: log loaded configuration keys
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Loaded {} configuration keys: {}", config.size(), config.keySet());
+        }
+        
+        return config;
     }
 }

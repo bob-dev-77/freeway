@@ -2,8 +2,8 @@ package com.jujin.freeway.db;
 
 import com.jujin.freeway.db.annotations.Primary;
 import com.jujin.freeway.db.internal.DbHubImpl;
-import com.jujin.freeway.db.internal.DefaultRowMapper;
 import com.jujin.freeway.db.internal.MigrationRunner;
+import com.jujin.freeway.db.internal.RowMapperFactory;
 import com.jujin.freeway.db.internal.RowMapperOverridesImpl;
 import com.jujin.freeway.ioc.RegistryShutdownHub;
 import com.jujin.freeway.ioc.ServiceBinder;
@@ -106,7 +106,7 @@ public class DbModule {
         Database db = new DatabaseBuilder()
             .fromConfig(config)
             .rowMapper(
-                new DefaultRowMapper(
+                RowMapperFactory.withIoC(
                     typeCoercer,
                     propertyAccess,
                     rowMapperOverrides
@@ -169,7 +169,7 @@ public class DbModule {
             Database db = new DatabaseBuilder()
                 .fromConfig(config)
                 .rowMapper(
-                    new DefaultRowMapper(
+                    RowMapperFactory.withIoC(
                         typeCoercer,
                         propertyAccess,
                         rowMapperOverrides

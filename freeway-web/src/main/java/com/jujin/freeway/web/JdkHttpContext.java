@@ -82,7 +82,7 @@ public class JdkHttpContext extends HttpContext {
                 if (maxBodySize > 0) {
                     cachedBody = is.readNBytes((int) maxBodySize);
                     if (is.read() != -1) {
-                        throw new IOException("Request body exceeds maximum size of " + maxBodySize + " bytes");
+                        throw new RequestBodyTooLargeException(maxBodySize);
                     }
                 } else {
                     cachedBody = is.readAllBytes();

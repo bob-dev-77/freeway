@@ -2,8 +2,8 @@ package com.jujin.freeway.db;
 
 import com.jujin.freeway.db.internal.ConnectionPool;
 import com.jujin.freeway.db.internal.DatabaseImpl;
-import com.jujin.freeway.db.internal.DefaultRowMapper;
 import com.jujin.freeway.db.internal.PoolConfig;
+import com.jujin.freeway.db.internal.RowMapperFactory;
 import java.sql.DriverManager;
 import java.time.Duration;
 import java.util.Properties;
@@ -37,7 +37,7 @@ public class DatabaseBuilder {
     String healthCheckQuery = DatabaseConfig.DEFAULT_HEALTH_CHECK_QUERY;
     Duration healthCheckTimeout = DatabaseConfig.DEFAULT_HEALTH_CHECK_TIMEOUT;
     Duration queryTimeout = DatabaseConfig.DEFAULT_QUERY_TIMEOUT;
-    Object rowMapper; // Can be DefaultRowMapper or any RowMapper<?>
+    Object rowMapper; // Can be RowMapperFactory or any RowMapper<?>
 
     /** Timeout for SQL queries. Default 30s. */
     public DatabaseBuilder queryTimeout(Duration timeout) {
@@ -141,7 +141,7 @@ public class DatabaseBuilder {
      * {@link com.jujin.freeway.ioc.coercion.TypeCoercer} and
      * {@link com.jujin.freeway.ioc.PropertyAccess} for richer conversions.
      *
-     * @param mapper the row mapper factory (typically a {@code DefaultRowMapper})
+     * @param mapper the row mapper factory (typically a {@code RowMapperFactory})
      */
     public DatabaseBuilder rowMapper(Object mapper) {
         this.rowMapper = mapper;
@@ -218,9 +218,9 @@ public class DatabaseBuilder {
         int qTimeout = (int) Math.max(1, (queryTimeoutMillis + 999) / 1000); // round up, minimum 1 second
         
         if (rowMapper != null) {
-            // rowMapper can be a DefaultRowMapper or any compatible mapper
+            // rowMapper can be a RowMapperFactory or any compatible mapper
             return new DatabaseImpl(pool, rowMapper, qTimeout);
         }
-        return new DatabaseImpl(pool, new DefaultRowMapper(), qTimeout);
+        return new DatabaseImpl(pool, RowMapperFactory.standalone(), qTimeout);
     }
 }

@@ -15,10 +15,9 @@ public class ConfigSource {
 
     private final List<ConfigProvider> providers = new ArrayList<>();
 
-    /** Adds a configuration provider. Providers are sorted by priority. */
+    /** Adds a configuration provider. */
     public void add(ConfigProvider provider) {
         providers.add(provider);
-        Collections.sort(providers);
     }
 
     /** Returns all registered providers (sorted by priority). */
@@ -31,6 +30,9 @@ public class ConfigSource {
      * number) values override lower-priority ones.
      */
     public Map<String, String> merge() {
+        // Lazy sort: only sort once during merge for better performance
+        providers.sort(null);  // Uses Comparable natural ordering (priority)
+        
         Map<String, String> result = new LinkedHashMap<>();
         for (int i = providers.size() - 1; i >= 0; i--) {
             ConfigProvider source = providers.get(i);
@@ -41,7 +43,7 @@ public class ConfigSource {
                 }
             }
         }
-        return result;
+        return Collections.unmodifiableMap(result);
     }
 
     /** Returns the value from the highest-priority provider that has it. */

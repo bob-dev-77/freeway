@@ -23,32 +23,32 @@ public class DatabaseImpl implements Database {
     private static final Logger logger = LoggerFactory.getLogger(DatabaseImpl.class);
 
     final ConnectionPool pool;
-    final DefaultRowMapper rowMapper;
+    final RowMapperFactory rowMapper;
     final int queryTimeoutSeconds;
 
     public DatabaseImpl(ConnectionPool pool) {
-        this(pool, new DefaultRowMapper(), 30);
+        this(pool, RowMapperFactory.standalone(), 30);
     }
 
     public DatabaseImpl(ConnectionPool pool, Object userMapper) {
         this.pool = pool;
-        // If a custom RowMapper is provided, it should be a DefaultRowMapper
-        if (userMapper instanceof DefaultRowMapper) {
-            this.rowMapper = (DefaultRowMapper) userMapper;
+        // If a custom RowMapper is provided, it should be a RowMapperFactory
+        if (userMapper instanceof RowMapperFactory) {
+            this.rowMapper = (RowMapperFactory) userMapper;
         } else {
-            // Fallback: create a default mapper
-            this.rowMapper = new DefaultRowMapper();
+            // Fallback: create a standalone factory
+            this.rowMapper = RowMapperFactory.standalone();
         }
         this.queryTimeoutSeconds = 30;
     }
 
     public DatabaseImpl(ConnectionPool pool, Object userMapper, int queryTimeoutSeconds) {
         this.pool = pool;
-        // If a custom RowMapper is provided, it should be a DefaultRowMapper
-        if (userMapper instanceof DefaultRowMapper) {
-            this.rowMapper = (DefaultRowMapper) userMapper;
+        // If a custom RowMapper is provided, it should be a RowMapperFactory
+        if (userMapper instanceof RowMapperFactory) {
+            this.rowMapper = (RowMapperFactory) userMapper;
         } else {
-            this.rowMapper = new DefaultRowMapper();
+            this.rowMapper = RowMapperFactory.standalone();
         }
         this.queryTimeoutSeconds = queryTimeoutSeconds;
     }

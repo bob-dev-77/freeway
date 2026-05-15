@@ -96,6 +96,38 @@ public class WebModule {
         config.add("cors", corsFilter, "before:*");
     }
 
+    // ── Auto-contribute built-in exception mappers ───────────────────
+
+    @Contribute(ExceptionMapperChain.class)
+    public static void contributeExceptionMappers(
+        OrderedConfiguration<ExceptionMapper> config) {
+        // Handle request body too large - return 413 Payload Too Large
+        config.add("body-size", (ctx, ex) -> {
+            if (ex instanceof RequestBodyTooLargeException) {
+                var bodyEx = (RequestBodyTooLargeException) ex;
+                ctx.status(413);
+                try {
+                    ctx.sendJson(413, Map.of(
+                        "error", "Payload Too Large",
+                        "message", ex.getMessage(),
+                        "maxSize", bodyEx.getMaxSize()
+                    ));
+                } catch (Exception e) {
+                    // Fallback to plain text if JSON fails
+                    try {
+                        ctx.send(413, "Payload Too Large: " + ex.getMessage());
+                    } catch (Exception ex2) {
+                        // Log but don't throw - we're in an error handler
+                        java.util.logging.Logger.getLogger(WebModule.class.getName())
+                            .severe("Failed to send 413 response: " + ex2.getMessage());
+                    }
+                }
+                return true;
+            }
+            return false;
+        }, "first");
+    }
+
     // ── Server startup ─────────────────────────────────────────────
 
     @Startup
@@ -122,10 +154,11 @@ public class WebModule {
             logger.info("Freeway Web: {} filters registered", filterCount);
         }
 
-        // 1. Create and configure the server
+        // 1. Create executor and server
+        var executor = Executors.newVirtualThreadPerTaskExecutor();
         var server = HttpServer.create(
             new InetSocketAddress(host, port), backlog);
-        server.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
+        server.setExecutor(executor);
 
         // 2. Register a single catch-all context that delegates to RouteRegistry
         server.createContext("/", exchange -> {
@@ -147,11 +180,23 @@ public class WebModule {
             });
         });
 
-        // 3. Start server
+        // 3. Start server and register shutdown hooks
         server.start();
         int actualPort = server.getAddress().getPort();
         int grace = shutdownGraceSeconds > 0 ? shutdownGraceSeconds : 2;
-        shutdownHub.addRegistryShutdownListener((Runnable) () -> server.stop(grace));
+        
+        // Register shutdown listeners in reverse order of dependency
+        shutdownHub.addRegistryShutdownListener((Runnable) () -> {
+            logger.info("Freeway Web: stopping server on port {}...", actualPort);
+            server.stop(grace);
+            logger.info("Freeway Web: server stopped");
+        });
+        
+        shutdownHub.addRegistryShutdownListener((Runnable) () -> {
+            logger.info("Freeway Web: shutting down executor...");
+            executor.shutdown();
+            logger.info("Freeway Web: executor shut down");
+        });
 
         logger.info("Freeway Web: started on {}:{}", host, actualPort);
     }
@@ -161,7 +206,13 @@ public class WebModule {
             try {
                 ctx.sendJson(200, Map.of("status", "UP"));
             } catch (Exception e) {
-                logger.warn("Health check failed", e);
+                // Fallback to plain text if JSON fails
+                logger.warn("Health check JSON serialization failed, using fallback", e);
+                try {
+                    ctx.send(200, "UP");
+                } catch (Exception ex) {
+                    logger.error("Health check completely failed", ex);
+                }
             }
         });
     }
@@ -184,10 +235,20 @@ public class WebModule {
 
     static void handleException(HttpContext ctx, Exception e,
                                 List<ExceptionMapper> mappers, Logger logger) {
+        // Try each mapper in order, but isolate mapper failures
         for (ExceptionMapper mapper : mappers) {
-            if (mapper.handle(ctx, e))
-                return;
+            try {
+                if (mapper.handle(ctx, e)) {
+                    return; // Mapper handled the exception successfully
+                }
+            } catch (Exception mapperEx) {
+                // Log mapper failure and continue to next mapper
+                logger.error("Exception mapper {} failed while handling: {}",
+                    mapper.getClass().getSimpleName(), e.getMessage(), mapperEx);
+            }
         }
+        
+        // All mappers failed or declined - use fallback response
         logger.error("Unhandled exception for {} {}", ctx.method(), ctx.path(), e);
         try {
             ctx.send(500, "Internal Server Error");

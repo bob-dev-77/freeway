@@ -179,12 +179,33 @@ class RouteRegistryTest {
     // ── Duplicate route prevention ───────────────────────────
 
     @Test
-    void addRouteDuplicateIsSilentlyIgnored() {
+    void addRouteDuplicateThrowsException() {
         var r = new RouteRegistry(List.of(
             new RouteDef("GET", "/only", ctx -> {})), logger);
         assertEquals(1, r.routeCount());
-        r.addRoute("GET", "/only", ctx -> {});
+        
+        // Duplicate route should throw IllegalStateException
+        var ex = assertThrows(IllegalStateException.class, () -> {
+            r.addRoute("GET", "/only", ctx -> {});
+        });
+        
+        assertTrue(ex.getMessage().contains("Duplicate route detected"));
+        assertTrue(ex.getMessage().contains("GET /only"));
         assertEquals(1, r.routeCount()); // duplicate not added
+    }
+
+    @Test
+    void constructorDetectsDuplicateRoutes() {
+        // Constructor should also detect duplicates and fail fast
+        var ex = assertThrows(IllegalStateException.class, () -> {
+            new RouteRegistry(List.of(
+                new RouteDef("GET", "/dup", ctx -> {}),
+                new RouteDef("GET", "/dup", ctx -> {})
+            ), logger);
+        });
+        
+        assertTrue(ex.getMessage().contains("Duplicate route detected"));
+        assertTrue(ex.getMessage().contains("GET /dup"));
     }
 
     // ── RouteMatch record ───────────────────────────────────

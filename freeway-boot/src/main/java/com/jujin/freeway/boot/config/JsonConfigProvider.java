@@ -1,5 +1,6 @@
 package com.jujin.freeway.boot.config;
 
+import com.jujin.freeway.commons.json.JSONArray;
 import com.jujin.freeway.commons.json.JSONObject;
 import com.jujin.freeway.commons.json.JSONUtils;
 import java.io.InputStream;
@@ -52,7 +53,7 @@ public class JsonConfigProvider implements ConfigProvider {
                 flatten("", obj, props);
             }
         } catch (Exception e) {
-            // Ignore — empty or malformed source treated as empty
+            throw new IllegalStateException("Failed to load application.json: " + e.getMessage(), e);
         }
     }
 
@@ -67,6 +68,14 @@ public class JsonConfigProvider implements ConfigProvider {
             Object value = obj.get(key);
             if (value instanceof JSONObject child) {
                 flatten(fullKey, child, target);
+            } else if (value instanceof JSONArray array) {
+                // Flatten arrays as key.0=value, key.1=value, etc.
+                for (int i = 0; i < array.size(); i++) {
+                    Object item = array.get(i);
+                    if (item != null) {
+                        target.put(fullKey + "." + i, item.toString());
+                    }
+                }
             } else if (value != null) {
                 target.put(fullKey, value.toString());
             }

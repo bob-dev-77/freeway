@@ -7,7 +7,6 @@ import com.jujin.freeway.ioc.config.ContributionDef;
 import com.jujin.freeway.ioc.config.MappedConfiguration;
 import com.jujin.freeway.ioc.config.OrderedConfiguration;
 import com.jujin.freeway.ioc.internal.MapSymbolProvider;
-import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 import com.jujin.freeway.ioc.lifecycle.StartupDef;
 import com.jujin.freeway.ioc.symbol.SymbolProvider;
 import java.util.Map;
@@ -17,9 +16,8 @@ import java.util.Set;
 /**
  * ModuleDefinition that bridges boot-merged configuration into the SymbolSource.
  * <p>
- * Creates a {@link MapSymbolProvider} from the merged config map and
- * contributes it into the ordered {@link SymbolProvider} chain after
- * {@code EnvironmentVariables} and before {@code ApplicationDefaults}.
+ * Contributes a {@link MapSymbolProvider} into the ordered {@link SymbolProvider}
+ * chain after {@code EnvironmentVariables} and before {@code ApplicationDefaults}.
  */
 public class BootModuleDefinition implements ModuleDefinition {
 
@@ -31,67 +29,12 @@ public class BootModuleDefinition implements ModuleDefinition {
 
     @Override
     public Set<String> getServiceIds() {
-        return Set.of("BootConfig");
+        return Set.of();  // No services exposed - only contributes to SymbolSource
     }
 
     @Override
     public ServiceDefinition getServiceDef(String serviceId) {
-        if (!"BootConfig".equalsIgnoreCase(serviceId)) return null;
-        return new ServiceDefinition() {
-            @Override
-            public String getServiceId() {
-                return "BootConfig";
-            }
-
-            @Override
-            public Class<?> getServiceInterface() {
-                return SymbolProvider.class;
-            }
-
-            @Override
-            public boolean isEagerLoad() {
-                return false;
-            }
-
-            @Override
-            public String getServiceScope() {
-                return "singleton";
-            }
-
-            @Override
-            public Set<Class<?>> getMarkers() {
-                return Set.of();
-            }
-
-            @Override
-            public ObjectCreator<?> createServiceCreator(
-                ServiceBuilderResources resources
-            ) {
-                return () -> new MapSymbolProvider(config);
-            }
-
-            @Override
-            public AnnotationProvider getClassAnnotationProvider() {
-                return com.jujin.freeway.ioc.internal.util.InternalUtils.toAnnotationProvider(
-                    getServiceInterface()
-                );
-            }
-
-            @Override
-            @SuppressWarnings("rawtypes")
-            public AnnotationProvider getMethodAnnotationProvider(
-                String methodName,
-                Class... argumentTypes
-            ) {
-                return com.jujin.freeway.ioc.internal.util.InternalUtils.toAnnotationProvider(
-                    com.jujin.freeway.ioc.internal.util.InternalUtils.findMethod(
-                        getServiceInterface(),
-                        methodName,
-                        argumentTypes
-                    )
-                );
-            }
-        };
+        return null;  // No service definitions - see getContributionDefs()
     }
 
     @Override

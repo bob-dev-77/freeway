@@ -51,7 +51,7 @@ public class CorsFilter implements HttpFilter {
     /** Builder for programmatic CORS configuration. */
     public static class Builder {
 
-        private String allowedOrigins;
+        private String allowedOrigins = "*";  // Default: allow all origins (consistent with IoC defaults)
         private String allowedMethods =
             "GET, POST, PUT, DELETE, PATCH, OPTIONS";
         private String allowedHeaders = "Content-Type, Authorization";

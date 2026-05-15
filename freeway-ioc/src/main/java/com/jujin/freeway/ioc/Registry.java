@@ -18,7 +18,7 @@ public interface Registry extends ServiceLocator {
      * Invoked at the end of a request to discard any thread-specific information
      * accumulated during the current request.
      *
-     * @see com.jujin.freeway.ioc.PerthreadManager
+     * @see com.jujin.freeway.ioc.threading.PerThreadManager
      */
     void cleanupThread();
 

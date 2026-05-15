@@ -3,60 +3,76 @@ package com.jujin.freeway.db.internal;
 import com.jujin.freeway.db.RowMapper;
 import com.jujin.freeway.db.RowMapperOverrides;
 import com.jujin.freeway.db.SqlException;
-import com.jujin.freeway.ioc.property.PropertyAccess;
 import com.jujin.freeway.ioc.coercion.TypeCoercer;
+import com.jujin.freeway.ioc.property.PropertyAccess;
 
-import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.RecordComponent;
 import java.math.BigDecimal;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.ArrayList;
+import java.time.*;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Creates {@link RowMapper} instances for records and JavaBeans. Records are
- * constructed via their canonical constructor; beans are populated via
- * {@link PropertyAccess} (when available) or {@code java.beans.Introspector}.
- *
+ * Factory that creates {@link RowMapper} instances for different types.
  * <p>
- * Type coercion delegates to the IoC {@link TypeCoercer} when available,
- * falling back to built-in JDBC-to-Java conversions.
- *
+ * Supports three mapping strategies:
+ * <ul>
+ *   <li><b>Simple types</b> — String, primitives, wrappers, BigDecimal, date/time types</li>
+ *   <li><b>Records</b> — uses canonical constructor with column-to-component matching</li>
+ *   <li><b>Beans</b> — uses no-arg constructor + property setters (IoC MethodHandle or reflection)</li>
+ * </ul>
  * <p>
- * Column names are matched to property/component names with automatic
- * snake_case-to-camelCase conversion (e.g. {@code created_at} matches
- * {@code createdAt}).
+ * Type coercion delegates entirely to IoC's {@link TypeCoercer} when available,
+ * ensuring consistent conversion behavior across the framework.
  */
 @SuppressWarnings("unchecked")
-public class DefaultRowMapper {
+public class RowMapperFactory {
 
     private final TypeCoercer typeCoercer;
     private final PropertyAccess propertyAccess;
     private final RowMapperOverrides overrides;
     private final Map<Class<?>, RowMapper<?>> cache = new ConcurrentHashMap<>();
 
-    /** Standalone: basic type coercion, no IoC services, no overrides. */
-    public DefaultRowMapper() {
-        this(null, null, null);
+    /**
+     * Creates a standalone factory without IoC services.
+     * <p>
+     * <b>Note:</b> Without TypeCoercer, only identity conversion is supported.
+     * Use {@link #withIoC(TypeCoercer, PropertyAccess, RowMapperOverrides)} for full functionality.
+     */
+    public static RowMapperFactory standalone() {
+        return new RowMapperFactory(null, null, null);
     }
 
-    /** IoC-enhanced: uses TypeCoercer and PropertyAccess from the container. */
-    public DefaultRowMapper(TypeCoercer typeCoercer, PropertyAccess propertyAccess) {
+    /**
+     * Creates an IoC-enhanced factory with full type coercion and optimized property access.
+     *
+     * @param typeCoercer   IoC type conversion service
+     * @param propertyAccess IoC property access service (MethodHandle-based)
+     * @return configured factory instance
+     */
+    /**
+     * Creates an IoC-enhanced factory with full type coercion, optimized property access,
+     * and custom mapper overrides.
+     *
+     * @param typeCoercer   IoC type conversion service
+     * @param propertyAccess IoC property access service (MethodHandle-based)
+     * @param overrides     Custom RowMapper overrides (can be null)
+     * @return configured factory instance
+     */
+    public static RowMapperFactory withIoC(TypeCoercer typeCoercer, PropertyAccess propertyAccess,
+                                          RowMapperOverrides overrides) {
+        return new RowMapperFactory(typeCoercer, propertyAccess, overrides);
+    }
+
+    private RowMapperFactory(TypeCoercer typeCoercer, PropertyAccess propertyAccess) {
         this(typeCoercer, propertyAccess, null);
     }
 
-    /** Full: IoC services plus custom RowMapper overrides. */
-    public DefaultRowMapper(TypeCoercer typeCoercer, PropertyAccess propertyAccess,
+    private RowMapperFactory(TypeCoercer typeCoercer, PropertyAccess propertyAccess,
                             RowMapperOverrides overrides) {
         this.typeCoercer = typeCoercer;
         this.propertyAccess = propertyAccess;
@@ -64,18 +80,19 @@ public class DefaultRowMapper {
     }
 
     /**
-     * Returns a mapper for {@code type}. Custom overrides contributed via
-     * {@link RowMapperOverrides} take precedence; otherwise a built-in
-     * record/bean/simple mapper is created and cached.
+     * Returns a mapper for {@code type}. Custom overrides take precedence;
+     * built-in mappers are cached for performance.
+     *
+     * @param type the target type to map rows into
+     * @return a RowMapper instance
      */
-    @SuppressWarnings("unchecked")
     public <T> RowMapper<T> forClass(Class<T> type) {
-        // Check custom overrides first — these are not cached because they
-        // come from user contributions and may change between reloads
+        // Check custom overrides first (from IoC contribution)
         if (overrides != null) {
             RowMapper<?> custom = overrides.get(type);
             if (custom != null) return (RowMapper<T>) custom;
         }
+        
         return (RowMapper<T>) cache.computeIfAbsent(type, this::create);
     }
 
@@ -140,21 +157,19 @@ public class DefaultRowMapper {
         };
     }
 
-    // ── Bean mapper ──────────────────────────────────────────────────
+    // ── Bean mapper (unified via strategy pattern) ───────────────────
 
     private <T> RowMapper<T> createBeanMapper(Class<T> type) {
-        if (propertyAccess != null) {
-            return createIocBeanMapper(type);
-        }
-        return createReflectionBeanMapper(type);
+        PropertySetter setter = propertyAccess != null
+            ? new IocPropertySetter(propertyAccess.getAdapter(type))
+            : new ReflectionPropertySetter(type);
+
+        return createGenericBeanMapper(type, setter);
     }
 
-    /** Bean mapper using IoC PropertyAccess (MethodHandle-based setters). */
-    private <T> RowMapper<T> createIocBeanMapper(Class<T> type) {
-        var adapter = propertyAccess.getAdapter(type);
-        var writableProps = adapter.getPropertyNames().stream()
-            .filter(n -> adapter.getPropertyAdapter(n).isUpdate())
-            .toArray(String[]::new);
+    /** Generic bean mapper template — works with any PropertySetter strategy. */
+    private <T> RowMapper<T> createGenericBeanMapper(Class<T> type, PropertySetter setter) {
+        String[] writableProps = setter.getPropertyNames();
         int[] columnIndexes = new int[writableProps.length];
 
         return (rs, rowNum) -> {
@@ -173,55 +188,97 @@ public class DefaultRowMapper {
             for (int i = 0; i < writableProps.length; i++) {
                 int col = columnIndexes[i];
                 if (col < 1) continue;
-                var prop = adapter.getPropertyAdapter(writableProps[i]);
-                Object value = coerce(rs.getObject(col), prop.getType());
-                adapter.set(instance, writableProps[i], value);
+                Object value = coerce(rs.getObject(col), setter.getPropertyType(writableProps[i]));
+                setter.set(instance, writableProps[i], value);
             }
             return instance;
         };
     }
 
-    /** Fallback bean mapper using java.beans.Introspector directly. */
-    private <T> RowMapper<T> createReflectionBeanMapper(Class<T> type) {
-        PropertyDescriptor[] allProps;
-        try {
-            allProps = Introspector.getBeanInfo(type).getPropertyDescriptors();
-        } catch (Exception e) {
-            throw new SqlException("Failed to introspect " + type.getName(), e);
-        }
-        var writableProps = new ArrayList<PropertyDescriptor>();
-        for (var pd : allProps) {
-            if (pd.getWriteMethod() != null) writableProps.add(pd);
-        }
-        int[] columnIndexes = new int[writableProps.size()];
+    /** Strategy interface for setting bean properties. */
+    private interface PropertySetter {
+        String[] getPropertyNames();
+        Class<?> getPropertyType(String propertyName);
+        void set(Object instance, String propertyName, Object value);
+    }
 
-        return (rs, rowNum) -> {
-            if (rowNum == 0) {
-                var meta = rs.getMetaData();
-                for (int i = 0; i < writableProps.size(); i++) {
-                    columnIndexes[i] = findColumn(meta, writableProps.get(i).getName());
-                }
-            }
-            T instance;
+    /** IoC-based property setter using MethodHandle (high performance). */
+    private static class IocPropertySetter implements PropertySetter {
+        private final com.jujin.freeway.ioc.property.BeanPropertyAdapter adapter;
+        private final String[] writableProps;
+
+        IocPropertySetter(com.jujin.freeway.ioc.property.BeanPropertyAdapter adapter) {
+            this.adapter = adapter;
+            this.writableProps = adapter.getPropertyNames().stream()
+                .filter(n -> adapter.getPropertyAdapter(n).isUpdate())
+                .toArray(String[]::new);
+        }
+
+        @Override
+        public String[] getPropertyNames() {
+            return writableProps;
+        }
+
+        @Override
+        public Class<?> getPropertyType(String propertyName) {
+            return adapter.getPropertyAdapter(propertyName).getType();
+        }
+
+        @Override
+        public void set(Object instance, String propertyName, Object value) {
+            adapter.set(instance, propertyName, value);
+        }
+    }
+
+    /** Reflection-based property setter using java.beans.Introspector (fallback). */
+    private static class ReflectionPropertySetter implements PropertySetter {
+        private final PropertyDescriptor[] writableProps;
+
+        ReflectionPropertySetter(Class<?> type) {
             try {
-                instance = type.getDeclaredConstructor().newInstance();
+                var allProps = Introspector.getBeanInfo(type).getPropertyDescriptors();
+                this.writableProps = java.util.Arrays.stream(allProps)
+                    .filter(pd -> pd.getWriteMethod() != null)
+                    .toArray(PropertyDescriptor[]::new);
             } catch (Exception e) {
-                throw new SqlException("Failed to instantiate " + type.getName(), e);
+                throw new SqlException("Failed to introspect " + type.getName(), e);
             }
-            for (int i = 0; i < writableProps.size(); i++) {
-                int col = columnIndexes[i];
-                if (col < 1) continue;
-                var pd = writableProps.get(i);
-                Object value = coerce(rs.getObject(col), pd.getPropertyType());
-                try {
-                    pd.getWriteMethod().invoke(instance, value);
-                } catch (Exception e) {
-                    throw new SqlException(
-                        "Failed to set " + pd.getName() + " on " + type.getName(), e);
+        }
+
+        @Override
+        public String[] getPropertyNames() {
+            String[] names = new String[writableProps.length];
+            for (int i = 0; i < writableProps.length; i++) {
+                names[i] = writableProps[i].getName();
+            }
+            return names;
+        }
+
+        @Override
+        public Class<?> getPropertyType(String propertyName) {
+            for (PropertyDescriptor pd : writableProps) {
+                if (pd.getName().equals(propertyName)) {
+                    return pd.getPropertyType();
                 }
             }
-            return instance;
-        };
+            throw new IllegalArgumentException("Property not found: " + propertyName);
+        }
+
+        @Override
+        public void set(Object instance, String propertyName, Object value) {
+            for (PropertyDescriptor pd : writableProps) {
+                if (pd.getName().equals(propertyName)) {
+                    try {
+                        pd.getWriteMethod().invoke(instance, value);
+                        return;
+                    } catch (Exception e) {
+                        throw new SqlException(
+                            "Failed to set " + propertyName + " on " + instance.getClass().getName(), e);
+                    }
+                }
+            }
+            throw new IllegalArgumentException("Property not found: " + propertyName);
+        }
     }
 
     // ── Column matching ──────────────────────────────────────────────
@@ -252,9 +309,6 @@ public class DefaultRowMapper {
                 if (Character.isUpperCase(c)) {
                     char prev = i > 0 ? camel.charAt(i - 1) : '\0';
                     char next = i + 1 < camel.length() ? camel.charAt(i + 1) : '\0';
-                    // Only insert underscore when this is the start of a new word:
-                    // prev is lowercase → start of new word (e.g. "userId" → "user_id")
-                    // OR next is lowercase and prev is uppercase → end of an abbreviation (e.g. "HTMLParser" → "html_parser")
                     if ((prev != '\0' && Character.isLowerCase(prev))
                         || (next != '\0' && Character.isLowerCase(next) && !Character.isLowerCase(prev))) {
                         sb.append('_');
@@ -268,10 +322,13 @@ public class DefaultRowMapper {
         });
     }
 
-    // ── Type coercion ────────────────────────────────────────────────
+    // ── Type coercion (delegates to IoC TypeCoercer) ─────────────────
 
-    /** Delegates to TypeCoercer when available, else uses built-in logic. */
-    @SuppressWarnings("unchecked")
+    /**
+     * Coerces a value to the target type using IoC's TypeCoercer.
+     * <p>
+     * Falls back to basic primitive wrapper conversion if TypeCoercer is not available.
+     */
     <T> T coerce(Object value, Class<T> target) {
         if (value == null) return nullValue(target);
         if (target.isInstance(value)) return (T) value;
@@ -280,14 +337,19 @@ public class DefaultRowMapper {
             try {
                 return typeCoercer.coerce(value, target);
             } catch (Exception e) {
-                // Fall through to basic coercion on failure
+                throw new SqlException(
+                    "Failed to coerce " + value.getClass().getSimpleName() +
+                    " to " + target.getSimpleName() + ": " + e.getMessage(), e);
             }
         }
 
-        return basicCoerce(value, target);
+        // Standalone mode: support basic primitive wrapper conversions
+        return basicPrimitiveCoerce(value, target);
     }
 
-    private static <T> T basicCoerce(Object value, Class<T> target) {
+    /** Minimal coercion for primitive wrappers (Long→long, Integer→int, etc.). */
+    @SuppressWarnings("unchecked")
+    private static <T> T basicPrimitiveCoerce(Object value, Class<T> target) {
         if (value instanceof Number n) {
             if (target == int.class || target == Integer.class) return (T) (Integer) n.intValue();
             if (target == long.class || target == Long.class) return (T) (Long) n.longValue();
@@ -295,29 +357,15 @@ public class DefaultRowMapper {
             if (target == float.class || target == Float.class) return (T) (Float) n.floatValue();
             if (target == short.class || target == Short.class) return (T) (Short) n.shortValue();
             if (target == byte.class || target == Byte.class) return (T) (Byte) n.byteValue();
-            if (target == BigDecimal.class) return (T) new BigDecimal(n.toString());
-        }
-        if (value instanceof String s) {
-            if (target == int.class || target == Integer.class) return (T) Integer.valueOf(s);
-            if (target == long.class || target == Long.class) return (T) Long.valueOf(s);
-            if (target == double.class || target == Double.class) return (T) Double.valueOf(s);
             if (target == boolean.class || target == Boolean.class)
-                return (T) Boolean.valueOf(!s.isBlank() && Boolean.parseBoolean(s));
-            if (target == BigDecimal.class) return (T) new BigDecimal(s);
+                return (T) (Boolean) (n.intValue() != 0);
         }
-        if (value instanceof Timestamp ts) {
-            if (target == Instant.class) return (T) ts.toInstant();
-            if (target == LocalDateTime.class) return (T) ts.toLocalDateTime();
-        }
-        if (value instanceof java.sql.Date sd && target == LocalDate.class)
-            return (T) sd.toLocalDate();
-        if (value instanceof java.sql.Time st && target == LocalTime.class)
-            return (T) st.toLocalTime();
-        if (value instanceof Number n && (target == boolean.class || target == Boolean.class))
-            return (T) (Boolean) (n.intValue() != 0);
-
-        try { return (T) value.toString(); } catch (Exception ignored) {}
-        return (T) value;
+        
+        throw new SqlException(
+            "TypeCoercer not available. Cannot convert " +
+            value.getClass().getSimpleName() + " to " + target.getSimpleName() +
+            ". Use RowMapperFactory.withIoC() for full type conversion support."
+        );
     }
 
     private static <T> T nullValue(Class<T> target) {

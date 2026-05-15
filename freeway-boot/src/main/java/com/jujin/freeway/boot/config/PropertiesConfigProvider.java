@@ -29,7 +29,7 @@ public class PropertiesConfigProvider implements ConfigProvider {
                 props.put(key, p.getProperty(key));
             }
         } catch (Exception e) {
-            // Ignore — empty source
+            throw new IllegalStateException("Failed to load application.properties: " + e.getMessage(), e);
         }
     }
 

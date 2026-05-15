@@ -30,8 +30,21 @@ public class RouteRegistry {
         this.logger = logger;
         for (RouteDef def : routeDefs) {
             String key = def.method().toUpperCase();
-            routes.computeIfAbsent(key, k -> new CopyOnWriteArrayList<>())
-                .add(new Route(def.path(), def.handler()));
+            String path = def.path();
+            
+            // Check for duplicate routes during startup - fail fast
+            List<Route> list = routes.computeIfAbsent(key, k -> new CopyOnWriteArrayList<>());
+            synchronized (list) {
+                for (Route existing : list) {
+                    if (existing.pattern.equals(path)) {
+                        throw new IllegalStateException(
+                            String.format("Duplicate route detected: %s %s. " +
+                                "Previous definition exists. Routes must be unique.",
+                                key, path));
+                    }
+                }
+                list.add(new Route(path, def.handler()));
+            }
         }
     }
 
@@ -47,8 +60,10 @@ public class RouteRegistry {
         synchronized (list) {
             for (Route existing : list) {
                 if (existing.pattern.equals(path)) {
-                    logger.warn("Duplicate route: {} {} — second handler will be shadowed", key, path);
-                    return;
+                    throw new IllegalStateException(
+                        String.format("Duplicate route detected: %s %s. " +
+                            "Previous definition exists. Routes must be unique.",
+                            key, path));
                 }
             }
             list.add(new Route(path, handler));
