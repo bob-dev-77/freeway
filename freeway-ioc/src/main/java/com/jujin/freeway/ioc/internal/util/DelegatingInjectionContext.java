@@ -5,12 +5,12 @@ import java.lang.reflect.Type;
 /**
  * Chain of command for InjectionDefaultProvider.
  */
-public class DelegatingInjectionResources implements InjectionResources {
-    private final InjectionResources first;
-    private final InjectionResources next;
+public class DelegatingInjectionContext implements InjectionContext {
+    private final InjectionContext first;
+    private final InjectionContext next;
 
-    public DelegatingInjectionResources(InjectionResources first,
-        InjectionResources next) {
+    public DelegatingInjectionContext(InjectionContext first,
+                                      InjectionContext next) {
         this.first = first;
         this.next = next;
     }

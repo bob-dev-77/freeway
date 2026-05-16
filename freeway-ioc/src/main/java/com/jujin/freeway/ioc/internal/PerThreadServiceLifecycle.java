@@ -1,6 +1,6 @@
 package com.jujin.freeway.ioc.internal;
 
-import com.jujin.freeway.ioc.ServiceResources;
+import com.jujin.freeway.ioc.ServiceContext;
 import com.jujin.freeway.ioc.annotations.Builtin;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 import com.jujin.freeway.ioc.lifecycle.ServiceLifecycle;
@@ -46,7 +46,7 @@ public class PerThreadServiceLifecycle implements ServiceLifecycle {
 
     @Override
     public Object createService(
-        ServiceResources resources,
+        ServiceContext resources,
         ObjectCreator creator) {
         ObjectCreator perThreadCreator = perthreadManager.createValue(creator);
 

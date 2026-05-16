@@ -63,7 +63,12 @@ public class RegistryShutdownHubImpl implements RegistryShutdownHub {
             try {
                 element.run();
             } catch (RuntimeException ex) {
-                logger.error(ServiceMessages.shutdownListenerError(element, ex), ex);
+                logger.error(
+                    String.format(
+                        "Error notifying %s of registry shutdown: %s",
+                        element,
+                        ex.getMessage()),
+                    ex);
             }
         });
 

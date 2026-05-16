@@ -1,6 +1,6 @@
 package com.jujin.freeway.ioc.internal;
 
-import com.jujin.freeway.ioc.ServiceBuilderResources;
+import com.jujin.freeway.ioc.ServiceBuilderContext;
 import com.jujin.freeway.ioc.UpdateListenerHub;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 
@@ -12,7 +12,7 @@ import java.lang.reflect.Method;
  * implementation.
  */
 @SuppressWarnings("unchecked")
-public class ReloadableObjectCreatorStrategy implements ObjectCreatorStrategy {
+public class ReloadableCreatorFactory implements ObjectCreatorFactory {
 
     private final JdkProxyFactory proxyFactory;
 
@@ -24,7 +24,7 @@ public class ReloadableObjectCreatorStrategy implements ObjectCreatorStrategy {
 
     private final boolean eagerLoad;
 
-    public ReloadableObjectCreatorStrategy(
+    public ReloadableCreatorFactory(
         JdkProxyFactory proxyFactory,
         Method bindMethod,
         Class<?> serviceInterfaceClass,
@@ -38,8 +38,8 @@ public class ReloadableObjectCreatorStrategy implements ObjectCreatorStrategy {
     }
 
     @Override
-    public ObjectCreator<?> constructCreator(
-        final ServiceBuilderResources resources) {
+    public ObjectCreator<?> construct(
+        final ServiceBuilderContext resources) {
         return new ObjectCreator<Object>() {
             @Override
             public Object create() {
@@ -54,14 +54,14 @@ public class ReloadableObjectCreatorStrategy implements ObjectCreatorStrategy {
     }
 
     @Override
-    public String getDescription() {
+    public String description() {
         return String.format(
             "Reloadable %s via %s",
             serviceImplementationClass.getName(),
             bindMethod.getName());
     }
 
-    private Object createReloadableProxy(ServiceBuilderResources resources) {
+    private Object createReloadableProxy(ServiceBuilderContext resources) {
         ReloadableServiceImplementationObjectCreator reloadableCreator = new ReloadableServiceImplementationObjectCreator(
             proxyFactory,
             resources,
@@ -79,6 +79,6 @@ public class ReloadableObjectCreatorStrategy implements ObjectCreatorStrategy {
         return proxyFactory.createProxy(
             serviceInterfaceClass,
             reloadableCreator,
-            getDescription());
+            description());
     }
 }

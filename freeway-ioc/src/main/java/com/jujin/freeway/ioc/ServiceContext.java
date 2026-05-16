@@ -5,11 +5,11 @@ import org.slf4j.Logger;
 
 /**
  * Contains resources that may be provided to a service when it initializes,
- * which includes other services defined in the registry. ServiceResources
+ * which includes other services defined in the registry. ServiceContext
  * provides access to other services (it extends
  * {@link com.jujin.freeway.ioc.ServiceLocator}).
  */
-public interface ServiceResources extends ServiceLocator, AnnotationAccess {
+public interface ServiceContext extends ServiceLocator, AnnotationAccess {
     /**
      * Returns the fully qualified id of the service.
      */

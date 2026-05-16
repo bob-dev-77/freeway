@@ -8,11 +8,11 @@ import java.util.function.Supplier;
 
 /**
  * Encapsulates the initial construction of an object instance, followed by a
- * series {@link InitializationPlan}s to initialize fields and invoke other
+ * series {@link InitializePlan}s to initialize fields and invoke other
  * methods of the constructed object.
  *
  */
-public class ConstructionPlan<T> implements ObjectCreator<T> {
+public class InstancePlan<T> implements ObjectCreator<T> {
 
     private final OperationTracker tracker;
 
@@ -20,9 +20,9 @@ public class ConstructionPlan<T> implements ObjectCreator<T> {
 
     private final Supplier<T> instanceConstructor;
 
-    private List<InitializationPlan<T>> initializationPlans;
+    private List<InitializePlan<T>> initializePlans;
 
-    public ConstructionPlan(
+    public InstancePlan(
         OperationTracker tracker,
         String description,
         Supplier<T> instanceConstructor
@@ -33,12 +33,12 @@ public class ConstructionPlan<T> implements ObjectCreator<T> {
     }
 
     @SuppressWarnings("unchecked")
-    public ConstructionPlan<T> add(InitializationPlan<?> plan) {
-        if (initializationPlans == null) {
-            initializationPlans = new ArrayList<>();
+    public InstancePlan<T> add(InitializePlan<?> plan) {
+        if (initializePlans == null) {
+            initializePlans = new ArrayList<>();
         }
 
-        initializationPlans.add((InitializationPlan<T>) plan);
+        initializePlans.add((InitializePlan<T>) plan);
 
         return this;
     }
@@ -47,7 +47,7 @@ public class ConstructionPlan<T> implements ObjectCreator<T> {
     public T create() {
         T result = tracker.invoke(description, instanceConstructor);
 
-        if (initializationPlans != null) {
+        if (initializePlans != null) {
             executeInitializationPLans(result);
         }
 
@@ -55,8 +55,8 @@ public class ConstructionPlan<T> implements ObjectCreator<T> {
     }
 
     private void executeInitializationPLans(final T newInstance) {
-        for (final InitializationPlan<T> plan : initializationPlans) {
-            tracker.run(plan.getDescription(), () ->
+        for (final InitializePlan<T> plan : initializePlans) {
+            tracker.run(plan.description(), () ->
                     plan.initialize(newInstance)
             );
         }

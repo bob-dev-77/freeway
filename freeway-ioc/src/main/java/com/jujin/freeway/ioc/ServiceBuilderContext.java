@@ -5,12 +5,12 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Extends {@link com.jujin.freeway.ioc.ServiceResources} with additional
+ * Extends {@link ServiceContext} with additional
  * methods needed only by the service builder method, related to accessing a
  * service's configuration. Services may have a <em>single</em> configuration in
  * one of three flavors: unordered, ordered or mapped.
  */
-public interface ServiceBuilderResources extends ServiceResources, ModuleBuilderSource {
+public interface ServiceBuilderContext extends ServiceContext, ModuleInstanceSource {
 
     <T> Collection<T> getUnorderedConfiguration(Class<T> valueType);
 

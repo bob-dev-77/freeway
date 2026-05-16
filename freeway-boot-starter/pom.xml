@@ -14,7 +14,7 @@
     <artifactId>freeway-boot-starter</artifactId>
     <packaging>pom</packaging>
 
-    <name>Freeway - Boot Starter</name>
+    <name>Freeway :: Boot Starter</name>
     <description>Freeway Boot Starter - POM aggregator for bootstrap dependency</description>
 
     <dependencies>

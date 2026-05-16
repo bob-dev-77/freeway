@@ -1,9 +1,6 @@
 package com.jujin.freeway.ioc.internal;
 
-import com.jujin.freeway.ioc.AnnotationProvider;
-import com.jujin.freeway.ioc.ServiceLocator;
-import com.jujin.freeway.ioc.ServiceOverride;
-import com.jujin.freeway.ioc.ServiceProvider;
+import com.jujin.freeway.ioc.*;
 import com.jujin.freeway.ioc.annotations.PreventServiceDecoration;
 
 import java.util.Map;
@@ -18,8 +15,8 @@ public class ServiceOverrideImpl implements ServiceOverride {
     }
 
     @Override
-    public ServiceProvider getServiceOverrideProvider() {
-        return new ServiceProvider() {
+    public DependencyPolicy getServiceOverrideProvider() {
+        return new DependencyPolicy() {
             @Override
             public <T> T resolve(
                 Class<T> objectType,

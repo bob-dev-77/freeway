@@ -4,7 +4,7 @@ import com.jujin.freeway.ioc.annotations.UsesOrderedConfiguration;
 
 /**
  * A service that acts as a chain-of-command over a number of
- * {@link ServiceProvider}, but allows for the case where
+ * {@link DependencyPolicy}, but allows for the case where
  * no object may be provided.
  * <p>
  * This service is itself a key part of Freeway's general injection mechanism;
@@ -13,12 +13,12 @@ import com.jujin.freeway.ioc.annotations.UsesOrderedConfiguration;
  * {@linkplain ServiceLocator#autobuild(Class) autobuilding} objects of any
  * type.
  * <p>
- * As of Freeway 5.3, the ObjectInjector allows injection of
+ * As of Freeway 5.3, the DependencyResolver allows injection of
  * {@link com.jujin.freeway.ioc.advisor.OperationTracker} as a special case (not
- * based on a contributed ServiceProvider).
+ * based on a contributed DependencyPolicy).
  */
-@UsesOrderedConfiguration(ServiceProvider.class)
-public interface ObjectInjector {
+@UsesOrderedConfiguration(DependencyPolicy.class)
+public interface DependencyResolver {
     /**
      * Injects an object based on an expression. The process of injecting objects
      * occurs within a particular <em>context</em>, which will typically be a
@@ -26,7 +26,7 @@ public interface ObjectInjector {
      * method. The locator parameter provides access to the services visible <em>to
      * that context</em>.
      * <p>
-     * When the value is required and no {@link ServiceProvider} provided a non-null
+     * When the value is required and no {@link DependencyPolicy} provided a non-null
      * value, then {@link ServiceLocator#getService(Class, Class[])} is invoked
      * (with no marker annotations), to provide a uniquely matching service, or
      * throw a failure exception if no <em>single</em> service can be found.
@@ -43,7 +43,7 @@ public interface ObjectInjector {
      *            used
      * @param required
      *            if true (normal case) a value must be provided; if false then it
-     *            is allowed for no ServiceProvider to provide a value, and this
+     *            is allowed for no DependencyPolicy to provide a value, and this
      *            method may return null to indicate the failure
      * @param <T>
      * @return the requested object, or null if this object provider can not supply
@@ -53,7 +53,7 @@ public interface ObjectInjector {
      *             identified is not assignable to the type specified by the
      *             objectType parameter
      */
-    <T> T inject(
+    <T> T resolve(
         Class<T> objectType,
         AnnotationProvider annotationProvider,
         ServiceLocator locator,

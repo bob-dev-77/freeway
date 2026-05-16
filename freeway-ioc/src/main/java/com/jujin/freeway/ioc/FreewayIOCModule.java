@@ -73,7 +73,7 @@ public final class FreewayIOCModule {
             .withMarker(FactoryDefaults.class);
         binder.bind(Runnable.class, RegistryStartup.class).withSimpleId();
         binder
-            .bind(ObjectInjector.class, ObjectInjectorImpl.class)
+            .bind(DependencyResolver.class, DependencyResolverImpl.class)
             .preventReloading();
         binder.bind(ClassNameLocator.class, ClassNameLocatorImpl.class);
         binder.bind(ClassPathScanner.class, ClassPathScannerImpl.class);
@@ -131,7 +131,7 @@ public final class FreewayIOCModule {
     /**
      * <dl>
      * <dt>AnnotationBasedContributions</dt>
-     * <dd>Empty placeholder used to separate annotation-based ServiceProvider
+     * <dd>Empty placeholder used to separate annotation-based DependencyPolicy
      * contributions (which come before) from non-annotation based (such as
      * ServiceOverride) which come after.</dd>
      * <dt>Config</dt>
@@ -145,22 +145,22 @@ public final class FreewayIOCModule {
      * {@link com.jujin.freeway.ioc.ServiceOverride} service (and its configuration)
      * </dl>
      */
-    @Contribute(ObjectInjector.class)
+    @Contribute(DependencyResolver.class)
     public static void setupObjectProviders(
-        OrderedConfiguration<ServiceProvider> configuration,
+        OrderedConfiguration<DependencyPolicy> configuration,
         @Local final ServiceOverride serviceOverride) {
         configuration.add("AnnotationBasedContributions", null);
 
         configuration.addInstance(
             "Config",
-            ConfigServiceProvider.class,
+            BuiltinConfigProvider.class,
             before("AnnotationBasedContributions").build());
         configuration.add(
             "Autobuild",
-            new AutobuildServiceProvider(),
+            new BuiltinAutobuildProvider(),
             before("AnnotationBasedContributions").build());
 
-        ServiceProvider wrapper = new ServiceProvider() {
+        DependencyPolicy wrapper = new DependencyPolicy() {
             @Override
             public <T> T resolve(
                 Class<T> objectType,

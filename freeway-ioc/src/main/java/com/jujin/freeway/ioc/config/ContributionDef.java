@@ -1,8 +1,8 @@
 package com.jujin.freeway.ioc.config;
 
 import com.jujin.freeway.ioc.Markable;
-import com.jujin.freeway.ioc.ModuleBuilderSource;
-import com.jujin.freeway.ioc.ServiceResources;
+import com.jujin.freeway.ioc.ModuleInstanceSource;
+import com.jujin.freeway.ioc.ServiceContext;
 
 /**
  * Contribution to a service configuration.
@@ -34,8 +34,8 @@ public interface ContributionDef extends Markable {
      */
     @SuppressWarnings("rawtypes")
     void contribute(
-        ModuleBuilderSource moduleSource,
-        ServiceResources resources,
+        ModuleInstanceSource moduleSource,
+        ServiceContext resources,
         Configuration configuration);
 
     /**
@@ -53,8 +53,8 @@ public interface ContributionDef extends Markable {
      */
     @SuppressWarnings("rawtypes")
     void contribute(
-        ModuleBuilderSource moduleSource,
-        ServiceResources resources,
+        ModuleInstanceSource moduleSource,
+        ServiceContext resources,
         OrderedConfiguration configuration);
 
     /**
@@ -73,8 +73,8 @@ public interface ContributionDef extends Markable {
      */
     @SuppressWarnings("rawtypes")
     void contribute(
-        ModuleBuilderSource moduleSource,
-        ServiceResources resources,
+        ModuleInstanceSource moduleSource,
+        ServiceContext resources,
         MappedConfiguration configuration);
 
     /**

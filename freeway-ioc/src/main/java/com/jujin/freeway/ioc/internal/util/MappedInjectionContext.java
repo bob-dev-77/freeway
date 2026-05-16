@@ -6,11 +6,11 @@ import java.util.Map;
 /**
  * InjectionDefaultProvider that operates using a Map from type to value.
  */
-public class MapInjectionResources implements InjectionResources {
+public class MappedInjectionContext implements InjectionContext {
 
     private final Map<Class<?>, Object> map;
 
-    public MapInjectionResources(Map<Class<?>, Object> map) {
+    public MappedInjectionContext(Map<Class<?>, Object> map) {
         this.map = map;
     }
 

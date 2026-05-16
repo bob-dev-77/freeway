@@ -5,6 +5,6 @@ package com.jujin.freeway.ioc.internal;
  * {@link com.jujin.freeway.ioc.RegistryShutdownListener}s, they also can be
  * eager-load
  */
-public interface EagerLoadServiceProxy {
-    void eagerLoadService();
+public interface EagerLoadProxy {
+    void eagerLoad();
 }

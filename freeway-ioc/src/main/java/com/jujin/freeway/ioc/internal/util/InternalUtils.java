@@ -48,7 +48,7 @@ public class InternalUtils {
     public static final String MODULE_BUILDER_MANIFEST_ENTRY_NAME = "Freeway-Module-Classes";
 
     /** Service ID for the object injector. */
-    public static final String INJECTOR_SERVICE_ID = "ObjectInjector";
+    public static final String INJECTOR_SERVICE_ID = "DependencyResolver";
 
     /** Configuration symbol for the thread pool core size. */
     public static final String THREAD_POOL_CORE_SIZE = "freeway.thread-pool.core-pool-size";
@@ -189,7 +189,7 @@ public class InternalUtils {
         Type genericType,
         final Annotation[] annotations,
         final ServiceLocator locator,
-        InjectionResources resources) {
+        InjectionContext resources) {
         final var provider = new AnnotationProvider() {
             @Override
             public <T extends Annotation> T getAnnotation(
@@ -219,7 +219,7 @@ public class InternalUtils {
 
         // When no @Named is present: if @Inject (javax or Freeway) is found, skip
         // resource lookups
-        // and go directly to ObjectInjector.
+        // and go directly to DependencyResolver.
 
         if (provider.getAnnotation(javax.inject.Inject.class) == null &&
             fwInject == null) {
@@ -239,7 +239,7 @@ public class InternalUtils {
             return () -> locator.getObject(injectionType, provider);
         }
 
-        // Otherwise, make use of the ObjectInjector service to resolve this type (plus
+        // Otherwise, make use of the DependencyResolver service to resolve this type (plus
         // any other information gleaned from additional annotation) into the correct
         // object.
 
@@ -249,7 +249,7 @@ public class InternalUtils {
     public static ObjectCreator[] calculateParametersForMethod(
         Method method,
         ServiceLocator locator,
-        InjectionResources resources,
+        InjectionContext resources,
         OperationTracker tracker) {
         return calculateParameters(
             locator,
@@ -262,7 +262,7 @@ public class InternalUtils {
 
     public static ObjectCreator[] calculateParameters(
         final ServiceLocator locator,
-        final InjectionResources resources,
+        final InjectionContext resources,
         Class[] parameterTypes,
         final Type[] genericTypes,
         Annotation[][] parameterAnnotations,
@@ -311,7 +311,7 @@ public class InternalUtils {
     public static void injectIntoFields(
         final Object object,
         final ServiceLocator locator,
-        final InjectionResources resources,
+        final InjectionContext resources,
         OperationTracker tracker) {
         Class clazz = object.getClass();
 
@@ -1026,10 +1026,10 @@ public class InternalUtils {
         };
     }
 
-    public static <T> ObjectCreator<T> createConstructorConstructionPlan(
+    public static <T> ObjectCreator<T> createConstructorInstancePlan(
         final OperationTracker tracker,
         final ServiceLocator locator,
-        final InjectionResources resources,
+        final InjectionContext resources,
         final Logger logger,
         final String description,
         final Constructor<T> constructor) {
@@ -1060,7 +1060,7 @@ public class InternalUtils {
                         description,
                         core);
 
-                ConstructionPlan<T> plan = new ConstructionPlan(
+                InstancePlan<T> plan = new InstancePlan(
                     tracker,
                     description,
                     wrapped);
@@ -1084,10 +1084,10 @@ public class InternalUtils {
     }
 
     private static <T> void extendPlanForInjectedFields(
-        final ConstructionPlan<T> plan,
+        final InstancePlan<T> plan,
         OperationTracker tracker,
         final ServiceLocator locator,
-        final InjectionResources resources,
+        final InjectionContext resources,
         Class<T> instantiatedClass) {
         Class clazz = instantiatedClass;
 
@@ -1170,13 +1170,13 @@ public class InternalUtils {
     }
 
     private static <T> void addInjectPlan(
-        ConstructionPlan<T> plan,
+        InstancePlan<T> plan,
         final Field field,
         final Object injectedValue) {
         plan.add(
-            new InitializationPlan<T>() {
+            new InitializePlan<T>() {
                 @Override
-                public String getDescription() {
+                public String description() {
                     return String.format(
                         "Injecting %s into field %s of class %s.",
                         injectedValue,
@@ -1198,10 +1198,10 @@ public class InternalUtils {
     }
 
     private static <T> void extendPlanForPostInjectionMethods(
-        ConstructionPlan<T> plan,
+        InstancePlan<T> plan,
         OperationTracker tracker,
         ServiceLocator locator,
-        InjectionResources resources,
+        InjectionContext resources,
         Class<T> instantiatedClass) {
         for (Method m : instantiatedClass.getMethods()) {
             if (hasAnnotation(m, PostInjection.class) ||
@@ -1217,10 +1217,10 @@ public class InternalUtils {
     }
 
     private static void extendPlanForPostInjectionMethod(
-        final ConstructionPlan<?> plan,
+        final InstancePlan<?> plan,
         final OperationTracker tracker,
         final ServiceLocator locator,
-        final InjectionResources resources,
+        final InjectionContext resources,
         final Method method) {
         tracker.run(
             "Computing parameters for post-injection method " + method,
@@ -1234,9 +1234,9 @@ public class InternalUtils {
                         tracker);
 
                     plan.add(
-                        new InitializationPlan<Object>() {
+                        new InitializePlan<Object>() {
                             @Override
-                            public String getDescription() {
+                            public String description() {
                                 return "Invoking " + method;
                             }
 
@@ -1276,7 +1276,7 @@ public class InternalUtils {
     public static <T> ObjectCreator<T> createMethodInvocationPlan(
         final OperationTracker tracker,
         final ServiceLocator locator,
-        final InjectionResources resources,
+        final InjectionContext resources,
         final Logger logger,
         final String description,
         final Object instance,
@@ -1294,7 +1294,7 @@ public class InternalUtils {
                 ? core
                 : new LoggingInvokableWrapper<T>(logger, description, core);
 
-            return new ConstructionPlan(tracker, description, wrapped);
+            return new InstancePlan(tracker, description, wrapped);
         });
     }
 

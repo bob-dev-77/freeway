@@ -1,8 +1,8 @@
 package com.jujin.freeway.ioc.internal;
 
-import com.jujin.freeway.ioc.ModuleBuilderSource;
+import com.jujin.freeway.ioc.ModuleInstanceSource;
+import com.jujin.freeway.ioc.ServiceContext;
 import com.jujin.freeway.ioc.ServiceDefinition;
-import com.jujin.freeway.ioc.ServiceResources;
 import com.jujin.freeway.ioc.advisor.AdvisorDefinition;
 import com.jujin.freeway.ioc.advisor.ServiceAdvisor;
 import com.jujin.freeway.ioc.internal.util.InternalUtils;
@@ -55,8 +55,8 @@ public class AdvisorDefinitionImpl implements AdvisorDefinition {
 
     @Override
     public ServiceAdvisor createAdvisor(
-        ModuleBuilderSource moduleSource,
-        ServiceResources resources) {
+        ModuleInstanceSource moduleSource,
+        ServiceContext resources) {
         return new ServiceAdvisorImpl(
             moduleSource,
             config.method(),

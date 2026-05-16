@@ -1,8 +1,8 @@
 package com.jujin.freeway.ioc.internal;
 
-import com.jujin.freeway.ioc.ModuleBuilderSource;
+import com.jujin.freeway.ioc.ModuleInstanceSource;
+import com.jujin.freeway.ioc.ServiceContext;
 import com.jujin.freeway.ioc.ServiceLocator;
-import com.jujin.freeway.ioc.ServiceResources;
 import com.jujin.freeway.ioc.config.Configuration;
 import com.jujin.freeway.ioc.config.ContributionDef;
 import com.jujin.freeway.ioc.config.MappedConfiguration;
@@ -67,8 +67,8 @@ public class ContributionDefImpl implements ContributionDef {
     @Override
     @SuppressWarnings("rawtypes")
     public void contribute(
-        ModuleBuilderSource moduleSource,
-        ServiceResources resources,
+        ModuleInstanceSource moduleSource,
+        ServiceContext resources,
         Configuration configuration) {
         invokeMethod(
             moduleSource,
@@ -80,8 +80,8 @@ public class ContributionDefImpl implements ContributionDef {
     @Override
     @SuppressWarnings("rawtypes")
     public void contribute(
-        ModuleBuilderSource moduleSource,
-        ServiceResources resources,
+        ModuleInstanceSource moduleSource,
+        ServiceContext resources,
         OrderedConfiguration configuration) {
         invokeMethod(
             moduleSource,
@@ -93,8 +93,8 @@ public class ContributionDefImpl implements ContributionDef {
     @Override
     @SuppressWarnings("rawtypes")
     public void contribute(
-        ModuleBuilderSource moduleSource,
-        ServiceResources resources,
+        ModuleInstanceSource moduleSource,
+        ServiceContext resources,
         MappedConfiguration configuration) {
         invokeMethod(
             moduleSource,
@@ -104,8 +104,8 @@ public class ContributionDefImpl implements ContributionDef {
     }
 
     private <T> void invokeMethod(
-        ModuleBuilderSource source,
-        ServiceResources resources,
+        ModuleInstanceSource source,
+        ServiceContext resources,
         Class<T> parameterType,
         T parameterValue) {
         Map<Class<?>, Object> resourceMap = new HashMap<>();
@@ -114,19 +114,19 @@ public class ContributionDefImpl implements ContributionDef {
         resourceMap.put(ServiceLocator.class, resources);
         resourceMap.put(Logger.class, resources.getLogger());
 
-        InjectionResources injectionResources = new MapInjectionResources(
+        InjectionContext injectionContext = new MappedInjectionContext(
             resourceMap);
 
         // For each of the other configuration types that is not expected, add a guard.
 
         for (Class<?> t : CONFIGURATION_TYPES) {
             if (parameterType != t) {
-                injectionResources = new DelegatingInjectionResources(
+                injectionContext = new DelegatingInjectionContext(
                     new WrongConfigurationTypeGuard(
                         resources.getServiceId(),
                         t,
                         parameterType),
-                    injectionResources);
+                        injectionContext);
             }
         }
 
@@ -134,14 +134,14 @@ public class ContributionDefImpl implements ContributionDef {
 
         Object moduleInstance = InternalUtils.isStatic(contributorMethod)
             ? null
-            : source.getModuleBuilder();
+            : source.getInstance();
 
         try {
             @SuppressWarnings("rawtypes")
             ObjectCreator[] parameters = InternalUtils.calculateParametersForMethod(
                 contributorMethod,
                 resources,
-                injectionResources,
+                    injectionContext,
                 resources.getTracker());
 
             contributorMethod.invoke(
@@ -155,7 +155,10 @@ public class ContributionDefImpl implements ContributionDef {
 
         if (fail != null)
             throw new RuntimeException(
-                IOCMessages.contributionMethodError(contributorMethod, fail),
+                String.format(
+                    "Error invoking service contribution method %s: %s",
+                    InternalUtils.asString(contributorMethod),
+                    fail.getMessage()),
                 fail);
     }
 

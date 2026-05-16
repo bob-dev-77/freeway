@@ -1,6 +1,6 @@
 package com.jujin.freeway.ioc.internal;
 
-import com.jujin.freeway.ioc.ServiceBuilderResources;
+import com.jujin.freeway.ioc.ServiceBuilderContext;
 import com.jujin.freeway.ioc.internal.util.InternalUtils;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 import org.slf4j.Logger;
@@ -16,13 +16,13 @@ public class ServiceBuilderMethodInvoker implements ObjectCreator<Object> {
 
     private final Method builderMethod;
     private final String creatorDescription;
-    final ServiceBuilderResources resources;
+    final ServiceBuilderContext resources;
     final Logger logger;
     final String serviceId;
-    private final InjectionResourcesBuilder irBuilder;
+    private final InjectionContextBuilder irBuilder;
 
     public ServiceBuilderMethodInvoker(
-        ServiceBuilderResources resources,
+        ServiceBuilderContext resources,
         String creatorDescription,
         Method method) {
         this.resources = resources;
@@ -30,7 +30,7 @@ public class ServiceBuilderMethodInvoker implements ObjectCreator<Object> {
         this.logger = resources.getLogger();
         this.serviceId = resources.getServiceId();
         builderMethod = method;
-        this.irBuilder = new InjectionResourcesBuilder(
+        this.irBuilder = new InjectionContextBuilder(
             resources,
             creatorDescription);
     }
@@ -45,7 +45,7 @@ public class ServiceBuilderMethodInvoker implements ObjectCreator<Object> {
 
             final Object moduleInstance = InternalUtils.isStatic(builderMethod)
                 ? null
-                : resources.getModuleBuilder();
+                : resources.getInstance();
 
             plan = InternalUtils.createMethodInvocationPlan(
                 resources.getTracker(),

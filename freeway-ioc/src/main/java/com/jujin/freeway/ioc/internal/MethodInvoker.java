@@ -1,10 +1,10 @@
 package com.jujin.freeway.ioc.internal;
 
-import com.jujin.freeway.ioc.ModuleBuilderSource;
+import com.jujin.freeway.ioc.ModuleInstanceSource;
+import com.jujin.freeway.ioc.ServiceContext;
 import com.jujin.freeway.ioc.ServiceLocator;
-import com.jujin.freeway.ioc.ServiceResources;
 import com.jujin.freeway.ioc.advisor.OperationTracker;
-import com.jujin.freeway.ioc.internal.util.InjectionResources;
+import com.jujin.freeway.ioc.internal.util.InjectionContext;
 import com.jujin.freeway.ioc.internal.util.InternalUtils;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 import org.slf4j.Logger;
@@ -21,18 +21,18 @@ import java.util.Map;
  */
 public class MethodInvoker {
 
-    private final ModuleBuilderSource moduleSource;
+    private final ModuleInstanceSource moduleSource;
     private final Method method;
-    private final ServiceResources resources;
+    private final ServiceContext resources;
     private final Logger logger;
 
     /** Default resources map that callers can copy and augment before invoking. */
     public final Map<Class<?>, Object> resourcesDefaults = new HashMap<>();
 
     public MethodInvoker(
-        ModuleBuilderSource moduleSource,
+        ModuleInstanceSource moduleSource,
         Method method,
-        ServiceResources resources,
+        ServiceContext resources,
         JdkProxyFactory proxyFactory) {
         this.moduleSource = moduleSource;
         this.method = method;
@@ -42,7 +42,7 @@ public class MethodInvoker {
 
         resourcesDefaults.put(String.class, serviceId);
         resourcesDefaults.put(ServiceLocator.class, resources);
-        resourcesDefaults.put(ServiceResources.class, resources);
+        resourcesDefaults.put(ServiceContext.class, resources);
         logger = resources.getLogger();
         resourcesDefaults.put(Logger.class, logger);
         Class<?> serviceInterface = resources.getServiceInterface();
@@ -58,24 +58,24 @@ public class MethodInvoker {
     private Object getModuleInstance() {
         return InternalUtils.isStatic(method)
             ? null
-            : moduleSource.getModuleBuilder();
+            : moduleSource.getInstance();
     }
 
     /**
      * Invokes the module method, resolving parameters from the given injection
      * resources (merged with {@link #resourcesDefaults} by the caller).
      *
-     * @param injectionResources
+     * @param injectionContext
      *            the fully-populated injection resources for this invocation
      * @return the return value of the method invocation
      */
-    public Object invoke(InjectionResources injectionResources) {
+    public Object invoke(InjectionContext injectionContext) {
         String description = String.format("Invoking method %s", toString());
 
         ObjectCreator<Object> plan = InternalUtils.createMethodInvocationPlan(
             resources.getTracker(),
             resources,
-            injectionResources,
+                injectionContext,
             logger,
             description,
             getModuleInstance(),

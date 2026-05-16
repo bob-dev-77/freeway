@@ -21,7 +21,7 @@ class SerializationSupport {
         ServiceProxyProvider existing = currentProvider();
 
         if (existing != null)
-            LOGGER.error(IOCMessages.overlappingServiceProxyProviders());
+            LOGGER.error("Setting a new service proxy provider when there's already an existing provider. This may indicate that you have multiple IoC Registries.");
 
         providerRef = new WeakReference<ServiceProxyProvider>(proxyProvider);
     }
@@ -39,7 +39,7 @@ class SerializationSupport {
         // there hasn't been another setProvider() by another Registry.
 
         if (existing != proxyProvider) {
-            LOGGER.error(IOCMessages.unexpectedServiceProxyProvider());
+            LOGGER.error("Unexpected service proxy provider when clearing the provider. This may indicate that you have multiple IoC Registries.");
             return;
         }
 
@@ -54,7 +54,10 @@ class SerializationSupport {
         ServiceProxyProvider provider = currentProvider();
 
         if (provider == null)
-            throw new RuntimeException(IOCMessages.noProxyProvider(serviceId));
+            throw new RuntimeException(
+                String.format(
+                    "Service token for service '%s' can not be converted back into a proxy because no proxy provider has been registered. This may indicate that an IoC Registry has not been started yet.",
+                    serviceId));
 
         return provider.provideServiceProxy(serviceId);
     }

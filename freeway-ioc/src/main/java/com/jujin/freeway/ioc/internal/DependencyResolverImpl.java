@@ -1,9 +1,6 @@
 package com.jujin.freeway.ioc.internal;
 
-import com.jujin.freeway.ioc.AnnotationProvider;
-import com.jujin.freeway.ioc.ObjectInjector;
-import com.jujin.freeway.ioc.ServiceLocator;
-import com.jujin.freeway.ioc.ServiceProvider;
+import com.jujin.freeway.ioc.*;
 import com.jujin.freeway.ioc.advisor.OperationTracker;
 import com.jujin.freeway.ioc.annotations.PreventServiceDecoration;
 import com.jujin.freeway.ioc.internal.util.InternalUtils;
@@ -13,14 +10,14 @@ import java.util.List;
 import java.util.Objects;
 
 @PreventServiceDecoration
-public class ObjectInjectorImpl implements ObjectInjector {
+public class DependencyResolverImpl implements DependencyResolver {
 
-    private final List<ServiceProvider> configuration;
+    private final List<DependencyPolicy> configuration;
 
     private final OperationTracker tracker;
 
-    public ObjectInjectorImpl(
-        List<ServiceProvider> configuration,
+    public DependencyResolverImpl(
+        List<DependencyPolicy> configuration,
         OperationTracker tracker) {
         this.configuration = new ArrayList<>(Objects.requireNonNull(configuration, "configuration"));
         this.tracker = Objects.requireNonNull(tracker, "tracker");
@@ -28,23 +25,23 @@ public class ObjectInjectorImpl implements ObjectInjector {
         // Add this special case to the front of the list.
         this.configuration.add(
             0,
-            new StaticServiceProvider<OperationTracker>(
+            new BuiltinStaticProvider<OperationTracker>(
                 OperationTracker.class,
                 tracker));
     }
 
     @Override
-    public <T> T inject(
+    public <T> T resolve(
         final Class<T> objectType,
         final AnnotationProvider annotationProvider,
         final ServiceLocator locator,
         final boolean required) {
         return tracker.invoke(
             String.format(
-                "Resolving object of type %s using ObjectInjector",
+                "Resolving object of type %s using DependencyResolver",
                 InternalUtils.toSimpleTypeName(objectType)),
             () -> {
-                for (ServiceProvider resolver : configuration) {
+                for (DependencyPolicy resolver : configuration) {
                     T result = resolver.resolve(
                         objectType,
                         annotationProvider,

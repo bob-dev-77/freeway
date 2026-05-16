@@ -46,7 +46,12 @@ public class TypeCoercerImpl implements TypeCoercer {
                 return type.cast(c.coerce(input));
             } catch (Exception ex) {
                 throw new CoercionFailedException(
-                    ServiceMessages.failedCoercion(input, type, c, ex),
+                    String.format(
+                        "Coercion of %s to type %s (via %s) failed: %s",
+                        String.valueOf(input),
+                        type.getCanonicalName(),
+                        c,
+                        ex.getMessage()),
                     ex);
             }
         }

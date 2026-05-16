@@ -1,11 +1,11 @@
 package com.jujin.freeway.ioc.internal;
 
-import com.jujin.freeway.ioc.ModuleBuilderSource;
+import com.jujin.freeway.ioc.ModuleInstanceSource;
 import com.jujin.freeway.ioc.ServiceLocator;
 import com.jujin.freeway.ioc.advisor.OperationTracker;
-import com.jujin.freeway.ioc.internal.util.InjectionResources;
+import com.jujin.freeway.ioc.internal.util.InjectionContext;
 import com.jujin.freeway.ioc.internal.util.InternalUtils;
-import com.jujin.freeway.ioc.internal.util.MapInjectionResources;
+import com.jujin.freeway.ioc.internal.util.MappedInjectionContext;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 import com.jujin.freeway.ioc.lifecycle.StartupDef;
 import org.slf4j.Logger;
@@ -25,7 +25,7 @@ public class StartupDefImpl implements StartupDef {
 
     @Override
     public void invoke(
-        final ModuleBuilderSource moduleBuilderSource,
+        final ModuleInstanceSource moduleBuilderSource,
         final OperationTracker tracker,
         final ServiceLocator locator,
         final Logger logger) {
@@ -41,20 +41,20 @@ public class StartupDefImpl implements StartupDef {
                     resourceMap.put(ServiceLocator.class, locator);
                     resourceMap.put(Logger.class, logger);
 
-                    InjectionResources injectionResources = new MapInjectionResources(resourceMap);
+                    InjectionContext injectionContext = new MappedInjectionContext(resourceMap);
 
                     Throwable fail = null;
 
                     Object moduleInstance = InternalUtils.isStatic(
                         startupMethod)
                             ? null
-                            : moduleBuilderSource.getModuleBuilder();
+                            : moduleBuilderSource.getInstance();
 
                     try {
                         ObjectCreator<?>[] parameters = InternalUtils.calculateParametersForMethod(
                             startupMethod,
                             locator,
-                            injectionResources,
+                                injectionContext,
                             tracker);
 
                         startupMethod.invoke(

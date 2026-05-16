@@ -1,8 +1,6 @@
 package com.jujin.freeway.ioc.internal;
 
-import com.jujin.freeway.ioc.AnnotationProvider;
-import com.jujin.freeway.ioc.ServiceBuilderResources;
-import com.jujin.freeway.ioc.ServiceDefinition;
+import com.jujin.freeway.ioc.*;
 import com.jujin.freeway.ioc.advisor.OperationTracker;
 import com.jujin.freeway.ioc.internal.util.InternalUtils;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
@@ -14,18 +12,18 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Implementation of {@link com.jujin.freeway.ioc.ServiceBuilderResources}. We
+ * Implementation of {@link ServiceBuilderContext}. We
  * just have one implementation that fills the purposes of methods that need a
- * {@link com.jujin.freeway.ioc.ServiceResources} (which includes service
+ * {@link ServiceContext} (which includes service
  * decorator methods) as well as methods that need a
- * {@link com.jujin.freeway.ioc.ServiceBuilderResources} (which is just service
+ * {@link ServiceBuilderContext} (which is just service
  * builder methods). Since it is most commonly used for the former, we'll just
- * leave the name as ServiceResourcesImpl.
+ * leave the name as ServiceContextImpl.
  */
 @SuppressWarnings("rawtypes")
-public class ServiceResourcesImpl
+public class ServiceContextImpl
     extends ServiceLocatorImpl
-    implements ServiceBuilderResources {
+    implements ServiceBuilderContext {
 
     private final InternalRegistry registry;
 
@@ -37,7 +35,7 @@ public class ServiceResourcesImpl
 
     private final JdkProxyFactory proxyFactory;
 
-    public ServiceResourcesImpl(
+    public ServiceContextImpl(
         InternalRegistry registry,
         Module module,
         ServiceDefinition serviceDef,
@@ -86,8 +84,7 @@ public class ServiceResourcesImpl
 
     private void logConfiguration(Collection configuration) {
         if (logger.isDebugEnabled())
-            logger.debug(
-                IOCMessages.constructedConfiguration(configuration));
+            logger.debug("Constructed configuration: {}", configuration);
     }
 
     @Override
@@ -112,15 +109,14 @@ public class ServiceResourcesImpl
             () -> registry.getMappedConfiguration(serviceDef, keyType, valueType));
 
         if (logger.isDebugEnabled())
-            logger.debug(
-                IOCMessages.constructedConfiguration(result));
+            logger.debug("Constructed configuration: {}", result);
 
         return result;
     }
 
     @Override
-    public Object getModuleBuilder() {
-        return module.getModuleBuilder();
+    public Object getInstance() {
+        return module.getInstance();
     }
 
     @Override
@@ -133,12 +129,14 @@ public class ServiceResourcesImpl
 
             if (constructor == null)
                 throw new RuntimeException(
-                    IOCMessages.noAutobuildConstructor(clazz));
+                    String.format(
+                        "Class %s does not contain a public constructor needed to autobuild.",
+                        clazz.getName()));
 
             String ctorDescription = constructor.toString();
 
             ObjectCreator creator = new ConstructorServiceCreator(
-                ServiceResourcesImpl.this,
+                ServiceContextImpl.this,
                 ctorDescription,
                 constructor);
 

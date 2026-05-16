@@ -1,12 +1,12 @@
 package com.jujin.freeway.ioc.internal;
 
-import com.jujin.freeway.ioc.ServiceBuilderResources;
+import com.jujin.freeway.ioc.ServiceBuilderContext;
 import com.jujin.freeway.ioc.ServiceLocator;
-import com.jujin.freeway.ioc.ServiceResources;
+import com.jujin.freeway.ioc.ServiceContext;
 import com.jujin.freeway.ioc.advisor.OperationTracker;
-import com.jujin.freeway.ioc.internal.util.DelegatingInjectionResources;
-import com.jujin.freeway.ioc.internal.util.InjectionResources;
-import com.jujin.freeway.ioc.internal.util.MapInjectionResources;
+import com.jujin.freeway.ioc.internal.util.DelegatingInjectionContext;
+import com.jujin.freeway.ioc.internal.util.InjectionContext;
+import com.jujin.freeway.ioc.internal.util.MappedInjectionContext;
 import org.slf4j.Logger;
 
 import java.lang.reflect.ParameterizedType;
@@ -19,18 +19,18 @@ import java.util.Map;
 import static com.jujin.freeway.ioc.internal.ConfigurationType.*;
 
 /**
- * Builds {@link InjectionResources} for service creators, combining core
- * injection resources (ServiceLocator, ServiceResources, Logger, Class,
+ * Builds {@link InjectionContext} for service creators, combining core
+ * injection resources (ServiceLocator, ServiceContext, Logger, Class,
  * OperationTracker) with configuration-based resources (unordered, ordered,
  * mapped).
  */
-public class InjectionResourcesBuilder {
+public class InjectionContextBuilder {
 
     final String serviceId;
 
     private final Map<Class<?>, Object> injectionResources = new HashMap<>();
 
-    final ServiceBuilderResources resources;
+    final ServiceBuilderContext resources;
 
     final Logger logger;
 
@@ -44,8 +44,8 @@ public class InjectionResourcesBuilder {
         PARAMETER_TYPE_TO_CONFIGURATION_TYPE.put(Map.class, MAPPED);
     }
 
-    public InjectionResourcesBuilder(
-        ServiceBuilderResources resources,
+    public InjectionContextBuilder(
+        ServiceBuilderContext resources,
         String creatorDescription) {
         serviceId = resources.getServiceId();
 
@@ -54,7 +54,7 @@ public class InjectionResourcesBuilder {
         logger = resources.getLogger();
 
         injectionResources.put(ServiceLocator.class, resources);
-        injectionResources.put(ServiceResources.class, resources);
+        injectionResources.put(ServiceContext.class, resources);
         injectionResources.put(Logger.class, logger);
         injectionResources.put(Class.class, resources.getServiceInterface());
         injectionResources.put(OperationTracker.class, resources.getTracker());
@@ -65,10 +65,10 @@ public class InjectionResourcesBuilder {
      * additional mapping containing the collected configuration data. This involves
      * scanning the parameters and generic types.
      */
-    public InjectionResources build() {
-        InjectionResources core = new MapInjectionResources(injectionResources);
+    public InjectionContext build() {
+        InjectionContext core = new MappedInjectionContext(injectionResources);
 
-        InjectionResources configurations = new InjectionResources() {
+        InjectionContext configurations = new InjectionContext() {
             private boolean seenOne;
 
             @Override
@@ -80,7 +80,8 @@ public class InjectionResourcesBuilder {
 
                 if (seenOne)
                     throw new RuntimeException(
-                        IOCMessages.tooManyConfigurationParameters(
+                        String.format(
+                            "Service builder method %s contains more than one parameter of type Collection, List, or Map. Parameters of this type are the way in which service configuration values, collected from service contributor methods, are provided to the service builder. Services are only allowed a single configuration",
                             creatorDescription));
 
                 seenOne = true;
@@ -101,7 +102,7 @@ public class InjectionResourcesBuilder {
             }
         };
 
-        return new DelegatingInjectionResources(core, configurations);
+        return new DelegatingInjectionContext(core, configurations);
     }
 
     private List<?> getOrderedConfiguration(Type genericType) {
@@ -124,7 +125,9 @@ public class InjectionResourcesBuilder {
 
         if (keyType == null || valueType == null)
             throw new IllegalArgumentException(
-                IOCMessages.genericTypeNotSupported(genericType));
+                String.format(
+                    "Generic type '%s' is not supported. Only simple parameterized lists are supported.",
+                    genericType));
 
         return resources.getMappedConfiguration(keyType, valueType);
     }
@@ -147,7 +150,9 @@ public class InjectionResourcesBuilder {
 
         if (result == null)
             throw new IllegalArgumentException(
-                IOCMessages.genericTypeNotSupported(type));
+                String.format(
+                    "Generic type '%s' is not supported. Only simple parameterized lists are supported.",
+                    type));
 
         return result;
     }

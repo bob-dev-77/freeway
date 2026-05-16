@@ -8,7 +8,7 @@ import java.util.Collection;
  * {@link com.jujin.freeway.ioc.Registry}, or to objects or object instances
  * available by other means. Services are accessed via service id, or (when
  * appropriate) by just service interface. The Registry itself implements this
- * interface, as does {@link com.jujin.freeway.ioc.ServiceResources}.
+ * interface, as does {@link ServiceContext}.
  */
 public interface ServiceLocator {
     /**
@@ -90,7 +90,7 @@ public interface ServiceLocator {
 
     /**
      * Obtains an object indirectly, using the
-     * {@link com.jujin.freeway.ioc.ObjectInjector} service.
+     * {@link DependencyResolver} service.
      *
      * @param objectType
      *            the type of object to be returned
@@ -102,7 +102,7 @@ public interface ServiceLocator {
      *            object type)
      * @param <T>
      * @return the requested object
-     * @see ServiceProvider
+     * @see DependencyPolicy
      */
     <T> T getObject(Class<T> objectType, AnnotationProvider annotationProvider);
 
@@ -113,7 +113,7 @@ public interface ServiceLocator {
      * the {@code @Inject} annotation. There are two cases: constructing a service
      * implementation, and constructing an arbitrary object. In the former case,
      * many <em>service resources</em> are also available for injection, not just
-     * dependencies or objects provided via the ObjectInjector service.
+     * dependencies or objects provided via the DependencyResolver service.
      *
      * @param <T>
      * @param clazz
@@ -146,7 +146,7 @@ public interface ServiceLocator {
      * until just-in-time (that is, first method invocation). In a limited number of
      * cases, it is necessary to use such a proxy to prevent service construction
      * cycles, particularly when contributing (directly or indirectly) to the
-     * {@link com.jujin.freeway.ioc.ObjectInjector} (which is itself at the heart of
+     * {@link DependencyResolver} (which is itself at the heart of
      * autobuilding).
      * <p>
      * If the class file for the class is a file on the file system (not a file

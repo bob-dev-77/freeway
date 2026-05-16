@@ -14,7 +14,7 @@ package com.jujin.freeway.ioc;
  * element (usually a parameter, or perhaps a field) for which a value is
  * required.
  */
-public interface ServiceProvider {
+public interface DependencyPolicy {
     /**
      * Resolves an object based on an expression. The process of resolving objects
      * occurs within a particular <em>context</em>, which will typically be a

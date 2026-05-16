@@ -1,6 +1,6 @@
 package com.jujin.freeway.ioc.internal;
 
-import com.jujin.freeway.ioc.ModuleBuilderSource;
+import com.jujin.freeway.ioc.ModuleInstanceSource;
 import com.jujin.freeway.ioc.ServiceDefinition;
 import com.jujin.freeway.ioc.advisor.AdvisorDefinition;
 import com.jujin.freeway.ioc.config.ContributionDef;
@@ -13,7 +13,7 @@ import java.util.Set;
  * corresponding module builder instance; the methods and annotations of that
  * instance define the services provided by the module.
  */
-public interface Module extends ModuleBuilderSource {
+public interface Module extends ModuleInstanceSource {
     /**
      * Locates a service given a service id and the corresponding service interface
      * type.
@@ -64,7 +64,7 @@ public interface Module extends ModuleBuilderSource {
      *            collection of proxies to which any eager load services in the
      *            module should be added
      */
-    void collectEagerLoadServices(Collection<EagerLoadServiceProxy> proxies);
+    void collectEagerLoadServices(Collection<EagerLoadProxy> proxies);
 
     /**
      * Returns the service definition for the given service id.

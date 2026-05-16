@@ -51,7 +51,7 @@ public class ServiceBinderImpl implements ServiceBinder, ServiceBindingOptions {
 
     private final Set<Class<?>> markers = new HashSet<>();
 
-    private ObjectCreatorStrategy source;
+    private ObjectCreatorFactory source;
 
     private boolean eagerLoad;
 
@@ -109,7 +109,7 @@ public class ServiceBinderImpl implements ServiceBinder, ServiceBindingOptions {
         preventReloading = false;
     }
 
-    private ObjectCreatorStrategy createObjectCreatorStrategyFromImplementationClass() {
+    private ObjectCreatorFactory createObjectCreatorStrategyFromImplementationClass() {
         if (InternalUtils.SERVICE_CLASS_RELOADING_ENABLED &&
             !preventReloading &&
             isProxiable() &&
@@ -128,31 +128,35 @@ public class ServiceBinderImpl implements ServiceBinder, ServiceBindingOptions {
         return scope.equalsIgnoreCase(InternalUtils.DEFAULT);
     }
 
-    private ObjectCreatorStrategy createStandardConstructorBasedObjectCreatorStrategy() {
+    private ObjectCreatorFactory createStandardConstructorBasedObjectCreatorStrategy() {
         if (Modifier.isAbstract(serviceImplementation.getModifiers()))
             throw new RuntimeException(
-                IOCMessages.abstractServiceImplementation(
-                    serviceImplementation,
+                String.format(
+                    "Class %s (implementation of service '%s') is abstract.",
+                    serviceImplementation.getName(),
                     serviceId));
         final Constructor constructor = InternalUtils.findAutobuildConstructor(
             serviceImplementation);
 
         if (constructor == null)
             throw new RuntimeException(
-                IOCMessages.noConstructor(serviceImplementation, serviceId));
+                String.format(
+                    "Class %s (implementation of service '%s') does not contain any public constructors.",
+                    serviceImplementation.getName(),
+                    serviceId));
 
-        return new ObjectCreatorStrategy() {
+        return new ObjectCreatorFactory() {
             @Override
-            public ObjectCreator constructCreator(
-                ServiceBuilderResources resources) {
+            public ObjectCreator construct(
+                ServiceBuilderContext resources) {
                 return new ConstructorServiceCreator(
                     resources,
-                    getDescription(),
+                    description(),
                     constructor);
             }
 
             @Override
-            public String getDescription() {
+            public String description() {
                 return String.format(
                     "%s via %s",
                     constructor.getName(),
@@ -161,8 +165,8 @@ public class ServiceBinderImpl implements ServiceBinder, ServiceBindingOptions {
         };
     }
 
-    private ObjectCreatorStrategy createReloadableConstructorBasedObjectCreatorStrategy() {
-        return new ReloadableObjectCreatorStrategy(
+    private ObjectCreatorFactory createReloadableConstructorBasedObjectCreatorStrategy() {
+        return new ReloadableCreatorFactory(
             proxyFactory,
             bindMethod,
             serviceInterface,
@@ -187,7 +191,7 @@ public class ServiceBinderImpl implements ServiceBinder, ServiceBindingOptions {
                     return bind(serviceClass, implementationClass);
                 }
                 throw new RuntimeException(
-                    IOCMessages.noServiceMatchesType(serviceClass));
+                    String.format("No service implements the interface %s.", serviceClass.getName()));
             } catch (ClassNotFoundException ex) {
                 throw new RuntimeException(
                     String.format(
@@ -218,15 +222,15 @@ public class ServiceBinderImpl implements ServiceBinder, ServiceBindingOptions {
 
         serviceId = serviceInterface.getSimpleName();
 
-        this.source = new ObjectCreatorStrategy() {
+        this.source = new ObjectCreatorFactory() {
             @Override
-            public ObjectCreator constructCreator(
-                final ServiceBuilderResources resources) {
+            public ObjectCreator construct(
+                final ServiceBuilderContext resources) {
                 return () -> builder.buildService(resources);
             }
 
             @Override
-            public String getDescription() {
+            public String description() {
                 return InternalUtils.asString(bindMethod);
             }
         };

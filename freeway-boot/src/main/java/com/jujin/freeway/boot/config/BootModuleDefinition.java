@@ -58,8 +58,8 @@ public class BootModuleDefinition implements ModuleDefinition {
             @Override
             @SuppressWarnings("rawtypes")
             public void contribute(
-                ModuleBuilderSource moduleSource,
-                ServiceResources resources,
+                ModuleInstanceSource moduleSource,
+                ServiceContext resources,
                 Configuration configuration
             ) {
                 throw new UnsupportedOperationException(
@@ -70,8 +70,8 @@ public class BootModuleDefinition implements ModuleDefinition {
             @Override
             @SuppressWarnings({ "rawtypes", "unchecked" })
             public void contribute(
-                ModuleBuilderSource moduleSource,
-                ServiceResources resources,
+                ModuleInstanceSource moduleSource,
+                ServiceContext resources,
                 OrderedConfiguration ordered
             ) {
                 SymbolProvider bootProvider = new MapSymbolProvider(config);
@@ -86,8 +86,8 @@ public class BootModuleDefinition implements ModuleDefinition {
             @Override
             @SuppressWarnings("rawtypes")
             public void contribute(
-                ModuleBuilderSource moduleSource,
-                ServiceResources resources,
+                ModuleInstanceSource moduleSource,
+                ServiceContext resources,
                 MappedConfiguration mapped
             ) {
                 throw new UnsupportedOperationException(

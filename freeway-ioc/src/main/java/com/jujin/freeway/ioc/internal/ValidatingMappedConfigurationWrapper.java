@@ -77,7 +77,7 @@ public class ValidatingMappedConfigurationWrapper<K, V> implements MappedConfigu
 
         if (value == null)
             throw new NullPointerException(
-                IOCMessages.contributionWasNull(serviceId));
+                String.format("Service contribution (to service '%s') was null.", serviceId));
 
         V coerced = typeCoercer.coerce(value, expectedValueType);
 
@@ -85,7 +85,11 @@ public class ValidatingMappedConfigurationWrapper<K, V> implements MappedConfigu
 
         if (existing != null)
             throw new IllegalArgumentException(
-                IOCMessages.contributionDuplicateKey(serviceId, key, existing));
+                String.format(
+                    "Service contribution (to service '%s') for key '%s' conflicts with existing contribution (by %s).",
+                    serviceId,
+                    key,
+                    existing));
 
         map.put(key, coerced);
 
@@ -98,7 +102,7 @@ public class ValidatingMappedConfigurationWrapper<K, V> implements MappedConfigu
     private void validateKey(K key) {
         if (key == null)
             throw new NullPointerException(
-                IOCMessages.contributionKeyWasNull(serviceId));
+                String.format("Key for service contribution (to service '%s') was null.", serviceId));
 
         // Key types don't get coerced; not worth the effort, keys are almost always
         // String or Class
@@ -106,10 +110,11 @@ public class ValidatingMappedConfigurationWrapper<K, V> implements MappedConfigu
 
         if (!expectedKeyType.isInstance(key))
             throw new IllegalArgumentException(
-                IOCMessages.contributionWrongKeyType(
+                String.format(
+                    "Key for service contribution (to service '%s') was an instance of %s, but the expected key type was %s.",
                     serviceId,
-                    key.getClass(),
-                    expectedKeyType));
+                    key.getClass().getName(),
+                    expectedKeyType.getName()));
     }
 
     @Override

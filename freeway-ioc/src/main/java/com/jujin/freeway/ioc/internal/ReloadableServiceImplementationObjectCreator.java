@@ -1,6 +1,6 @@
 package com.jujin.freeway.ioc.internal;
 
-import com.jujin.freeway.ioc.ServiceBuilderResources;
+import com.jujin.freeway.ioc.ServiceBuilderContext;
 import com.jujin.freeway.ioc.UpdateListener;
 import com.jujin.freeway.ioc.internal.util.InternalUtils;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
@@ -22,7 +22,7 @@ public class ReloadableServiceImplementationObjectCreator
 
     public ReloadableServiceImplementationObjectCreator(
         JdkProxyFactory proxyFactory,
-        ServiceBuilderResources resources,
+        ServiceBuilderContext resources,
         ClassLoader baseClassLoader,
         String implementationClassName) {
         this.reloader = new ClassReloader(

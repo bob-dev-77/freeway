@@ -18,7 +18,7 @@ public interface ServiceDefinition extends AnnotationAccess {
      *            configuration
      * @return an object that can (later) be used to instantiate the service itself
      */
-    ObjectCreator<?> createServiceCreator(ServiceBuilderResources resources);
+    ObjectCreator<?> createServiceCreator(ServiceBuilderContext resources);
 
     /**
      * Returns the service id, derived from the method name or the unqualified

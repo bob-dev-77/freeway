@@ -10,7 +10,7 @@ import com.jujin.freeway.ioc.annotations.Local;
 import com.jujin.freeway.ioc.config.*;
 import com.jujin.freeway.ioc.exception.UnknownValueException;
 import com.jujin.freeway.ioc.internal.util.InternalUtils;
-import com.jujin.freeway.ioc.internal.util.MapInjectionResources;
+import com.jujin.freeway.ioc.internal.util.MappedInjectionContext;
 import com.jujin.freeway.ioc.internal.util.OneShotLock;
 import com.jujin.freeway.ioc.internal.util.Orderer;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
@@ -201,7 +201,8 @@ public class RegistryImpl
                 var existing = serviceIdToModule.get(serviceId);
 
                 if (existing != null) throw new RuntimeException(
-                    IOCMessages.serviceIdConflict(
+                    String.format(
+                        "Service id '%s' has already been defined by %s and may not be redefined by %s. You should rename one of the service builder methods.",
                         serviceId,
                         existing.getServiceDef(serviceId),
                         serviceDef
@@ -302,12 +303,19 @@ public class RegistryImpl
                 if (cd.getServiceId() != null) {
                     if (!serviceIdToModule.containsKey(serviceId)) {
                         throw new IllegalArgumentException(
-                            IOCMessages.contributionForNonexistentService(cd)
+                            String.format(
+                                "Contribution %s is for service '%s', which does not exist.",
+                                cd,
+                                cd.getServiceId())
                         );
                     }
                 } else if (!isContributionForExistentService(module, cd)) {
                     throw new IllegalArgumentException(
-                        IOCMessages.contributionForUnqualifiedService(cd)
+                        String.format(
+                            "Contribution %s is for service '%s' qualified with marker annotations %s, which does not exist.",
+                            cd,
+                            cd.getServiceInterface(),
+                            cd.getMarkers())
                     );
                 }
             }
@@ -366,15 +374,15 @@ public class RegistryImpl
 
         trackerImpl.startup();
 
-        List<EagerLoadServiceProxy> proxies = new ArrayList<>();
+        List<EagerLoadProxy> proxies = new ArrayList<>();
 
         for (Module m : moduleToServiceDefs.keySet())
             m.collectEagerLoadServices(proxies);
 
         // TAPESTRY-2267: Gather up all the proxies before instantiating any of them.
 
-        for (EagerLoadServiceProxy proxy : proxies) {
-            proxy.eagerLoadService();
+        for (EagerLoadProxy proxy : proxies) {
+            proxy.eagerLoad();
         }
 
         for (Runnable startup : startups) {
@@ -418,7 +426,7 @@ public class RegistryImpl
         ServiceDefinition serviceDef = new ServiceDefinition() {
             @Override
             public ObjectCreator createServiceCreator(
-                ServiceBuilderResources resources
+                ServiceBuilderContext resources
             ) {
                 return null;
             }
@@ -555,11 +563,11 @@ public class RegistryImpl
             return serviceInterface.cast(service);
         } catch (ClassCastException ex) {
             throw new RuntimeException(
-                IOCMessages.serviceWrongInterface(
+                String.format(
+                    "Service '%s' implements interface %s, which is not compatible with the requested type %s.",
                     serviceId,
-                    builtinTypes.get(serviceId),
-                    serviceInterface
-                )
+                    builtinTypes.get(serviceId).getName(),
+                    serviceInterface.getName())
             );
         }
     }
@@ -653,8 +661,8 @@ public class RegistryImpl
         // this can be
         // accomplished in the normal way?
 
-        if (serviceId.equals("ObjectInjector")) {
-            ServiceProvider contribution = new ServiceProvider() {
+        if (serviceId.equals("DependencyResolver")) {
+            DependencyPolicy contribution = new DependencyPolicy() {
                 @Override
                 public <T> T resolve(
                     Class<T> objectType,
@@ -769,7 +777,7 @@ public class RegistryImpl
 
         Logger logger = getServiceLogger(serviceId);
 
-        var resources = new ServiceResourcesImpl(
+        var resources = new ServiceContextImpl(
             this,
             module,
             serviceDef,
@@ -815,7 +823,7 @@ public class RegistryImpl
 
         Logger logger = getServiceLogger(serviceId);
 
-        var resources = new ServiceResourcesImpl(
+        var resources = new ServiceContextImpl(
             this,
             module,
             serviceDef,
@@ -858,7 +866,7 @@ public class RegistryImpl
 
         Logger logger = getServiceLogger(serviceId);
 
-        var resources = new ServiceResourcesImpl(
+        var resources = new ServiceContextImpl(
             this,
             module,
             serviceDef,
@@ -926,7 +934,7 @@ public class RegistryImpl
         switch (serviceIds.size()) {
             case 0:
                 throw new RuntimeException(
-                    IOCMessages.noServiceMatchesType(serviceInterface)
+                    String.format("No service implements the interface %s.", serviceInterface.getName())
                 );
             case 1:
                 String serviceId = serviceIds.get(0);
@@ -941,8 +949,19 @@ public class RegistryImpl
                     return getService(primaryId, serviceInterface);
                 }
 
+                StringBuilder buffer = new StringBuilder();
+                for (int i = 0; i < serviceIds.size(); i++) {
+                    if (i > 0)
+                        buffer.append(", ");
+                    buffer.append(serviceIds.get(i));
+                }
+
                 throw new RuntimeException(
-                    IOCMessages.manyServiceMatches(serviceInterface, serviceIds)
+                    String.format(
+                        "Service interface %s is matched by %d services: %s. Automatic dependency resolution requires that exactly one service implement the interface.",
+                        serviceInterface.getName(),
+                        serviceIds.size(),
+                        buffer.toString())
                 );
         }
     }
@@ -1104,7 +1123,7 @@ public class RegistryImpl
         }
 
         if (result == null) throw new RuntimeException(
-            IOCMessages.unknownScope(scope)
+            String.format("Unknown service scope '%s'.", scope)
         );
 
         return result;
@@ -1127,7 +1146,7 @@ public class RegistryImpl
 
             if (advisorDefs.isEmpty()) continue;
 
-            var resources = new ServiceResourcesImpl(
+            var resources = new ServiceContextImpl(
                 this,
                 module,
                 serviceDef,
@@ -1162,8 +1181,8 @@ public class RegistryImpl
         // We do a check here for known marker/type combinations, so that you can use a
         // marker
         // annotation
-        // to inject into a contribution method that contributes to ObjectInjector.
-        // We also force a contribution into ObjectInjector to accomplish the same
+        // to inject into a contribution method that contributes to DependencyResolver.
+        // We also force a contribution into DependencyResolver to accomplish the same
         // thing.
 
         var result = findServiceByMarkerAndType(
@@ -1176,10 +1195,10 @@ public class RegistryImpl
 
         var injector = getService(
             InternalUtils.INJECTOR_SERVICE_ID,
-            ObjectInjector.class
+            DependencyResolver.class
         );
 
-        return injector.inject(objectType, effectiveProvider, locator, true);
+        return injector.resolve(objectType, effectiveProvider, locator, true);
     }
 
     private Collection<ServiceDefinition> filterByType(
@@ -1218,13 +1237,24 @@ public class RegistryImpl
 
         // If didn't see @Local or any recognized marker annotation, then don't try to
         // filter that
-        // way. Continue on, eventually to the ObjectInjector service.
+        // way. Continue on, eventually to the DependencyResolver service.
 
         if (markers.isEmpty()) {
             return null;
         }
 
         return extractServiceFromMatches(objectType, markers, matches);
+    }
+
+    /**
+     * Converts a list of classes to a sorted, comma-separated string of class names.
+     */
+    private String toJavaClassNames(List<Class<?>> classes) {
+        Class<?>[] asArray = classes.toArray(new Class<?>[classes.size()]);
+        String[] namesArray = InternalUtils.toSimpleTypeNames(asArray);
+        List<String> names = new ArrayList<>(Arrays.asList(namesArray));
+
+        return InternalUtils.joinSorted(names);
     }
 
     /**
@@ -1252,15 +1282,18 @@ public class RegistryImpl
                 // but isn't really a marker (because no service is marked by the annotation).
 
                 throw new RuntimeException(
-                    IOCMessages.noServicesMatchMarker(objectType, markers)
+                    String.format(
+                        "Unable to locate any service assignable to type %s with marker annotation(s) %s.",
+                        InternalUtils.toSimpleTypeName(objectType),
+                        toJavaClassNames(markers))
                 );
             default:
                 throw new RuntimeException(
-                    IOCMessages.manyServicesMatchMarker(
-                        objectType,
-                        markers,
-                        matches
-                    )
+                    String.format(
+                        "Unable to locate a single service assignable to type %s with marker annotation(s) %s. All of the following services match: %s.",
+                        InternalUtils.toSimpleTypeName(objectType),
+                        toJavaClassNames(markers),
+                        InternalUtils.joinSorted(matches))
                 );
         }
     }
@@ -1367,16 +1400,18 @@ public class RegistryImpl
 
         if (constructor == null) {
             throw new RuntimeException(
-                IOCMessages.noAutobuildConstructor(clazz)
+                String.format(
+                    "Class %s does not contain a public constructor needed to autobuild.",
+                    clazz.getName())
             );
         }
 
         Map<Class<?>, Object> resourcesMap = new HashMap<>();
         resourcesMap.put(OperationTracker.class, RegistryImpl.this);
 
-        var resources = new MapInjectionResources(resourcesMap);
+        var resources = new MappedInjectionContext(resourcesMap);
 
-        ObjectCreator<T> plan = InternalUtils.createConstructorConstructionPlan(
+        ObjectCreator<T> plan = InternalUtils.createConstructorInstancePlan(
             this,
             this,
             resources,

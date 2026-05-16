@@ -1,6 +1,6 @@
 package com.jujin.freeway.ioc.lifecycle;
 
-import com.jujin.freeway.ioc.ServiceResources;
+import com.jujin.freeway.ioc.ServiceContext;
 
 public interface ServiceLifecycle {
     /**
@@ -16,7 +16,7 @@ public interface ServiceLifecycle {
      *            This is a wrapper around the service's builder method.
      * @return the service or equivalent service proxy
      */
-    Object createService(ServiceResources resources, ObjectCreator<?> creator);
+    Object createService(ServiceContext resources, ObjectCreator<?> creator);
 
     /**
      * Returns true if the lifecycle is a singleton (a service that will only be

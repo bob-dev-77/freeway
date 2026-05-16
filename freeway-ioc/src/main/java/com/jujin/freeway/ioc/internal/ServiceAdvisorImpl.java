@@ -1,11 +1,11 @@
 package com.jujin.freeway.ioc.internal;
 
-import com.jujin.freeway.ioc.ModuleBuilderSource;
-import com.jujin.freeway.ioc.ServiceResources;
+import com.jujin.freeway.ioc.ModuleInstanceSource;
+import com.jujin.freeway.ioc.ServiceContext;
 import com.jujin.freeway.ioc.advisor.MethodAdviceReceiver;
 import com.jujin.freeway.ioc.advisor.ServiceAdvisor;
-import com.jujin.freeway.ioc.internal.util.InjectionResources;
-import com.jujin.freeway.ioc.internal.util.MapInjectionResources;
+import com.jujin.freeway.ioc.internal.util.InjectionContext;
+import com.jujin.freeway.ioc.internal.util.MappedInjectionContext;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -16,9 +16,9 @@ public class ServiceAdvisorImpl implements ServiceAdvisor {
     private final MethodInvoker invoker;
 
     public ServiceAdvisorImpl(
-        ModuleBuilderSource moduleSource,
+        ModuleInstanceSource moduleSource,
         Method method,
-        ServiceResources resources,
+        ServiceContext resources,
         JdkProxyFactory proxyFactory) {
         this.invoker = new MethodInvoker(
             moduleSource,
@@ -38,12 +38,12 @@ public class ServiceAdvisorImpl implements ServiceAdvisor {
 
         resources.put(MethodAdviceReceiver.class, methodAdviceReceiver);
 
-        InjectionResources injectionResources = new MapInjectionResources(
+        InjectionContext injectionContext = new MappedInjectionContext(
             resources);
 
         // By design, advise methods return void, so we know that the return value is
         // null.
 
-        invoker.invoke(injectionResources);
+        invoker.invoke(injectionContext);
     }
 }

@@ -1,6 +1,6 @@
 package com.jujin.freeway.ioc.lifecycle;
 
-import com.jujin.freeway.ioc.ModuleBuilderSource;
+import com.jujin.freeway.ioc.ModuleInstanceSource;
 import com.jujin.freeway.ioc.ServiceLocator;
 import com.jujin.freeway.ioc.advisor.OperationTracker;
 import org.slf4j.Logger;
@@ -17,8 +17,8 @@ public interface StartupDef {
      * Invoke the startup method, which includes computing any parameters to the
      * method.
      */
-    void invoke(ModuleBuilderSource moduleBuilderSource,
-        OperationTracker tracker,
-        ServiceLocator locator,
-        Logger logger);
+    void invoke(ModuleInstanceSource moduleBuilderSource,
+                OperationTracker tracker,
+                ServiceLocator locator,
+                Logger logger);
 }

@@ -1,6 +1,6 @@
 package com.jujin.freeway.ioc.internal;
 
-import com.jujin.freeway.ioc.ServiceBuilderResources;
+import com.jujin.freeway.ioc.ServiceBuilderContext;
 import com.jujin.freeway.ioc.internal.util.InternalUtils;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 import org.slf4j.Logger;
@@ -15,13 +15,13 @@ public class ConstructorServiceCreator implements ObjectCreator<Object> {
 
     private final Constructor<?> constructor;
     private final String creatorDescription;
-    final ServiceBuilderResources resources;
+    final ServiceBuilderContext resources;
     final Logger logger;
     final String serviceId;
-    private final InjectionResourcesBuilder irBuilder;
+    private final InjectionContextBuilder irBuilder;
 
     public ConstructorServiceCreator(
-        ServiceBuilderResources resources,
+        ServiceBuilderContext resources,
         String creatorDescription,
         Constructor<?> constructor) {
         this.resources = resources;
@@ -29,7 +29,7 @@ public class ConstructorServiceCreator implements ObjectCreator<Object> {
         this.logger = resources.getLogger();
         this.serviceId = resources.getServiceId();
         this.constructor = constructor;
-        this.irBuilder = new InjectionResourcesBuilder(
+        this.irBuilder = new InjectionContextBuilder(
             resources,
             creatorDescription);
     }
@@ -48,7 +48,7 @@ public class ConstructorServiceCreator implements ObjectCreator<Object> {
                 creatorDescription,
                 resources.getServiceId());
 
-            plan = InternalUtils.createConstructorConstructionPlan(
+            plan = InternalUtils.createConstructorInstancePlan(
                 resources.getTracker(),
                 resources,
                 irBuilder.build(),

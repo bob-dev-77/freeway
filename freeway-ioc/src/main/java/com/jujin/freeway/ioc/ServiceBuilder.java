@@ -12,5 +12,5 @@ public interface ServiceBuilder<T> {
      *            used to lookup dependencies or access resources
      * @return the core service implementation
      */
-    T buildService(ServiceResources resources);
+    T buildService(ServiceContext resources);
 }

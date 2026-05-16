@@ -44,7 +44,7 @@ public class ValidatingConfigurationWrapper<T> implements Configuration<T> {
     public void add(T object) {
         if (object == null)
             throw new NullPointerException(
-                IOCMessages.contributionWasNull(serviceId));
+                String.format("Service contribution (to service '%s') was null.", serviceId));
 
         T coerced = typeCoercer.coerce(object, expectedType);
 

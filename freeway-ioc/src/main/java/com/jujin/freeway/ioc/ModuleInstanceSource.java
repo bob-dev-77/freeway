@@ -14,9 +14,9 @@ package com.jujin.freeway.ioc;
  * The term "module builder" has been deprecated; the current term is "module
  * class", but this interface is left as-is for backwards compatibility.
  */
-public interface ModuleBuilderSource {
+public interface ModuleInstanceSource {
     /**
      * Returns the instantiated version of the Freeway IoC module class.
      */
-    Object getModuleBuilder();
+    Object getInstance();
 }

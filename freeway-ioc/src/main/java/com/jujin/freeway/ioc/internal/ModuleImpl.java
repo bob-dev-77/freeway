@@ -7,17 +7,14 @@ import com.jujin.freeway.ioc.advisor.OperationTracker;
 import com.jujin.freeway.ioc.annotations.Local;
 import com.jujin.freeway.ioc.config.ContributionDef;
 import com.jujin.freeway.ioc.internal.util.ConcurrentBarrier;
-import com.jujin.freeway.ioc.internal.util.InjectionResources;
+import com.jujin.freeway.ioc.internal.util.InjectionContext;
 import com.jujin.freeway.ioc.internal.util.InternalUtils;
-import com.jujin.freeway.ioc.internal.util.MapInjectionResources;
+import com.jujin.freeway.ioc.internal.util.MappedInjectionContext;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 import com.jujin.freeway.ioc.lifecycle.ServiceLifecycle;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -68,7 +65,7 @@ public class ModuleImpl implements Module {
      * EagerLoadProxies collection into which proxies for eager loaded services are
      * added. Guarded by BARRIER
      */
-    private final Collection<EagerLoadServiceProxy> eagerLoadProxies = new ArrayList<>();
+    private final Collection<EagerLoadProxy> eagerLoadProxies = new ArrayList<>();
 
     private final Map<String, ServiceDefinition> serviceDefs = new ConcurrentSkipListMap<>(
         String.CASE_INSENSITIVE_ORDER);
@@ -121,10 +118,11 @@ public class ModuleImpl implements Module {
             // the service interface.
 
             throw new RuntimeException(
-                IOCMessages.serviceWrongInterface(
+                String.format(
+                    "Service '%s' implements interface %s, which is not compatible with the requested type %s.",
                     serviceId,
-                    def.getServiceInterface(),
-                    serviceInterface));
+                    def.getServiceInterface().getName(),
+                    serviceInterface.getName()));
         }
     }
 
@@ -200,7 +198,7 @@ public class ModuleImpl implements Module {
 
     @Override
     public void collectEagerLoadServices(
-        final Collection<EagerLoadServiceProxy> proxies) {
+        final Collection<EagerLoadProxy> proxies) {
         Runnable work = new Runnable() {
             @Override
             public void run() {
@@ -243,7 +241,7 @@ public class ModuleImpl implements Module {
 
         Supplier<Object> operation = () -> {
             try {
-                ServiceBuilderResources resources = new ServiceResourcesImpl(
+                ServiceBuilderContext resources = new ServiceContextImpl(
                     registry,
                     module,
                     def,
@@ -273,7 +271,7 @@ public class ModuleImpl implements Module {
                     return creator.create();
                 }
 
-                creator = new OperationTrackingObjectCreator(
+                creator = new OperationTrackingCreator(
                     registry,
                     String.format(
                         "Instantiating service %s implementation via %s",
@@ -281,7 +279,7 @@ public class ModuleImpl implements Module {
                         creator),
                     creator);
 
-                creator = new LifecycleWrappedServiceCreator(
+                creator = new ScopeManagedCreator(
                     lifecycle,
                     resources,
                     creator);
@@ -304,17 +302,17 @@ public class ModuleImpl implements Module {
 
                 // Add a wrapper that checks for recursion.
 
-                creator = new RecursiveServiceCreationCheckWrapper(
+                creator = new ReentrantGuard(
                     def,
                     creator,
                     logger);
 
-                creator = new OperationTrackingObjectCreator(
+                creator = new OperationTrackingCreator(
                     registry,
                     "Realizing service " + serviceId,
                     creator);
 
-                JustInTimeObjectCreator delegate = new JustInTimeObjectCreator(
+                LazyObjectCreator delegate = new LazyObjectCreator(
                     tracker,
                     creator,
                     serviceId);
@@ -335,7 +333,11 @@ public class ModuleImpl implements Module {
             } catch (Exception ex) {
                 logger.error("Failed to create service '{}': {}", serviceId, ex.getMessage(), ex);
                 throw new RuntimeException(
-                    IOCMessages.errorBuildingService(serviceId, def, ex),
+                    String.format(
+                        "Error building service proxy for service '%s' (at %s): %s",
+                        serviceId,
+                        def,
+                        ex.getMessage()),
                     ex);
             }
         };
@@ -365,7 +367,7 @@ public class ModuleImpl implements Module {
     };
 
     @Override
-    public Object getModuleBuilder() {
+    public Object getInstance() {
         return BARRIER.withRead(provideModuleInstance);
     }
 
@@ -376,7 +378,9 @@ public class ModuleImpl implements Module {
 
         if (constructors.length == 0)
             throw new RuntimeException(
-                IOCMessages.noPublicConstructors(moduleClass));
+                String.format(
+                    "Module class %s does not contain any public constructors.",
+                    moduleClass.getName()));
 
         if (constructors.length > 1) {
             // Sort the constructors ascending by number of parameters (descending); this is
@@ -396,8 +400,9 @@ public class ModuleImpl implements Module {
             Arrays.sort(constructors, comparator);
 
             logger.warn(
-                IOCMessages.tooManyPublicConstructors(
-                    moduleClass,
+                String.format(
+                    "Module class %s contains more than one public constructor. The first constructor, %s, is being used. You should change the class to have only a single public constructor.",
+                    moduleClass.getName(),
                     constructors[0]));
         }
 
@@ -405,7 +410,10 @@ public class ModuleImpl implements Module {
 
         if (insideConstructor)
             throw new RuntimeException(
-                IOCMessages.recursiveModuleConstructor(moduleClass, constructor));
+                String.format(
+                    "The constructor for module class %s is recursive: it depends on itself in some way. The constructor, %s, is in some way is triggering a service builder, advisor or contribution method within the class.",
+                    moduleClass.getName(),
+                    constructor));
 
         ServiceLocator locator = new ServiceLocatorImpl(registry, this);
         Map<Class<?>, Object> resourcesMap = new HashMap<>();
@@ -414,7 +422,7 @@ public class ModuleImpl implements Module {
         resourcesMap.put(ServiceLocator.class, locator);
         resourcesMap.put(OperationTracker.class, registry);
 
-        InjectionResources resources = new MapInjectionResources(resourcesMap);
+        InjectionContext resources = new MappedInjectionContext(resourcesMap);
 
         Throwable fail = null;
 
@@ -452,12 +460,15 @@ public class ModuleImpl implements Module {
         }
 
         throw new RuntimeException(
-            IOCMessages.instantiateBuilderError(moduleClass, fail),
+            String.format(
+                "Unable to instantiate class %s as a module: %s",
+                moduleClass.getName(),
+                fail != null ? fail.getMessage() : "null"),
             fail);
     }
 
     private Object createProxy(
-        ServiceResources resources,
+        ServiceContext resources,
         ObjectCreator creator,
         boolean preventDecoration) {
         String serviceId = resources.getServiceId();

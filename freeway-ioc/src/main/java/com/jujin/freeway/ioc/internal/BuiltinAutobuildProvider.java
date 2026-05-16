@@ -1,8 +1,8 @@
 package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.AnnotationProvider;
+import com.jujin.freeway.ioc.DependencyPolicy;
 import com.jujin.freeway.ioc.ServiceLocator;
-import com.jujin.freeway.ioc.ServiceProvider;
 import com.jujin.freeway.ioc.annotations.Autobuild;
 
 /**
@@ -10,7 +10,7 @@ import com.jujin.freeway.ioc.annotations.Autobuild;
  * and, if so invokes
  * {@link com.jujin.freeway.ioc.ServiceLocator#autobuild(Class)} on it.
  */
-public class AutobuildServiceProvider implements ServiceProvider {
+public class BuiltinAutobuildProvider implements DependencyPolicy {
 
     @Override
     public <T> T resolve(

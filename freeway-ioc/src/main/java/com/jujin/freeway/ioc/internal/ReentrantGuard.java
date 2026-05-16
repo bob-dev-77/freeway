@@ -12,8 +12,7 @@ import org.slf4j.Logger;
  * stack injected into the proxy, potentially leading to endless recursion. We
  * try to identify that recursion and produce a useable exception report.
  */
-public class RecursiveServiceCreationCheckWrapper
-    implements ObjectCreator<Object> {
+public class ReentrantGuard implements ObjectCreator<Object> {
 
     private final ServiceDefinition serviceDef;
 
@@ -23,7 +22,7 @@ public class RecursiveServiceCreationCheckWrapper
 
     private boolean locked;
 
-    public RecursiveServiceCreationCheckWrapper(
+    public ReentrantGuard(
         ServiceDefinition serviceDef,
         ObjectCreator<?> delegate,
         Logger logger) {
@@ -40,7 +39,10 @@ public class RecursiveServiceCreationCheckWrapper
     public Object create() {
         if (locked)
             throw new IllegalStateException(
-                IOCMessages.recursiveServiceBuild(serviceDef));
+                String.format(
+                    "Construction of service '%s' has failed due to recursion: the service depends on itself in some way. Please check %s for references to another service that is itself dependent on service '%1$s'.",
+                    serviceDef.getServiceId(),
+                    serviceDef.toString()));
 
         // Set the lock, to ensure that recursive service construction fails.
 
@@ -50,7 +52,9 @@ public class RecursiveServiceCreationCheckWrapper
             return delegate.create();
         } catch (RuntimeException ex) {
             logger.error(
-                IOCMessages.serviceConstructionFailed(serviceDef, ex),
+                "Construction of service {} failed: {}",
+                serviceDef.getServiceId(),
+                ex.getMessage(),
                 ex);
 
             // Release the lock on failure; the service is now in an unknown state, but we

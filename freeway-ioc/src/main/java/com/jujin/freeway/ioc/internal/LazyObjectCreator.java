@@ -10,7 +10,7 @@ import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
  * interfaces implemented by this class support eager loading of services (at
  * application startup), and orderly shutdown of proxies.
  */
-public class JustInTimeObjectCreator<T> implements ObjectCreator<T>, EagerLoadServiceProxy, Runnable {
+public class LazyObjectCreator<T> implements ObjectCreator<T>, EagerLoadProxy, Runnable {
 
     private final ServiceActivityTracker tracker;
 
@@ -20,7 +20,7 @@ public class JustInTimeObjectCreator<T> implements ObjectCreator<T>, EagerLoadSe
 
     private final String serviceId;
 
-    public JustInTimeObjectCreator(
+    public LazyObjectCreator(
         ServiceActivityTracker tracker,
         ObjectCreator<T> creator,
         String serviceId) {
@@ -58,7 +58,10 @@ public class JustInTimeObjectCreator<T> implements ObjectCreator<T>, EagerLoadSe
             creator = null;
         } catch (RuntimeException ex) {
             throw new RuntimeException(
-                ServiceMessages.serviceBuildFailure(serviceId, ex),
+                String.format(
+                    "Exception constructing service '%s': %s",
+                    serviceId,
+                    ex.getMessage()),
                 ex);
         }
     }
@@ -68,7 +71,7 @@ public class JustInTimeObjectCreator<T> implements ObjectCreator<T>, EagerLoadSe
      * service.
      */
     @Override
-    public void eagerLoadService() {
+    public void eagerLoad() {
         // Force object creation now
 
         create();
@@ -83,7 +86,9 @@ public class JustInTimeObjectCreator<T> implements ObjectCreator<T>, EagerLoadSe
     public synchronized void run() {
         creator = () -> {
             throw new IllegalStateException(
-                ServiceMessages.registryShutdown(serviceId));
+                String.format(
+                    "Proxy for service %s is no longer active because the IOC Registry has been shut down.",
+                    serviceId));
         };
 
         object = null;

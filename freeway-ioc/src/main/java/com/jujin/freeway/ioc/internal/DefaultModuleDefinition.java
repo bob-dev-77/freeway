@@ -2,7 +2,7 @@ package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.ModuleDefinition;
 import com.jujin.freeway.ioc.ServiceBinder;
-import com.jujin.freeway.ioc.ServiceBuilderResources;
+import com.jujin.freeway.ioc.ServiceBuilderContext;
 import com.jujin.freeway.ioc.ServiceDefinition;
 import com.jujin.freeway.ioc.advisor.AdvisorDefinition;
 import com.jujin.freeway.ioc.advisor.MethodAdviceReceiver;
@@ -307,7 +307,10 @@ public class DefaultModuleDefinition implements ModuleDefinition, ServiceDefAccu
         Class<?> returnType = method.getReturnType();
         if (!returnType.equals(void.class)) {
             throw new RuntimeException(
-                IOCMessages.contributionWrongReturnType(method));
+                String.format(
+                    "Method %s is named like a service contributor method, but the return type (%s) is not appropriate (it should be void). The return value will be ignored.",
+                    InternalUtils.asString(method),
+                    InternalUtils.toSimpleTypeName(returnType)));
         }
 
         ConfigurationType type = null;
@@ -318,7 +321,9 @@ public class DefaultModuleDefinition implements ModuleDefinition, ServiceDefAccu
             if (thisParameter != null) {
                 if (type != null)
                     throw new RuntimeException(
-                        IOCMessages.tooManyContributionParameters(method));
+                        String.format(
+                            "Service contribution method %s contains more than one parameter of type Configuration, OrderedConfiguration, or MappedConfiguration. Exactly one such parameter is required for a service contribution method.",
+                            InternalUtils.asString(method)));
 
                 type = thisParameter;
             }
@@ -326,7 +331,9 @@ public class DefaultModuleDefinition implements ModuleDefinition, ServiceDefAccu
 
         if (type == null)
             throw new RuntimeException(
-                IOCMessages.noContributionParameter(method));
+                String.format(
+                    "Service contribution method %s does not contain a parameter of type Configuration, OrderedConfiguration or MappedConfiguration. This parameter is how the method make contributions into the service's configuration.",
+                    InternalUtils.asString(method)));
 
         var markers = extractMarkers(method, Contribute.class, Optional.class);
 
@@ -476,18 +483,18 @@ public class DefaultModuleDefinition implements ModuleDefinition, ServiceDefAccu
         boolean preventDecoration = modulePreventsServiceDecoration ||
             method.getAnnotation(PreventServiceDecoration.class) != null;
 
-        ObjectCreatorStrategy source = new ObjectCreatorStrategy() {
+        ObjectCreatorFactory source = new ObjectCreatorFactory() {
             @Override
-            public ObjectCreator<?> constructCreator(
-                ServiceBuilderResources resources) {
+            public ObjectCreator<?> construct(
+                ServiceBuilderContext resources) {
                 return new ServiceBuilderMethodInvoker(
                     resources,
-                    getDescription(),
+                    description(),
                     method);
             }
 
             @Override
-            public String getDescription() {
+            public String description() {
                 return DefaultModuleDefinition.this.toString(method);
             }
         };
@@ -549,7 +556,8 @@ public class DefaultModuleDefinition implements ModuleDefinition, ServiceDefAccu
 
         if (existing != null)
             throw new RuntimeException(
-                IOCMessages.buildMethodConflict(
+                String.format(
+                    "Service %s (defined by %s) conflicts with previously defined service defined by %s.",
                     serviceId,
                     serviceDef.toString(),
                     existing.toString()));
@@ -594,7 +602,9 @@ public class DefaultModuleDefinition implements ModuleDefinition, ServiceDefAccu
 
             if (!Modifier.isStatic(bindMethod.getModifiers()))
                 throw new RuntimeException(
-                    IOCMessages.bindMethodMustBeStatic(toString(bindMethod)));
+                    String.format(
+                        "Method %s appears to be a service binder method, but is an instance method, not a static method.",
+                        toString(bindMethod)));
 
             var binder = new ServiceBinderImpl(
                 this,
@@ -625,7 +635,10 @@ public class DefaultModuleDefinition implements ModuleDefinition, ServiceDefAccu
         var methodId = toString(bindMethod);
 
         throw new RuntimeException(
-            IOCMessages.errorInBindMethod(methodId, failure),
+            String.format(
+                "Error invoking service binder method %s: %s",
+                methodId,
+                failure != null ? failure.getMessage() : "null"),
             failure);
     }
 

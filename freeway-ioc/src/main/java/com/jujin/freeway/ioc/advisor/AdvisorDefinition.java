@@ -1,9 +1,9 @@
 package com.jujin.freeway.ioc.advisor;
 
 import com.jujin.freeway.ioc.Markable;
-import com.jujin.freeway.ioc.ModuleBuilderSource;
+import com.jujin.freeway.ioc.ModuleInstanceSource;
 import com.jujin.freeway.ioc.ServiceDefinition;
-import com.jujin.freeway.ioc.ServiceResources;
+import com.jujin.freeway.ioc.ServiceContext;
 
 /**
  * Definition of a service advisor, which (by default) is derived from a service
@@ -41,8 +41,8 @@ public interface AdvisorDefinition extends Markable {
      * @return advisor
      */
     ServiceAdvisor createAdvisor(
-        ModuleBuilderSource moduleSource,
-        ServiceResources resources);
+        ModuleInstanceSource moduleSource,
+        ServiceContext resources);
 
     /**
      * Used to determine which services may be advised. When advising a service,

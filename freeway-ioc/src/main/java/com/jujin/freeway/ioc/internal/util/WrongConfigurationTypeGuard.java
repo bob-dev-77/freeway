@@ -6,7 +6,7 @@ import java.lang.reflect.Type;
  * Used when invoking a contribute method to guard against a request for the
  * wrong type of configuration interface.
  */
-public class WrongConfigurationTypeGuard implements InjectionResources {
+public class WrongConfigurationTypeGuard implements InjectionContext {
 
     private final String serviceId;
 

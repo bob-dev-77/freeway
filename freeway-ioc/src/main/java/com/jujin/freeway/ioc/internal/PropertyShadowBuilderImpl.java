@@ -35,7 +35,10 @@ public class PropertyShadowBuilderImpl implements PropertyShadowBuilder {
 
         if (adapter == null)
             throw new RuntimeException(
-                ServiceMessages.noSuchProperty(sourceClass, propertyName));
+                String.format(
+                    "Class %s does not contain a property named '%s'.",
+                    sourceClass.getName(),
+                    propertyName));
 
         if (!adapter.isRead()) {
             throw new RuntimeException(
@@ -47,11 +50,12 @@ public class PropertyShadowBuilderImpl implements PropertyShadowBuilder {
 
         if (!propertyType.isAssignableFrom(adapter.getType()))
             throw new RuntimeException(
-                ServiceMessages.propertyTypeMismatch(
+                String.format(
+                    "Property '%s' of class %s is of type %s, which is not assignable to type %s.",
                     propertyName,
-                    sourceClass,
-                    adapter.getType(),
-                    propertyType));
+                    sourceClass.getName(),
+                    adapter.getType().getName(),
+                    propertyType.getName()));
 
         return (T) Proxy.newProxyInstance(
             proxyFactory.getClassLoader(),

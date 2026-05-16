@@ -1,7 +1,7 @@
 package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.AnnotationProvider;
-import com.jujin.freeway.ioc.ServiceBuilderResources;
+import com.jujin.freeway.ioc.ServiceBuilderContext;
 import com.jujin.freeway.ioc.ServiceDefinition;
 import com.jujin.freeway.ioc.internal.util.InternalUtils;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
@@ -23,7 +23,7 @@ public class ServiceDefinitionImpl implements ServiceDefinition {
 
     private final boolean eagerLoad;
 
-    private final ObjectCreatorStrategy source;
+    private final ObjectCreatorFactory source;
 
     private final Set<Class<?>> markers;
 
@@ -57,7 +57,7 @@ public class ServiceDefinitionImpl implements ServiceDefinition {
         String scope,
         boolean eagerLoad,
         boolean preventDecoration,
-        ObjectCreatorStrategy source) {
+        ObjectCreatorFactory source) {
         this.serviceInterface = serviceInterface;
         this.serviceImplementation = serviceImplementation;
         this.serviceId = serviceId;
@@ -71,13 +71,13 @@ public class ServiceDefinitionImpl implements ServiceDefinition {
 
     @Override
     public String toString() {
-        return source.getDescription();
+        return source.description();
     }
 
     @Override
     public ObjectCreator<?> createServiceCreator(
-        ServiceBuilderResources resources) {
-        return source.constructCreator(resources);
+        ServiceBuilderContext resources) {
+        return source.construct(resources);
     }
 
     @Override

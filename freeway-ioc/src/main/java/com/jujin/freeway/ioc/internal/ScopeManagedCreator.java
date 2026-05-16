@@ -1,6 +1,6 @@
 package com.jujin.freeway.ioc.internal;
 
-import com.jujin.freeway.ioc.ServiceResources;
+import com.jujin.freeway.ioc.ServiceContext;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 import com.jujin.freeway.ioc.lifecycle.ServiceLifecycle;
 
@@ -10,17 +10,17 @@ import com.jujin.freeway.ioc.lifecycle.ServiceLifecycle;
  * lifecycle to alter the way that the service is created (this is needed for
  * the more advanced, non-singleton types of service lifecycles).
  */
-public class LifecycleWrappedServiceCreator implements ObjectCreator<Object> {
+public class ScopeManagedCreator implements ObjectCreator<Object> {
 
     private final ServiceLifecycle lifecycle;
 
-    private final ServiceResources resources;
+    private final ServiceContext resources;
 
     private final ObjectCreator<?> creator;
 
-    public LifecycleWrappedServiceCreator(
+    public ScopeManagedCreator(
         ServiceLifecycle lifecycle,
-        ServiceResources resources,
+        ServiceContext resources,
         ObjectCreator<?> creator) {
         this.lifecycle = lifecycle;
         this.resources = resources;

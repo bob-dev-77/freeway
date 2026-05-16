@@ -1,6 +1,6 @@
 package com.jujin.freeway.ioc.internal;
 
-import com.jujin.freeway.ioc.ServiceResources;
+import com.jujin.freeway.ioc.ServiceContext;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 import com.jujin.freeway.ioc.lifecycle.ServiceLifecycle;
 
@@ -13,7 +13,7 @@ public class SingletonServiceLifecycle implements ServiceLifecycle {
 
     @Override
     public Object createService(
-        ServiceResources resources,
+        ServiceContext resources,
         ObjectCreator<?> creator) {
         return creator.create();
     }

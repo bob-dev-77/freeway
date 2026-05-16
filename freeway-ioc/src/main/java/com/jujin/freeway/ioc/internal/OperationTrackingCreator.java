@@ -9,7 +9,7 @@ import java.util.function.Supplier;
  * Makes sure the operations tracker is notified knows that a service is being
  * realized.
  */
-public class OperationTrackingObjectCreator implements ObjectCreator<Object> {
+public class OperationTrackingCreator implements ObjectCreator<Object> {
 
     private final OperationTracker tracker;
 
@@ -17,7 +17,7 @@ public class OperationTrackingObjectCreator implements ObjectCreator<Object> {
 
     private final ObjectCreator<?> delegate;
 
-    public OperationTrackingObjectCreator(
+    public OperationTrackingCreator(
         OperationTracker tracker,
         String message,
         ObjectCreator<?> delegate) {
