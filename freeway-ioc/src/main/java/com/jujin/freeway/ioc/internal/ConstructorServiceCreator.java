@@ -1,11 +1,10 @@
 package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.ServiceBuilderContext;
-import com.jujin.freeway.ioc.internal.util.InternalUtils;
+import com.jujin.freeway.ioc.internal.util.InstancePlanBuilder;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
-import org.slf4j.Logger;
-
 import java.lang.reflect.Constructor;
+import org.slf4j.Logger;
 
 /**
  * A service creator based on an implementation class' constructor, rather than
@@ -23,7 +22,8 @@ public class ConstructorServiceCreator implements ObjectCreator<Object> {
     public ConstructorServiceCreator(
         ServiceBuilderContext resources,
         String creatorDescription,
-        Constructor<?> constructor) {
+        Constructor<?> constructor
+    ) {
         this.resources = resources;
         this.creatorDescription = creatorDescription;
         this.logger = resources.getLogger();
@@ -31,7 +31,8 @@ public class ConstructorServiceCreator implements ObjectCreator<Object> {
         this.constructor = constructor;
         this.irBuilder = new InjectionContextBuilder(
             resources,
-            creatorDescription);
+            creatorDescription
+        );
     }
 
     @Override
@@ -46,15 +47,17 @@ public class ConstructorServiceCreator implements ObjectCreator<Object> {
             String description = String.format(
                 "Invoking constructor %s (for service '%s')",
                 creatorDescription,
-                resources.getServiceId());
+                resources.getServiceId()
+            );
 
-            plan = InternalUtils.createConstructorInstancePlan(
+            plan = InstancePlanBuilder.build(
                 resources.getTracker(),
                 resources,
                 irBuilder.build(),
                 logger,
                 description,
-                constructor);
+                constructor
+            );
         }
 
         return plan;

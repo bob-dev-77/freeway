@@ -9,13 +9,12 @@ import com.jujin.freeway.ioc.config.MappedConfiguration;
 import com.jujin.freeway.ioc.config.OrderedConfiguration;
 import com.jujin.freeway.ioc.internal.util.*;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
-import org.slf4j.Logger;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import org.slf4j.Logger;
 
 public class ContributionDefImpl implements ContributionDef {
 
@@ -29,7 +28,7 @@ public class ContributionDefImpl implements ContributionDef {
 
     private final Class<?> serviceInterface;
 
-    private static final Class<?>[] CONFIGURATION_TYPES = new Class<?>[]{
+    private static final Class<?>[] CONFIGURATION_TYPES = new Class<?>[] {
         Configuration.class,
         MappedConfiguration.class,
         OrderedConfiguration.class,
@@ -41,7 +40,8 @@ public class ContributionDefImpl implements ContributionDef {
         boolean optional,
         JdkProxyFactory proxyFactory,
         Class<?> serviceInterface,
-        Set<Class<?>> markers) {
+        Set<Class<?>> markers
+    ) {
         this.serviceId = serviceId;
         this.contributorMethod = contributorMethod;
         this.optional = optional;
@@ -69,12 +69,14 @@ public class ContributionDefImpl implements ContributionDef {
     public void contribute(
         ModuleInstanceSource moduleSource,
         ServiceContext resources,
-        Configuration configuration) {
+        Configuration configuration
+    ) {
         invokeMethod(
             moduleSource,
             resources,
             Configuration.class,
-            configuration);
+            configuration
+        );
     }
 
     @Override
@@ -82,12 +84,14 @@ public class ContributionDefImpl implements ContributionDef {
     public void contribute(
         ModuleInstanceSource moduleSource,
         ServiceContext resources,
-        OrderedConfiguration configuration) {
+        OrderedConfiguration configuration
+    ) {
         invokeMethod(
             moduleSource,
             resources,
             OrderedConfiguration.class,
-            configuration);
+            configuration
+        );
     }
 
     @Override
@@ -95,19 +99,22 @@ public class ContributionDefImpl implements ContributionDef {
     public void contribute(
         ModuleInstanceSource moduleSource,
         ServiceContext resources,
-        MappedConfiguration configuration) {
+        MappedConfiguration configuration
+    ) {
         invokeMethod(
             moduleSource,
             resources,
             MappedConfiguration.class,
-            configuration);
+            configuration
+        );
     }
 
     private <T> void invokeMethod(
         ModuleInstanceSource source,
         ServiceContext resources,
         Class<T> parameterType,
-        T parameterValue) {
+        T parameterValue
+    ) {
         Map<Class<?>, Object> resourceMap = new HashMap<>();
 
         resourceMap.put(parameterType, parameterValue);
@@ -115,7 +122,8 @@ public class ContributionDefImpl implements ContributionDef {
         resourceMap.put(Logger.class, resources.getLogger());
 
         InjectionContext injectionContext = new MappedInjectionContext(
-            resourceMap);
+            resourceMap
+        );
 
         // For each of the other configuration types that is not expected, add a guard.
 
@@ -125,8 +133,10 @@ public class ContributionDefImpl implements ContributionDef {
                     new WrongConfigurationTypeGuard(
                         resources.getServiceId(),
                         t,
-                        parameterType),
-                        injectionContext);
+                        parameterType
+                    ),
+                    injectionContext
+                );
             }
         }
 
@@ -138,28 +148,32 @@ public class ContributionDefImpl implements ContributionDef {
 
         try {
             @SuppressWarnings("rawtypes")
-            ObjectCreator[] parameters = InternalUtils.calculateParametersForMethod(
-                contributorMethod,
-                resources,
+            ObjectCreator[] parameters =
+                InjectionPlanner.resolveMethodParameters(
+                    contributorMethod,
+                    resources,
                     injectionContext,
-                resources.getTracker());
+                    resources.getTracker()
+                );
 
             contributorMethod.invoke(
                 moduleInstance,
-                InternalUtils.realizeObjects(parameters));
+                InjectionPlanner.realizeAll(parameters)
+            );
         } catch (InvocationTargetException ex) {
             fail = ex.getTargetException();
         } catch (Exception ex) {
             fail = ex;
         }
 
-        if (fail != null)
-            throw new RuntimeException(
-                String.format(
-                    "Error invoking service contribution method %s: %s",
-                    InternalUtils.asString(contributorMethod),
-                    fail.getMessage()),
-                fail);
+        if (fail != null) throw new RuntimeException(
+            String.format(
+                "Error invoking service contribution method %s: %s",
+                InternalUtils.asString(contributorMethod),
+                fail.getMessage()
+            ),
+            fail
+        );
     }
 
     @Override

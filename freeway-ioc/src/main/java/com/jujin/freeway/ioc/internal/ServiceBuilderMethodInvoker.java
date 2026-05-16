@@ -1,11 +1,11 @@
 package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.ServiceBuilderContext;
+import com.jujin.freeway.ioc.internal.util.InstancePlanBuilder;
 import com.jujin.freeway.ioc.internal.util.InternalUtils;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
-import org.slf4j.Logger;
-
 import java.lang.reflect.Method;
+import org.slf4j.Logger;
 
 /**
  * Basic implementation of {@link com.jujin.freeway.ioc.lifecycle.ObjectCreator}
@@ -24,7 +24,8 @@ public class ServiceBuilderMethodInvoker implements ObjectCreator<Object> {
     public ServiceBuilderMethodInvoker(
         ServiceBuilderContext resources,
         String creatorDescription,
-        Method method) {
+        Method method
+    ) {
         this.resources = resources;
         this.creatorDescription = creatorDescription;
         this.logger = resources.getLogger();
@@ -32,7 +33,8 @@ public class ServiceBuilderMethodInvoker implements ObjectCreator<Object> {
         builderMethod = method;
         this.irBuilder = new InjectionContextBuilder(
             resources,
-            creatorDescription);
+            creatorDescription
+        );
     }
 
     private ObjectCreator<Object> plan;
@@ -47,14 +49,15 @@ public class ServiceBuilderMethodInvoker implements ObjectCreator<Object> {
                 ? null
                 : resources.getInstance();
 
-            plan = InternalUtils.createMethodInvocationPlan(
+            plan = InstancePlanBuilder.buildForMethod(
                 resources.getTracker(),
                 resources,
                 irBuilder.build(),
                 logger,
                 "Constructing service implementation via " + creatorDescription,
                 moduleInstance,
-                builderMethod);
+                builderMethod
+            );
         }
 
         return plan;
@@ -72,7 +75,9 @@ public class ServiceBuilderMethodInvoker implements ObjectCreator<Object> {
                 String.format(
                     "Builder method %s (for service '%s') returned null.",
                     creatorDescription,
-                    serviceId));
+                    serviceId
+                )
+            );
         }
 
         return result;

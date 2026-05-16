@@ -3,14 +3,14 @@ package com.jujin.freeway.ioc.internal;
 import com.jujin.freeway.ioc.annotations.PreventServiceDecoration;
 import com.jujin.freeway.ioc.annotations.Scope;
 import com.jujin.freeway.ioc.exception.ExceptionTracker;
-import com.jujin.freeway.ioc.internal.util.InternalUtils;
-
+import com.jujin.freeway.ioc.internal.util.Scopes;
 import java.util.HashSet;
 import java.util.Set;
 
-@Scope(InternalUtils.PERTHREAD)
+@Scope(Scopes.PERTHREAD)
 @PreventServiceDecoration
 public class ExceptionTrackerImpl implements ExceptionTracker {
+
     private final Set<Throwable> exceptions = new HashSet<>();
 
     @Override

@@ -3,14 +3,14 @@ package com.jujin.freeway.ioc.internal;
 import com.jujin.freeway.ioc.ServiceDefinition;
 import com.jujin.freeway.ioc.advisor.ServiceActivity;
 import com.jujin.freeway.ioc.advisor.ServiceActivityScoreboard;
-import com.jujin.freeway.ioc.internal.util.InternalUtils;
-import com.jujin.freeway.ioc.threading.PerThreadValue;
+import com.jujin.freeway.ioc.internal.util.Scopes;
 import com.jujin.freeway.ioc.threading.PerThreadManager;
-
+import com.jujin.freeway.ioc.threading.PerThreadValue;
 import java.util.*;
 
 public class ServiceActivityTrackerImpl
-    implements ServiceActivityScoreboard, ServiceActivityTracker {
+    implements ServiceActivityScoreboard, ServiceActivityTracker
+{
 
     public static class MutableServiceActivity implements ServiceActivity {
 
@@ -23,9 +23,10 @@ public class ServiceActivityTrackerImpl
         public MutableServiceActivity(
             ServiceDefinition serviceDef,
             PerThreadManager perthreadManager,
-            ServiceStatus status) {
+            ServiceStatus status
+        ) {
             this.serviceDef = serviceDef;
-            if (serviceDef.getServiceScope().equals(InternalUtils.PERTHREAD)) {
+            if (serviceDef.getServiceScope().equals(Scopes.PERTHREAD)) {
                 perThreadStatus = perthreadManager.createValue();
                 perThreadStatus.set(status);
                 this.status = status; // this is now the default status
@@ -61,18 +62,14 @@ public class ServiceActivityTrackerImpl
         @Override
         public synchronized ServiceStatus getStatus() {
             if (perThreadStatus != null) {
-                if (!perThreadStatus.exists())
-                    perThreadStatus.set(status);
+                if (!perThreadStatus.exists()) perThreadStatus.set(status);
                 return perThreadStatus.get();
-            } else
-                return status;
+            } else return status;
         }
 
         synchronized void setStatus(ServiceStatus status) {
-            if (perThreadStatus != null)
-                perThreadStatus.set(status);
-            else
-                this.status = status;
+            if (perThreadStatus != null) perThreadStatus.set(status);
+            else this.status = status;
         }
     }
 
@@ -85,7 +82,8 @@ public class ServiceActivityTrackerImpl
     /**
      * Tree map keeps everything in order by key (serviceId).
      */
-    private final Map<String, MutableServiceActivity> serviceIdToServiceStatus = new TreeMap<String, MutableServiceActivity>();
+    private final Map<String, MutableServiceActivity> serviceIdToServiceStatus =
+        new TreeMap<String, MutableServiceActivity>();
 
     @Override
     public synchronized List<ServiceActivity> getServiceActivity() {
@@ -114,13 +112,12 @@ public class ServiceActivityTrackerImpl
     @Override
     public synchronized void define(
         ServiceDefinition serviceDef,
-        ServiceStatus status) {
+        ServiceStatus status
+    ) {
         serviceIdToServiceStatus.put(
             serviceDef.getServiceId(),
-            new MutableServiceActivity(
-                serviceDef,
-                perthreadManager,
-                    status));
+            new MutableServiceActivity(serviceDef, perthreadManager, status)
+        );
     }
 
     @Override

@@ -5,13 +5,13 @@ import com.jujin.freeway.ioc.ServiceContext;
 import com.jujin.freeway.ioc.ServiceLocator;
 import com.jujin.freeway.ioc.advisor.OperationTracker;
 import com.jujin.freeway.ioc.internal.util.InjectionContext;
+import com.jujin.freeway.ioc.internal.util.InstancePlanBuilder;
 import com.jujin.freeway.ioc.internal.util.InternalUtils;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
-import org.slf4j.Logger;
-
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import org.slf4j.Logger;
 
 /**
  * Helper that encapsulates the logic for invoking a module method with
@@ -33,7 +33,8 @@ public class MethodInvoker {
         ModuleInstanceSource moduleSource,
         Method method,
         ServiceContext resources,
-        JdkProxyFactory proxyFactory) {
+        JdkProxyFactory proxyFactory
+    ) {
         this.moduleSource = moduleSource;
         this.method = method;
         this.resources = resources;
@@ -72,14 +73,15 @@ public class MethodInvoker {
     public Object invoke(InjectionContext injectionContext) {
         String description = String.format("Invoking method %s", toString());
 
-        ObjectCreator<Object> plan = InternalUtils.createMethodInvocationPlan(
+        ObjectCreator<Object> plan = InstancePlanBuilder.buildForMethod(
             resources.getTracker(),
             resources,
-                injectionContext,
+            injectionContext,
             logger,
             description,
             getModuleInstance(),
-            method);
+            method
+        );
 
         return plan.create();
     }

@@ -1,10 +1,11 @@
 package com.jujin.freeway.ioc.internal.util;
 
 import com.jujin.freeway.ioc.config.Orderable;
+import com.jujin.freeway.ioc.internal.GlobIdMatcher;
 import com.jujin.freeway.ioc.internal.IdMatcher;
-import org.slf4j.Logger;
-
+import com.jujin.freeway.ioc.internal.OrIdMatcher;
 import java.util.*;
+import org.slf4j.Logger;
 
 /**
  * Used to order objects into an "execution" order. Each object must have a
@@ -22,9 +23,11 @@ public class Orderer<T> {
     private final List<Orderable<T>> orderables = new ArrayList<>();
 
     private final Map<String, Orderable<T>> idToOrderable = new TreeMap<>(
-        String.CASE_INSENSITIVE_ORDER);
+        String.CASE_INSENSITIVE_ORDER
+    );
 
-    private final Map<String, DependencyNode<T>> dependencyNodesById = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    private final Map<String, DependencyNode<T>> dependencyNodesById =
+        new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
     // Special node that is always dead last: all other nodes are a dependency
     // of the trailer.
@@ -96,11 +99,12 @@ public class Orderer<T> {
 
         Orderable<T> existing = idToOrderable.get(id);
 
-        if (existing == null)
-            throw new IllegalArgumentException(
-                String.format(
-                    "Override for object '%s' is invalid as it does not match an existing object.",
-                    id));
+        if (existing == null) throw new IllegalArgumentException(
+            String.format(
+                "Override for object '%s' is invalid as it does not match an existing object.",
+                id
+            )
+        );
 
         orderables.remove(existing);
         orderables.add(orderable);
@@ -144,8 +148,7 @@ public class Orderer<T> {
 
             // Nulls are placeholders that are skipped.
 
-            if (target != null)
-                result.add(target);
+            if (target != null) result.add(target);
         }
 
         return result;
@@ -154,7 +157,8 @@ public class Orderer<T> {
     private void initializeGraph() {
         trailer = new DependencyNode<T>(
             logger,
-            new Orderable<T>("*-trailer-*", null));
+            new Orderable<T>("*-trailer-*", null)
+        );
 
         addNodes();
 
@@ -192,10 +196,8 @@ public class Orderer<T> {
 
         DependencyLinker<T> linker = null;
 
-        if ("after".equals(type))
-            linker = _after;
-        else if ("before".equals(type))
-            linker = _before;
+        if ("after".equals(type)) linker = _after;
+        else if ("before".equals(type)) linker = _before;
 
         if (linker == null) {
             logger.warn(UtilMessages.constraintFormat(constraint, sourceId));
@@ -210,10 +212,12 @@ public class Orderer<T> {
     private void linkNodes(
         String sourceId,
         String patternList,
-        DependencyLinker<T> linker) {
+        DependencyLinker<T> linker
+    ) {
         Collection<DependencyNode<T>> nodes = findDependencies(
             sourceId,
-            patternList);
+            patternList
+        );
 
         DependencyNode<T> source = dependencyNodesById.get(sourceId);
 
@@ -224,17 +228,16 @@ public class Orderer<T> {
 
     private Collection<DependencyNode<T>> findDependencies(
         String sourceId,
-        String patternList) {
+        String patternList
+    ) {
         IdMatcher matcher = buildMatcherForPattern(patternList);
 
         Collection<DependencyNode<T>> result = new ArrayList<>();
 
         for (String id : dependencyNodesById.keySet()) {
-            if (sourceId.equals(id))
-                continue;
+            if (sourceId.equals(id)) continue;
 
-            if (matcher.matches(id))
-                result.add(dependencyNodesById.get(id));
+            if (matcher.matches(id)) result.add(dependencyNodesById.get(id));
         }
 
         return result;
@@ -244,13 +247,13 @@ public class Orderer<T> {
         List<IdMatcher> matchers = new ArrayList<>();
 
         for (String pattern : patternList.split(",")) {
-            IdMatcher matcher = new InternalUtils.IdMatcherImpl(pattern.trim());
+            IdMatcher matcher = new GlobIdMatcher(pattern.trim());
 
             matchers.add(matcher);
         }
 
         return matchers.size() == 1
             ? matchers.get(0)
-            : new InternalUtils.OrIdMatcher(matchers);
+            : new OrIdMatcher(matchers);
     }
 }

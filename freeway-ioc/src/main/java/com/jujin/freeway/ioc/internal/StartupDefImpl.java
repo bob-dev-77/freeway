@@ -4,16 +4,16 @@ import com.jujin.freeway.ioc.ModuleInstanceSource;
 import com.jujin.freeway.ioc.ServiceLocator;
 import com.jujin.freeway.ioc.advisor.OperationTracker;
 import com.jujin.freeway.ioc.internal.util.InjectionContext;
+import com.jujin.freeway.ioc.internal.util.InjectionPlanner;
 import com.jujin.freeway.ioc.internal.util.InternalUtils;
 import com.jujin.freeway.ioc.internal.util.MappedInjectionContext;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 import com.jujin.freeway.ioc.lifecycle.StartupDef;
-import org.slf4j.Logger;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import org.slf4j.Logger;
 
 public class StartupDefImpl implements StartupDef {
 
@@ -28,11 +28,13 @@ public class StartupDefImpl implements StartupDef {
         final ModuleInstanceSource moduleBuilderSource,
         final OperationTracker tracker,
         final ServiceLocator locator,
-        final Logger logger) {
+        final Logger logger
+    ) {
         tracker.run(
             String.format(
                 "Invoking startup method %s.",
-                InternalUtils.asString(startupMethod)),
+                InternalUtils.asString(startupMethod)
+            ),
             new Runnable() {
                 @Override
                 public void run() {
@@ -41,25 +43,30 @@ public class StartupDefImpl implements StartupDef {
                     resourceMap.put(ServiceLocator.class, locator);
                     resourceMap.put(Logger.class, logger);
 
-                    InjectionContext injectionContext = new MappedInjectionContext(resourceMap);
+                    InjectionContext injectionContext =
+                        new MappedInjectionContext(resourceMap);
 
                     Throwable fail = null;
 
                     Object moduleInstance = InternalUtils.isStatic(
-                        startupMethod)
-                            ? null
-                            : moduleBuilderSource.getInstance();
+                        startupMethod
+                    )
+                        ? null
+                        : moduleBuilderSource.getInstance();
 
                     try {
-                        ObjectCreator<?>[] parameters = InternalUtils.calculateParametersForMethod(
-                            startupMethod,
-                            locator,
+                        ObjectCreator<?>[] parameters =
+                            InjectionPlanner.resolveMethodParameters(
+                                startupMethod,
+                                locator,
                                 injectionContext,
-                            tracker);
+                                tracker
+                            );
 
                         startupMethod.invoke(
                             moduleInstance,
-                            InternalUtils.realizeObjects(parameters));
+                            InjectionPlanner.realizeAll(parameters)
+                        );
                     } catch (InvocationTargetException ex) {
                         fail = ex.getTargetException();
                     } catch (RuntimeException ex) {
@@ -72,6 +79,7 @@ public class StartupDefImpl implements StartupDef {
                         throw new RuntimeException(fail);
                     }
                 }
-            });
+            }
+        );
     }
 }

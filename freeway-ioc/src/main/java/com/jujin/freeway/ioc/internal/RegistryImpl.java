@@ -9,10 +9,14 @@ import com.jujin.freeway.ioc.annotations.Builtin;
 import com.jujin.freeway.ioc.annotations.Local;
 import com.jujin.freeway.ioc.config.*;
 import com.jujin.freeway.ioc.exception.UnknownValueException;
+import com.jujin.freeway.ioc.internal.util.InjectionPlanner;
+import com.jujin.freeway.ioc.internal.util.InstancePlanBuilder;
 import com.jujin.freeway.ioc.internal.util.InternalUtils;
+import com.jujin.freeway.ioc.internal.util.IocConstants;
 import com.jujin.freeway.ioc.internal.util.MappedInjectionContext;
 import com.jujin.freeway.ioc.internal.util.OneShotLock;
 import com.jujin.freeway.ioc.internal.util.Orderer;
+import com.jujin.freeway.ioc.internal.util.Scopes;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 import com.jujin.freeway.ioc.lifecycle.ServiceLifecycle;
 import com.jujin.freeway.ioc.lifecycle.ServiceLifecycleSource;
@@ -306,7 +310,8 @@ public class RegistryImpl
                             String.format(
                                 "Contribution %s is for service '%s', which does not exist.",
                                 cd,
-                                cd.getServiceId())
+                                cd.getServiceId()
+                            )
                         );
                     }
                 } else if (!isContributionForExistentService(module, cd)) {
@@ -315,7 +320,8 @@ public class RegistryImpl
                             "Contribution %s is for service '%s' qualified with marker annotations %s, which does not exist.",
                             cd,
                             cd.getServiceInterface(),
-                            cd.getMarkers())
+                            cd.getMarkers()
+                        )
                     );
                 }
             }
@@ -448,7 +454,7 @@ public class RegistryImpl
 
             @Override
             public String getServiceScope() {
-                return InternalUtils.DEFAULT;
+                return Scopes.SINGLETON;
             }
 
             @Override
@@ -567,7 +573,8 @@ public class RegistryImpl
                     "Service '%s' implements interface %s, which is not compatible with the requested type %s.",
                     serviceId,
                     builtinTypes.get(serviceId).getName(),
-                    serviceInterface.getName())
+                    serviceInterface.getName()
+                )
             );
         }
     }
@@ -934,7 +941,10 @@ public class RegistryImpl
         switch (serviceIds.size()) {
             case 0:
                 throw new RuntimeException(
-                    String.format("No service implements the interface %s.", serviceInterface.getName())
+                    String.format(
+                        "No service implements the interface %s.",
+                        serviceInterface.getName()
+                    )
                 );
             case 1:
                 String serviceId = serviceIds.get(0);
@@ -951,8 +961,7 @@ public class RegistryImpl
 
                 StringBuilder buffer = new StringBuilder();
                 for (int i = 0; i < serviceIds.size(); i++) {
-                    if (i > 0)
-                        buffer.append(", ");
+                    if (i > 0) buffer.append(", ");
                     buffer.append(serviceIds.get(i));
                 }
 
@@ -961,7 +970,8 @@ public class RegistryImpl
                         "Service interface %s is matched by %d services: %s. Automatic dependency resolution requires that exactly one service implement the interface.",
                         serviceInterface.getName(),
                         serviceIds.size(),
-                        buffer.toString())
+                        buffer.toString()
+                    )
                 );
         }
     }
@@ -1051,30 +1061,34 @@ public class RegistryImpl
                 public Object invoke(Object proxy, Method method, Object[] args)
                     throws Throwable {
                     String methodName = method.getName();
-                    
+
                     // Explicitly handle standard annotation methods
                     if (methodName.equals("annotationType")) {
                         return annotationType;
                     }
-                    
+
                     if (methodName.equals("toString")) {
                         return "@" + annotationType.getName();
                     }
-                    
+
                     if (methodName.equals("hashCode")) {
                         return System.identityHashCode(proxy);
                     }
-                    
+
                     if (methodName.equals("equals")) {
                         // For marker annotation proxies, equality is based on reference identity
                         // since we cache one proxy per annotation type
                         return proxy == args[0];
                     }
-                    
+
                     // Any other method invocation is not supported
                     throw new UnsupportedOperationException(
-                        String.format("Method '%s' is not supported on marker annotation proxy for %s",
-                            methodName, annotationType.getName()));
+                        String.format(
+                            "Method '%s' is not supported on marker annotation proxy for %s",
+                            methodName,
+                            annotationType.getName()
+                        )
+                    );
                 }
             };
 
@@ -1194,7 +1208,7 @@ public class RegistryImpl
         if (result != null) return result;
 
         var injector = getService(
-            InternalUtils.INJECTOR_SERVICE_ID,
+            IocConstants.RESOLVER_SERVICE_ID,
             DependencyResolver.class
         );
 
@@ -1285,7 +1299,8 @@ public class RegistryImpl
                     String.format(
                         "Unable to locate any service assignable to type %s with marker annotation(s) %s.",
                         InternalUtils.toSimpleTypeName(objectType),
-                        toJavaClassNames(markers))
+                        toJavaClassNames(markers)
+                    )
                 );
             default:
                 throw new RuntimeException(
@@ -1293,7 +1308,8 @@ public class RegistryImpl
                         "Unable to locate a single service assignable to type %s with marker annotation(s) %s. All of the following services match: %s.",
                         InternalUtils.toSimpleTypeName(objectType),
                         toJavaClassNames(markers),
-                        InternalUtils.joinSorted(matches))
+                        InternalUtils.joinSorted(matches)
+                    )
                 );
         }
     }
@@ -1402,7 +1418,8 @@ public class RegistryImpl
             throw new RuntimeException(
                 String.format(
                     "Class %s does not contain a public constructor needed to autobuild.",
-                    clazz.getName())
+                    clazz.getName()
+                )
             );
         }
 
@@ -1411,7 +1428,7 @@ public class RegistryImpl
 
         var resources = new MappedInjectionContext(resourcesMap);
 
-        ObjectCreator<T> plan = InternalUtils.createConstructorInstancePlan(
+        ObjectCreator<T> plan = InstancePlanBuilder.build(
             this,
             this,
             resources,
@@ -1441,7 +1458,7 @@ public class RegistryImpl
         assert implementationClass != null;
 
         if (
-            InternalUtils.SERVICE_CLASS_RELOADING_ENABLED &&
+            IocConstants.SERVICE_CLASS_RELOADING_ENABLED &&
             InternalUtils.isLocalFile(implementationClass)
         ) return createReloadingProxy(
             interfaceClass,

@@ -14,23 +14,25 @@ import com.jujin.freeway.ioc.config.MappedConfiguration;
 import com.jujin.freeway.ioc.config.OrderedConfiguration;
 import com.jujin.freeway.ioc.exception.FreewayException;
 import com.jujin.freeway.ioc.internal.util.InternalUtils;
+import com.jujin.freeway.ioc.internal.util.Scopes;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 import com.jujin.freeway.ioc.lifecycle.StartupDef;
-import org.slf4j.Logger;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
 
 /**
  * Starting from the Class for a module, identifies all the services (service
  * builder methods), advisors (service advisor methods) and contributions
  * (service contributor methods).
  */
-public class DefaultModuleDefinition implements ModuleDefinition, ServiceDefAccumulator {
+public class DefaultModuleDefinition
+    implements ModuleDefinition, ServiceDefAccumulator
+{
 
     /**
      * The prefix used to identify service builder methods.
@@ -44,7 +46,10 @@ public class DefaultModuleDefinition implements ModuleDefinition, ServiceDefAccu
 
     private static final String ADVISE_METHOD_NAME_PREFIX = "advise";
 
-    private static final Map<Class<?>, ConfigurationType> PARAMETER_TYPE_TO_CONFIGURATION_TYPE = new HashMap<>();
+    private static final Map<
+        Class<?>,
+        ConfigurationType
+    > PARAMETER_TYPE_TO_CONFIGURATION_TYPE = new HashMap<>();
 
     private final Class<?> moduleClass;
 
@@ -56,10 +61,12 @@ public class DefaultModuleDefinition implements ModuleDefinition, ServiceDefAccu
      * Keyed on service id.
      */
     private final Map<String, ServiceDefinition> serviceDefs = new TreeMap<>(
-        String.CASE_INSENSITIVE_ORDER);
+        String.CASE_INSENSITIVE_ORDER
+    );
 
     private final Map<String, AdvisorDefinition> advisorDefs = new TreeMap<>(
-        String.CASE_INSENSITIVE_ORDER);
+        String.CASE_INSENSITIVE_ORDER
+    );
 
     private final Set<ContributionDef> contributionDefs = new HashSet<>();
 
@@ -68,18 +75,22 @@ public class DefaultModuleDefinition implements ModuleDefinition, ServiceDefAccu
     private final Set<StartupDef> startups = new HashSet<>();
 
     private static final Set<Method> OBJECT_METHODS = new HashSet<>(
-        Arrays.asList(Object.class.getMethods()));
+        Arrays.asList(Object.class.getMethods())
+    );
 
     static {
         PARAMETER_TYPE_TO_CONFIGURATION_TYPE.put(
             Configuration.class,
-            ConfigurationType.UNORDERED);
+            ConfigurationType.UNORDERED
+        );
         PARAMETER_TYPE_TO_CONFIGURATION_TYPE.put(
             OrderedConfiguration.class,
-            ConfigurationType.ORDERED);
+            ConfigurationType.ORDERED
+        );
         PARAMETER_TYPE_TO_CONFIGURATION_TYPE.put(
             MappedConfiguration.class,
-            ConfigurationType.MAPPED);
+            ConfigurationType.MAPPED
+        );
     }
 
     /**
@@ -93,7 +104,8 @@ public class DefaultModuleDefinition implements ModuleDefinition, ServiceDefAccu
     public DefaultModuleDefinition(
         Class<?> moduleClass,
         Logger logger,
-        JdkProxyFactory proxyFactory) {
+        JdkProxyFactory proxyFactory
+    ) {
         this.moduleClass = moduleClass;
         this.logger = logger;
         this.proxyFactory = proxyFactory;
@@ -121,7 +133,8 @@ public class DefaultModuleDefinition implements ModuleDefinition, ServiceDefAccu
                     moduleClass.getName() +
                     ": " +
                     e.getMessage(),
-                e);
+                e
+            );
         }
 
         var methodIterator = methods.iterator();
@@ -139,19 +152,21 @@ public class DefaultModuleDefinition implements ModuleDefinition, ServiceDefAccu
         removeSyntheticMethods(methods);
         removeGroovyObjectMethods(methods);
 
-        boolean modulePreventsServiceDecoration = moduleClass.getAnnotation(PreventServiceDecoration.class) != null;
+        boolean modulePreventsServiceDecoration =
+            moduleClass.getAnnotation(PreventServiceDecoration.class) != null;
 
         grind(methods, modulePreventsServiceDecoration);
         bind(methods, modulePreventsServiceDecoration);
 
-        if (methods.isEmpty())
-            return;
+        if (methods.isEmpty()) return;
 
         throw new RuntimeException(
             String.format(
                 "Module class %s contains unrecognized public methods: %s.",
                 moduleClass.getName(),
-                InternalUtils.joinSorted(methods)));
+                InternalUtils.joinSorted(methods)
+            )
+        );
     }
 
     private static boolean signaturesAreEqual(Method m1, Method m2) {
@@ -182,7 +197,8 @@ public class DefaultModuleDefinition implements ModuleDefinition, ServiceDefAccu
         return String.format(
             "ModuleDefinition[%s %s]",
             moduleClass.getName(),
-            InternalUtils.joinSorted(serviceDefs.keySet()));
+            InternalUtils.joinSorted(serviceDefs.keySet())
+        );
     }
 
     @Override
@@ -207,20 +223,21 @@ public class DefaultModuleDefinition implements ModuleDefinition, ServiceDefAccu
             var m = iterator.next();
             final String name = m.getName();
 
-            if (m
-                .getDeclaringClass()
-                .getName()
-                .equals("groovy.lang.GroovyObject") ||
+            if (
+                m
+                    .getDeclaringClass()
+                    .getName()
+                    .equals("groovy.lang.GroovyObject") ||
                 (name.equals("getMetaClass") &&
                     m
                         .getReturnType()
                         .getName()
-                        .equals("groovy.lang.MetaClass"))
-                ||
+                        .equals("groovy.lang.MetaClass")) ||
                 (m.getParameterCount() == 1 &&
                     m
                         .getParameterTypes()[0].getName()
-                        .equals("groovy.lang.MetaClass"))) {
+                        .equals("groovy.lang.MetaClass"))
+            ) {
                 iterator.remove();
             }
         }
@@ -240,7 +257,8 @@ public class DefaultModuleDefinition implements ModuleDefinition, ServiceDefAccu
 
     private void grind(
         Set<Method> remainingMethods,
-        boolean modulePreventsServiceDecoration) {
+        boolean modulePreventsServiceDecoration
+    ) {
         Method[] methods = moduleClass.getMethods();
 
         Comparator<Method> c = new Comparator<Method>() {
@@ -250,9 +268,9 @@ public class DefaultModuleDefinition implements ModuleDefinition, ServiceDefAccu
             public int compare(Method o1, Method o2) {
                 int result = o1.getName().compareTo(o2.getName());
 
-                if (result == 0)
-                    result = o2.getParameterTypes().length -
-                        o1.getParameterTypes().length;
+                if (result == 0) result =
+                    o2.getParameterTypes().length -
+                    o1.getParameterTypes().length;
 
                 return result;
             }
@@ -269,15 +287,19 @@ public class DefaultModuleDefinition implements ModuleDefinition, ServiceDefAccu
                 continue;
             }
 
-            if (name.startsWith(CONTRIBUTE_METHOD_NAME_PREFIX) ||
-                m.isAnnotationPresent(Contribute.class)) {
+            if (
+                name.startsWith(CONTRIBUTE_METHOD_NAME_PREFIX) ||
+                m.isAnnotationPresent(Contribute.class)
+            ) {
                 addContributionDef(m);
                 remainingMethods.remove(m);
                 continue;
             }
 
-            if (name.startsWith(ADVISE_METHOD_NAME_PREFIX) ||
-                m.isAnnotationPresent(Advise.class)) {
+            if (
+                name.startsWith(ADVISE_METHOD_NAME_PREFIX) ||
+                m.isAnnotationPresent(Advise.class)
+            ) {
                 addAdvisorDef(m);
                 remainingMethods.remove(m);
                 continue;
@@ -298,11 +320,13 @@ public class DefaultModuleDefinition implements ModuleDefinition, ServiceDefAccu
     private void addContributionDef(Method method) {
         var annotation = method.getAnnotation(Contribute.class);
 
-        Class<?> serviceInterface = annotation == null ? null : annotation.value();
+        Class<?> serviceInterface =
+            annotation == null ? null : annotation.value();
 
-        String serviceId = annotation != null
-            ? null
-            : stripMethodPrefix(method, CONTRIBUTE_METHOD_NAME_PREFIX);
+        String serviceId =
+            annotation != null
+                ? null
+                : stripMethodPrefix(method, CONTRIBUTE_METHOD_NAME_PREFIX);
 
         Class<?> returnType = method.getReturnType();
         if (!returnType.equals(void.class)) {
@@ -310,30 +334,35 @@ public class DefaultModuleDefinition implements ModuleDefinition, ServiceDefAccu
                 String.format(
                     "Method %s is named like a service contributor method, but the return type (%s) is not appropriate (it should be void). The return value will be ignored.",
                     InternalUtils.asString(method),
-                    InternalUtils.toSimpleTypeName(returnType)));
+                    InternalUtils.toSimpleTypeName(returnType)
+                )
+            );
         }
 
         ConfigurationType type = null;
 
         for (Class<?> parameterType : method.getParameterTypes()) {
-            ConfigurationType thisParameter = PARAMETER_TYPE_TO_CONFIGURATION_TYPE.get(parameterType);
+            ConfigurationType thisParameter =
+                PARAMETER_TYPE_TO_CONFIGURATION_TYPE.get(parameterType);
 
             if (thisParameter != null) {
-                if (type != null)
-                    throw new RuntimeException(
-                        String.format(
-                            "Service contribution method %s contains more than one parameter of type Configuration, OrderedConfiguration, or MappedConfiguration. Exactly one such parameter is required for a service contribution method.",
-                            InternalUtils.asString(method)));
+                if (type != null) throw new RuntimeException(
+                    String.format(
+                        "Service contribution method %s contains more than one parameter of type Configuration, OrderedConfiguration, or MappedConfiguration. Exactly one such parameter is required for a service contribution method.",
+                        InternalUtils.asString(method)
+                    )
+                );
 
                 type = thisParameter;
             }
         }
 
-        if (type == null)
-            throw new RuntimeException(
-                String.format(
-                    "Service contribution method %s does not contain a parameter of type Configuration, OrderedConfiguration or MappedConfiguration. This parameter is how the method make contributions into the service's configuration.",
-                    InternalUtils.asString(method)));
+        if (type == null) throw new RuntimeException(
+            String.format(
+                "Service contribution method %s does not contain a parameter of type Configuration, OrderedConfiguration or MappedConfiguration. This parameter is how the method make contributions into the service's configuration.",
+                InternalUtils.asString(method)
+            )
+        );
 
         var markers = extractMarkers(method, Contribute.class, Optional.class);
 
@@ -345,22 +374,23 @@ public class DefaultModuleDefinition implements ModuleDefinition, ServiceDefAccu
             optional,
             proxyFactory,
             serviceInterface,
-            markers);
+            markers
+        );
 
         contributionDefs.add(def);
     }
 
     private <T extends Annotation> String[] extractPatterns(
         String id,
-        Method method) {
-        return new String[]{ id };
+        Method method
+    ) {
+        return new String[] { id };
     }
 
     private String[] extractConstraints(Method method) {
         var order = method.getAnnotation(Order.class);
 
-        if (order == null)
-            return null;
+        if (order == null) return null;
 
         return order.value();
     }
@@ -368,13 +398,15 @@ public class DefaultModuleDefinition implements ModuleDefinition, ServiceDefAccu
     private void addAdvisorDef(Method method) {
         var annotation = method.getAnnotation(Advise.class);
 
-        Class<?> serviceInterface = annotation == null ? null : annotation.serviceInterface();
+        Class<?> serviceInterface =
+            annotation == null ? null : annotation.serviceInterface();
 
         // TODO: methods just named "decorate"
 
-        String advisorId = annotation == null
-            ? stripMethodPrefix(method, ADVISE_METHOD_NAME_PREFIX)
-            : extractId(serviceInterface, annotation.id());
+        String advisorId =
+            annotation == null
+                ? stripMethodPrefix(method, ADVISE_METHOD_NAME_PREFIX)
+                : extractId(serviceInterface, annotation.id());
 
         // Check for duplicate advisor IDs - fail fast
         if (advisorDefs.containsKey(advisorId)) {
@@ -387,16 +419,19 @@ public class DefaultModuleDefinition implements ModuleDefinition, ServiceDefAccu
                     advisorId,
                     moduleClass.getName(),
                     existing.toString(),
-                    InternalUtils.asString(method)));
+                    InternalUtils.asString(method)
+                )
+            );
         }
 
         Class<?> returnType = method.getReturnType();
 
-        if (!returnType.equals(void.class))
-            throw new RuntimeException(
-                String.format(
-                    "Advise method %s does not return void.",
-                    toString(method)));
+        if (!returnType.equals(void.class)) throw new RuntimeException(
+            String.format(
+                "Advise method %s does not return void.",
+                toString(method)
+            )
+        );
 
         boolean found = false;
 
@@ -408,12 +443,13 @@ public class DefaultModuleDefinition implements ModuleDefinition, ServiceDefAccu
             }
         }
 
-        if (!found)
-            throw new RuntimeException(
-                String.format(
-                    "Advise method %s must take a parameter of type %s.",
-                    toString(method),
-                    MethodAdviceReceiver.class.getName()));
+        if (!found) throw new RuntimeException(
+            String.format(
+                "Advise method %s must take a parameter of type %s.",
+                toString(method),
+                MethodAdviceReceiver.class.getName()
+            )
+        );
 
         var markers = extractMarkers(method, Advise.class);
 
@@ -424,7 +460,8 @@ public class DefaultModuleDefinition implements ModuleDefinition, ServiceDefAccu
             proxyFactory,
             advisorId,
             serviceInterface,
-            markers);
+            markers
+        );
 
         advisorDefs.put(advisorId, def);
     }
@@ -448,7 +485,8 @@ public class DefaultModuleDefinition implements ModuleDefinition, ServiceDefAccu
      */
     private void addServiceDef(
         final Method method,
-        boolean modulePreventsServiceDecoration) {
+        boolean modulePreventsServiceDecoration
+    ) {
         var serviceId = InternalUtils.getServiceId(method);
 
         if (serviceId == null) {
@@ -457,10 +495,9 @@ public class DefaultModuleDefinition implements ModuleDefinition, ServiceDefAccu
 
         // If the method name was just "build()", then work from the return type.
 
-        if (serviceId.equals(""))
-            serviceId = method
-                .getReturnType()
-                .getSimpleName();
+        if (serviceId.equals("")) serviceId = method
+            .getReturnType()
+            .getSimpleName();
 
         // Any number of parameters is fine, we'll adapt. Eventually we have to check
         // that we can satisfy the parameters requested. Thrown exceptions of the method
@@ -470,27 +507,31 @@ public class DefaultModuleDefinition implements ModuleDefinition, ServiceDefAccu
 
         Class<?> returnType = method.getReturnType();
 
-        if (returnType.isPrimitive() || returnType.isArray())
-            throw new RuntimeException(
-                String.format(
-                    "Method %s is named like a service builder method, but the return type (%s) is not acceptable (try an interface).",
-                    InternalUtils.asString(method),
-                    method.getReturnType().getCanonicalName()));
+        if (
+            returnType.isPrimitive() || returnType.isArray()
+        ) throw new RuntimeException(
+            String.format(
+                "Method %s is named like a service builder method, but the return type (%s) is not acceptable (try an interface).",
+                InternalUtils.asString(method),
+                method.getReturnType().getCanonicalName()
+            )
+        );
 
         String scope = extractServiceScope(method);
         boolean eagerLoad = method.isAnnotationPresent(EagerLoad.class);
 
-        boolean preventDecoration = modulePreventsServiceDecoration ||
+        boolean preventDecoration =
+            modulePreventsServiceDecoration ||
             method.getAnnotation(PreventServiceDecoration.class) != null;
 
         ObjectCreatorFactory source = new ObjectCreatorFactory() {
             @Override
-            public ObjectCreator<?> construct(
-                ServiceBuilderContext resources) {
+            public ObjectCreator<?> construct(ServiceBuilderContext resources) {
                 return new ServiceBuilderMethodInvoker(
                     resources,
                     description(),
-                    method);
+                    method
+                );
             }
 
             @Override
@@ -514,7 +555,8 @@ public class DefaultModuleDefinition implements ModuleDefinition, ServiceDefAccu
             scope,
             eagerLoad,
             preventDecoration,
-            source);
+            source
+        );
 
         addServiceDef(serviceDef);
     }
@@ -522,18 +564,17 @@ public class DefaultModuleDefinition implements ModuleDefinition, ServiceDefAccu
     private Collection<Class<?>> extractServiceDefMarkers(Method method) {
         var annotation = method.getAnnotation(Marker.class);
 
-        if (annotation == null)
-            return Collections.emptyList();
+        if (annotation == null) return Collections.emptyList();
 
         var result = new ArrayList<Class<?>>();
-        for (Class<?> c : annotation.value())
-            result.add(c);
+        for (Class<?> c : annotation.value()) result.add(c);
         return result;
     }
 
     private Set<Class<?>> extractMarkers(
         Method method,
-        final Class<?>... annotationClassesToSkip) {
+        final Class<?>... annotationClassesToSkip
+    ) {
         return Arrays.stream(method.getAnnotations())
             .map(Annotation::annotationType)
             .filter(element -> {
@@ -554,13 +595,14 @@ public class DefaultModuleDefinition implements ModuleDefinition, ServiceDefAccu
 
         var existing = serviceDefs.get(serviceId);
 
-        if (existing != null)
-            throw new RuntimeException(
-                String.format(
-                    "Service %s (defined by %s) conflicts with previously defined service defined by %s.",
-                    serviceId,
-                    serviceDef.toString(),
-                    existing.toString()));
+        if (existing != null) throw new RuntimeException(
+            String.format(
+                "Service %s (defined by %s) conflicts with previously defined service defined by %s.",
+                serviceId,
+                serviceDef.toString(),
+                existing.toString()
+            )
+        );
 
         serviceDefs.put(serviceId, serviceDef);
     }
@@ -568,7 +610,7 @@ public class DefaultModuleDefinition implements ModuleDefinition, ServiceDefAccu
     private String extractServiceScope(Method method) {
         var scope = method.getAnnotation(Scope.class);
 
-        return scope != null ? scope.value() : InternalUtils.DEFAULT;
+        return scope != null ? scope.value() : Scopes.SINGLETON;
     }
 
     @Override
@@ -593,25 +635,30 @@ public class DefaultModuleDefinition implements ModuleDefinition, ServiceDefAccu
      */
     private void bind(
         Set<Method> remainingMethods,
-        boolean modulePreventsServiceDecoration) {
+        boolean modulePreventsServiceDecoration
+    ) {
         Throwable failure;
         Method bindMethod = null;
 
         try {
             bindMethod = moduleClass.getMethod("bind", ServiceBinder.class);
 
-            if (!Modifier.isStatic(bindMethod.getModifiers()))
-                throw new RuntimeException(
-                    String.format(
-                        "Method %s appears to be a service binder method, but is an instance method, not a static method.",
-                        toString(bindMethod)));
+            if (
+                !Modifier.isStatic(bindMethod.getModifiers())
+            ) throw new RuntimeException(
+                String.format(
+                    "Method %s appears to be a service binder method, but is an instance method, not a static method.",
+                    toString(bindMethod)
+                )
+            );
 
             var binder = new ServiceBinderImpl(
                 this,
                 bindMethod,
                 proxyFactory,
                 defaultMarkers,
-                modulePreventsServiceDecoration);
+                modulePreventsServiceDecoration
+            );
 
             bindMethod.invoke(null, binder);
 
@@ -638,8 +685,10 @@ public class DefaultModuleDefinition implements ModuleDefinition, ServiceDefAccu
             String.format(
                 "Error invoking service binder method %s: %s",
                 methodId,
-                failure != null ? failure.getMessage() : "null"),
-            failure);
+                failure != null ? failure.getMessage() : "null"
+            ),
+            failure
+        );
     }
 
     @Override

@@ -1,10 +1,11 @@
 package com.jujin.freeway.ioc.internal.util;
 
 import com.jujin.freeway.ioc.config.Orderable;
+import com.jujin.freeway.ioc.internal.GlobIdMatcher;
 import com.jujin.freeway.ioc.internal.IdMatcher;
-import org.slf4j.Logger;
-
+import com.jujin.freeway.ioc.internal.OrIdMatcher;
 import java.util.*;
+import org.slf4j.Logger;
 
 /**
  * Used to order objects into an "execution" order. Each object must have a
@@ -20,11 +21,11 @@ public class IdToDependencyNode<T> {
     private final List<Orderable<T>> orderables = new ArrayList<>();
 
     private final Map<String, Orderable<T>> idToOrderable = new TreeMap<>(
-            String.CASE_INSENSITIVE_ORDER
+        String.CASE_INSENSITIVE_ORDER
     );
 
     private final Map<String, DependencyNode<T>> idToDependencyNode =
-            new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
     // Special node that is always dead last: all other nodes are a dependency
     // of the trailer.
@@ -118,7 +119,7 @@ public class IdToDependencyNode<T> {
     private void initializeGraph() {
         trailer = new DependencyNode<T>(
             logger,
-                new Orderable<T>("*-trailer-*", null)
+            new Orderable<T>("*-trailer-*", null)
         );
 
         addNodes();
@@ -177,7 +178,7 @@ public class IdToDependencyNode<T> {
     ) {
         Collection<DependencyNode<T>> nodes = findDependencies(
             sourceId,
-                patternList
+            patternList
         );
 
         DependencyNode<T> source = idToDependencyNode.get(sourceId);
@@ -208,13 +209,13 @@ public class IdToDependencyNode<T> {
         List<IdMatcher> matchers = new ArrayList<>();
 
         for (String pattern : patternList.split(",")) {
-            IdMatcher matcher = new InternalUtils.IdMatcherImpl(pattern.trim());
+            IdMatcher matcher = new GlobIdMatcher(pattern.trim());
 
             matchers.add(matcher);
         }
 
         return matchers.size() == 1
             ? matchers.get(0)
-            : new InternalUtils.OrIdMatcher(matchers);
+            : new OrIdMatcher(matchers);
     }
 }

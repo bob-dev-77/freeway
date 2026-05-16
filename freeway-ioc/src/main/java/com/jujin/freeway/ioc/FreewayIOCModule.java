@@ -1,5 +1,8 @@
 package com.jujin.freeway.ioc;
 
+import static com.jujin.freeway.ioc.config.OrderConstraintBuilder.after;
+import static com.jujin.freeway.ioc.config.OrderConstraintBuilder.before;
+
 import com.jujin.freeway.ioc.advisor.*;
 import com.jujin.freeway.ioc.annotations.*;
 import com.jujin.freeway.ioc.classpath.ClassNameLocator;
@@ -15,6 +18,8 @@ import com.jujin.freeway.ioc.exception.ExceptionTracker;
 import com.jujin.freeway.ioc.internal.*;
 import com.jujin.freeway.ioc.internal.cron.PeriodicExecutorImpl;
 import com.jujin.freeway.ioc.internal.util.InternalUtils;
+import com.jujin.freeway.ioc.internal.util.IocConstants;
+import com.jujin.freeway.ioc.internal.util.Scopes;
 import com.jujin.freeway.ioc.lifecycle.ServiceLifecycle;
 import com.jujin.freeway.ioc.lifecycle.ServiceLifecycleSource;
 import com.jujin.freeway.ioc.property.PropertyAccess;
@@ -27,14 +32,10 @@ import com.jujin.freeway.ioc.threading.ParallelExecutor;
 import com.jujin.freeway.ioc.threading.PerThreadManager;
 import com.jujin.freeway.ioc.threading.ThreadLocale;
 import com.jujin.freeway.ioc.threading.ThunkCreator;
-
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.concurrent.Executors;
-
-import static com.jujin.freeway.ioc.config.OrderConstraintBuilder.after;
-import static com.jujin.freeway.ioc.config.OrderConstraintBuilder.before;
 
 /**
  * Defines the base set of services for the Freeway IOC container.
@@ -49,13 +50,15 @@ public final class FreewayIOCModule {
         binder.bind(StrategyBuilder.class, StrategyBuilderImpl.class);
         binder.bind(
             PropertyShadowBuilder.class,
-            PropertyShadowBuilderImpl.class);
+            PropertyShadowBuilderImpl.class
+        );
         binder
             .bind(PipelineBuilder.class, PipelineBuilderImpl.class)
             .preventReloading();
         binder.bind(
             DefaultServiceProxyBuilder.class,
-            DefaultServiceProxyBuilderImpl.class);
+            DefaultServiceProxyBuilderImpl.class
+        );
         binder.bind(ExceptionTracker.class, ExceptionTrackerImpl.class);
         binder.bind(ExceptionAnalyzer.class, ExceptionAnalyzerImpl.class);
         binder
@@ -80,7 +83,8 @@ public final class FreewayIOCModule {
         binder.bind(AspectInterceptor.class, AspectDecoratorImpl.class);
         binder.bind(
             ClassPathURLConverter.class,
-            ClassPathURLConverterImpl.class);
+            ClassPathURLConverterImpl.class
+        );
         binder.bind(ServiceOverride.class, ServiceOverrideImpl.class);
         binder.bind(LoggingAdvisor.class, LoggingAdvisorImpl.class);
         binder.bind(LazyAdvisor.class, LazyAdvisorImpl.class);
@@ -101,9 +105,11 @@ public final class FreewayIOCModule {
      */
     @PreventServiceDecoration
     public static ServiceLifecycleSource build(
-        Map<String, ServiceLifecycle> configuration) {
+        Map<String, ServiceLifecycle> configuration
+    ) {
         var lifecycles = new TreeMap<String, ServiceLifecycle>(
-            String.CASE_INSENSITIVE_ORDER);
+            String.CASE_INSENSITIVE_ORDER
+        );
 
         for (Entry<String, ServiceLifecycle> entry : configuration.entrySet()) {
             lifecycles.put(entry.getKey(), entry.getValue());
@@ -122,10 +128,12 @@ public final class FreewayIOCModule {
      */
     @Contribute(ServiceLifecycleSource.class)
     public static void providePerthreadScope(
-        MappedConfiguration<String, ServiceLifecycle> configuration) {
+        MappedConfiguration<String, ServiceLifecycle> configuration
+    ) {
         configuration.addInstance(
-            InternalUtils.PERTHREAD,
-            PerThreadServiceLifecycle.class);
+            Scopes.PERTHREAD,
+            PerThreadServiceLifecycle.class
+        );
     }
 
     /**
@@ -148,24 +156,28 @@ public final class FreewayIOCModule {
     @Contribute(DependencyResolver.class)
     public static void setupObjectProviders(
         OrderedConfiguration<DependencyPolicy> configuration,
-        @Local final ServiceOverride serviceOverride) {
+        @Local final ServiceOverride serviceOverride
+    ) {
         configuration.add("AnnotationBasedContributions", null);
 
         configuration.addInstance(
             "Config",
             BuiltinConfigProvider.class,
-            before("AnnotationBasedContributions").build());
+            before("AnnotationBasedContributions").build()
+        );
         configuration.add(
             "Autobuild",
             new BuiltinAutobuildProvider(),
-            before("AnnotationBasedContributions").build());
+            before("AnnotationBasedContributions").build()
+        );
 
         DependencyPolicy wrapper = new DependencyPolicy() {
             @Override
             public <T> T resolve(
                 Class<T> objectType,
                 AnnotationProvider annotationProvider,
-                ServiceLocator locator) {
+                ServiceLocator locator
+            ) {
                 return serviceOverride
                     .getServiceOverrideProvider()
                     .resolve(objectType, annotationProvider, locator);
@@ -175,7 +187,8 @@ public final class FreewayIOCModule {
         configuration.add(
             "ServiceOverride",
             wrapper,
-            after("AnnotationBasedContributions").build());
+            after("AnnotationBasedContributions").build()
+        );
     }
 
     /**
@@ -215,7 +228,8 @@ public final class FreewayIOCModule {
      */
     @Contribute(TypeCoercer.class)
     public static void provideBasicTypeCoercions(
-        MappedConfiguration<CoercionTuple.Key, CoercionTuple> configuration) {
+        MappedConfiguration<CoercionTuple.Key, CoercionTuple> configuration
+    ) {
         BasicTypeCoercions.provideBasicTypeCoercions(configuration);
     }
 
@@ -267,7 +281,8 @@ public final class FreewayIOCModule {
      */
     @Contribute(TypeCoercer.class)
     public static void provideJSR310TypeCoercions(
-        MappedConfiguration<CoercionTuple.Key, CoercionTuple> configuration) {
+        MappedConfiguration<CoercionTuple.Key, CoercionTuple> configuration
+    ) {
         BasicTypeCoercions.provideJSR310TypeCoercions(configuration);
     }
 
@@ -289,56 +304,67 @@ public final class FreewayIOCModule {
     public static void setupStandardSymbolProviders(
         OrderedConfiguration<SymbolProvider> configuration,
         @ApplicationDefaults SymbolProvider applicationDefaults,
-        @FactoryDefaults SymbolProvider factoryDefaults) {
+        @FactoryDefaults SymbolProvider factoryDefaults
+    ) {
         configuration.add(
             "SystemProperties",
             new SystemPropertiesSymbolProvider(),
-            "before:*");
+            "before:*"
+        );
         configuration.add(
             "EnvironmentVariables",
-            new SystemEnvSymbolProvider());
+            new SystemEnvSymbolProvider()
+        );
         configuration.add("ApplicationDefaults", applicationDefaults);
         configuration.add("FactoryDefaults", factoryDefaults);
     }
 
     public static ParallelExecutor buildDeferredExecution(
-        @Symbol(InternalUtils.THREAD_POOL_CORE_SIZE) int coreSize,
-        @Symbol(InternalUtils.THREAD_POOL_MAX_SIZE) int maxSize,
-        @Symbol(InternalUtils.THREAD_POOL_KEEP_ALIVE) @IntermediateType(TimeInterval.class) int keepAliveMillis,
-        @Symbol(InternalUtils.THREAD_POOL_ENABLED) boolean threadPoolEnabled,
-        @Symbol(InternalUtils.THREAD_POOL_QUEUE_SIZE) int queueSize,
+        @Symbol(IocConstants.THREAD_POOL_CORE_SIZE) int coreSize,
+        @Symbol(IocConstants.THREAD_POOL_MAX_SIZE) int maxSize,
+        @Symbol(IocConstants.THREAD_POOL_KEEP_ALIVE) @IntermediateType(
+            TimeInterval.class
+        ) int keepAliveMillis,
+        @Symbol(IocConstants.THREAD_POOL_ENABLED) boolean threadPoolEnabled,
+        @Symbol(IocConstants.THREAD_POOL_QUEUE_SIZE) int queueSize,
         PerThreadManager perthreadManager,
         RegistryShutdownHub shutdownHub,
-        ThunkCreator thunkCreator) {
-        if (!threadPoolEnabled)
-            return new NonParallelExecutor();
+        ThunkCreator thunkCreator
+    ) {
+        if (!threadPoolEnabled) return new NonParallelExecutor();
 
         var executorService = Executors.newVirtualThreadPerTaskExecutor();
 
         shutdownHub.addRegistryShutdownListener(
-            (Runnable) executorService::shutdown);
+            (Runnable) executorService::shutdown
+        );
 
         return new ParallelExecutorImpl(
             executorService,
             thunkCreator,
-            perthreadManager);
+            perthreadManager
+        );
     }
 
     @Contribute(SymbolProvider.class)
     @FactoryDefaults
     public static void setupDefaultSymbols(
-        MappedConfiguration<String, Object> configuration) {
-        configuration.add(InternalUtils.THREAD_POOL_CORE_SIZE, 3);
-        configuration.add(InternalUtils.THREAD_POOL_MAX_SIZE, 20);
-        configuration.add(InternalUtils.THREAD_POOL_KEEP_ALIVE, "1 m");
-        configuration.add(InternalUtils.THREAD_POOL_ENABLED, true);
-        configuration.add(InternalUtils.THREAD_POOL_QUEUE_SIZE, 100);
-        configuration.add(InternalUtils.PROXY_MECHANISM, "jdk");
+        MappedConfiguration<String, Object> configuration
+    ) {
+        configuration.add(IocConstants.THREAD_POOL_CORE_SIZE, 3);
+        configuration.add(IocConstants.THREAD_POOL_MAX_SIZE, 20);
+        configuration.add(IocConstants.THREAD_POOL_KEEP_ALIVE, "1 m");
+        configuration.add(IocConstants.THREAD_POOL_ENABLED, true);
+        configuration.add(IocConstants.THREAD_POOL_QUEUE_SIZE, 100);
+        configuration.add(IocConstants.PROXY_MECHANISM, "jdk");
     }
 
     public static void contributeRegistryStartup(
         OrderedConfiguration<Runnable> configuration,
-        PeriodicExecutor periodicExecutor) {
-        configuration.add(PeriodicExecutor.class.getSimpleName(), () -> periodicExecutor.init());
+        PeriodicExecutor periodicExecutor
+    ) {
+        configuration.add(PeriodicExecutor.class.getSimpleName(), () ->
+            periodicExecutor.init()
+        );
     }
 }

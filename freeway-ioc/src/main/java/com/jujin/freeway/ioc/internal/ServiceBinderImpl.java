@@ -3,9 +3,10 @@ package com.jujin.freeway.ioc.internal;
 import com.jujin.freeway.ioc.*;
 import com.jujin.freeway.ioc.annotations.*;
 import com.jujin.freeway.ioc.internal.util.InternalUtils;
+import com.jujin.freeway.ioc.internal.util.IocConstants;
 import com.jujin.freeway.ioc.internal.util.OneShotLock;
+import com.jujin.freeway.ioc.internal.util.Scopes;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -33,7 +34,8 @@ public class ServiceBinderImpl implements ServiceBinder, ServiceBindingOptions {
         Method bindMethod,
         JdkProxyFactory proxyFactory,
         Set<Class<?>> defaultMarkers,
-        boolean moduleDefaultPreventDecoration) {
+        boolean moduleDefaultPreventDecoration
+    ) {
         this.accumulator = accumulator;
         this.bindMethod = bindMethod;
         this.proxyFactory = proxyFactory;
@@ -68,15 +70,14 @@ public class ServiceBinderImpl implements ServiceBinder, ServiceBindingOptions {
     }
 
     protected void flush() {
-        if (serviceInterface == null)
-            return;
+        if (serviceInterface == null) return;
 
         // source will be null when the implementation class is provided; non-null when
         // using
         // a ServiceBuilder callback
 
-        if (source == null)
-            source = createObjectCreatorStrategyFromImplementationClass();
+        if (source == null) source =
+            createObjectCreatorStrategyFromImplementationClass();
 
         // Combine service-specific markers with those inherited form the module.
         Set<Class<?>> markers = new HashSet<>(defaultMarkers);
@@ -90,7 +91,8 @@ public class ServiceBinderImpl implements ServiceBinder, ServiceBindingOptions {
             scope,
             eagerLoad,
             preventDecoration,
-            source);
+            source
+        );
 
         accumulator.addServiceDef(serviceDef);
 
@@ -110,12 +112,13 @@ public class ServiceBinderImpl implements ServiceBinder, ServiceBindingOptions {
     }
 
     private ObjectCreatorFactory createObjectCreatorStrategyFromImplementationClass() {
-        if (InternalUtils.SERVICE_CLASS_RELOADING_ENABLED &&
+        if (
+            IocConstants.SERVICE_CLASS_RELOADING_ENABLED &&
             !preventReloading &&
             isProxiable() &&
             reloadableScope() &&
-            InternalUtils.isLocalFile(serviceImplementation))
-            return createReloadableConstructorBasedObjectCreatorStrategy();
+            InternalUtils.isLocalFile(serviceImplementation)
+        ) return createReloadableConstructorBasedObjectCreatorStrategy();
 
         return createStandardConstructorBasedObjectCreatorStrategy();
     }
@@ -125,34 +128,39 @@ public class ServiceBinderImpl implements ServiceBinder, ServiceBindingOptions {
     }
 
     private boolean reloadableScope() {
-        return scope.equalsIgnoreCase(InternalUtils.DEFAULT);
+        return scope.equalsIgnoreCase(Scopes.SINGLETON);
     }
 
     private ObjectCreatorFactory createStandardConstructorBasedObjectCreatorStrategy() {
-        if (Modifier.isAbstract(serviceImplementation.getModifiers()))
-            throw new RuntimeException(
-                String.format(
-                    "Class %s (implementation of service '%s') is abstract.",
-                    serviceImplementation.getName(),
-                    serviceId));
+        if (
+            Modifier.isAbstract(serviceImplementation.getModifiers())
+        ) throw new RuntimeException(
+            String.format(
+                "Class %s (implementation of service '%s') is abstract.",
+                serviceImplementation.getName(),
+                serviceId
+            )
+        );
         final Constructor constructor = InternalUtils.findAutobuildConstructor(
-            serviceImplementation);
+            serviceImplementation
+        );
 
-        if (constructor == null)
-            throw new RuntimeException(
-                String.format(
-                    "Class %s (implementation of service '%s') does not contain any public constructors.",
-                    serviceImplementation.getName(),
-                    serviceId));
+        if (constructor == null) throw new RuntimeException(
+            String.format(
+                "Class %s (implementation of service '%s') does not contain any public constructors.",
+                serviceImplementation.getName(),
+                serviceId
+            )
+        );
 
         return new ObjectCreatorFactory() {
             @Override
-            public ObjectCreator construct(
-                ServiceBuilderContext resources) {
+            public ObjectCreator construct(ServiceBuilderContext resources) {
                 return new ConstructorServiceCreator(
                     resources,
                     description(),
-                    constructor);
+                    constructor
+                );
             }
 
             @Override
@@ -160,7 +168,8 @@ public class ServiceBinderImpl implements ServiceBinder, ServiceBindingOptions {
                 return String.format(
                     "%s via %s",
                     constructor.getName(),
-                    InternalUtils.asString(bindMethod));
+                    InternalUtils.asString(bindMethod)
+                );
             }
         };
     }
@@ -171,7 +180,8 @@ public class ServiceBinderImpl implements ServiceBinder, ServiceBindingOptions {
             bindMethod,
             serviceInterface,
             serviceImplementation,
-            eagerLoad);
+            eagerLoad
+        );
     }
 
     @Override
@@ -184,19 +194,28 @@ public class ServiceBinderImpl implements ServiceBinder, ServiceBindingOptions {
                 ClassLoader classLoader = proxyFactory.getClassLoader();
 
                 Class<T> implementationClass = (Class<T>) classLoader.loadClass(
-                    expectedImplName);
+                    expectedImplName
+                );
 
-                if (!implementationClass.isInterface() &&
-                    serviceClass.isAssignableFrom(implementationClass)) {
+                if (
+                    !implementationClass.isInterface() &&
+                    serviceClass.isAssignableFrom(implementationClass)
+                ) {
                     return bind(serviceClass, implementationClass);
                 }
                 throw new RuntimeException(
-                    String.format("No service implements the interface %s.", serviceClass.getName()));
+                    String.format(
+                        "No service implements the interface %s.",
+                        serviceClass.getName()
+                    )
+                );
             } catch (ClassNotFoundException ex) {
                 throw new RuntimeException(
                     String.format(
                         "Could not find default implementation class %sImpl. Please provide this class, or bind the service interface to a specific implementation class.",
-                        serviceClass.getName()));
+                        serviceClass.getName()
+                    )
+                );
             }
         }
 
@@ -206,9 +225,12 @@ public class ServiceBinderImpl implements ServiceBinder, ServiceBindingOptions {
     @Override
     public <T> ServiceBindingOptions bind(
         Class<T> serviceInterface,
-        final ServiceBuilder<T> builder) {
+        final ServiceBuilder<T> builder
+    ) {
         if (serviceInterface == null) {
-            throw new IllegalArgumentException("serviceInterface must not be null");
+            throw new IllegalArgumentException(
+                "serviceInterface must not be null"
+            );
         }
         if (builder == null) {
             throw new IllegalArgumentException("builder must not be null");
@@ -218,14 +240,15 @@ public class ServiceBinderImpl implements ServiceBinder, ServiceBindingOptions {
         flush();
 
         this.serviceInterface = serviceInterface;
-        this.scope = InternalUtils.DEFAULT;
+        this.scope = Scopes.SINGLETON;
 
         serviceId = serviceInterface.getSimpleName();
 
         this.source = new ObjectCreatorFactory() {
             @Override
             public ObjectCreator construct(
-                final ServiceBuilderContext resources) {
+                final ServiceBuilderContext resources
+            ) {
                 return () -> builder.buildService(resources);
             }
 
@@ -241,12 +264,17 @@ public class ServiceBinderImpl implements ServiceBinder, ServiceBindingOptions {
     @Override
     public <T> ServiceBindingOptions bind(
         Class<T> serviceInterface,
-        Class<? extends T> serviceImplementation) {
+        Class<? extends T> serviceImplementation
+    ) {
         if (serviceInterface == null) {
-            throw new IllegalArgumentException("serviceInterface must not be null");
+            throw new IllegalArgumentException(
+                "serviceInterface must not be null"
+            );
         }
         if (serviceImplementation == null) {
-            throw new IllegalArgumentException("serviceImplementation must not be null");
+            throw new IllegalArgumentException(
+                "serviceImplementation must not be null"
+            );
         }
         lock.check();
 
@@ -258,7 +286,8 @@ public class ServiceBinderImpl implements ServiceBinder, ServiceBindingOptions {
 
         // Set defaults for the other properties.
 
-        eagerLoad = serviceImplementation.getAnnotation(EagerLoad.class) != null;
+        eagerLoad =
+            serviceImplementation.getAnnotation(EagerLoad.class) != null;
 
         serviceId = InternalUtils.getServiceId(serviceImplementation);
 
@@ -268,14 +297,16 @@ public class ServiceBinderImpl implements ServiceBinder, ServiceBindingOptions {
 
         Scope scope = serviceImplementation.getAnnotation(Scope.class);
 
-        this.scope = scope != null ? scope.value() : InternalUtils.DEFAULT;
+        this.scope = scope != null ? scope.value() : Scopes.SINGLETON;
 
         Marker marker = serviceImplementation.getAnnotation(Marker.class);
 
         if (marker != null) {
             InternalUtils.validateMarkerAnnotations(marker.value());
             @SuppressWarnings("unchecked")
-            Class<? extends Annotation>[] markerValues = (Class<? extends Annotation>[]) (Object[]) marker.value();
+            Class<? extends Annotation>[] markerValues = (Class<
+                ? extends Annotation
+            >[]) (Object[]) marker.value();
             for (Class<? extends Annotation> m : markerValues) {
                 markers.add(m);
             }
@@ -286,8 +317,11 @@ public class ServiceBinderImpl implements ServiceBinder, ServiceBindingOptions {
             markers.add(Primary.class);
         }
 
-        preventDecoration |= serviceImplementation.getAnnotation(
-            PreventServiceDecoration.class) != null;
+        preventDecoration |=
+            serviceImplementation.getAnnotation(
+                PreventServiceDecoration.class
+            ) !=
+            null;
 
         return this;
     }
@@ -335,7 +369,8 @@ public class ServiceBinderImpl implements ServiceBinder, ServiceBindingOptions {
     public ServiceBindingOptions withSimpleId() {
         if (serviceImplementation == null) {
             throw new IllegalArgumentException(
-                "No defined implementation class to generate simple id from.");
+                "No defined implementation class to generate simple id from."
+            );
         }
 
         return withId(serviceImplementation.getSimpleName());
@@ -344,7 +379,9 @@ public class ServiceBinderImpl implements ServiceBinder, ServiceBindingOptions {
     @Override
     public ServiceBindingOptions scope(String scope) {
         if (!InternalUtils.isNonBlank(scope)) {
-            throw new IllegalArgumentException("scope must not be null or blank");
+            throw new IllegalArgumentException(
+                "scope must not be null or blank"
+            );
         }
         lock.check();
 
@@ -355,7 +392,8 @@ public class ServiceBinderImpl implements ServiceBinder, ServiceBindingOptions {
 
     @Override
     public ServiceBindingOptions withMarker(
-        Class<? extends Annotation>... marker) {
+        Class<? extends Annotation>... marker
+    ) {
         lock.check();
 
         InternalUtils.validateMarkerAnnotations(marker);

@@ -1,5 +1,7 @@
 package com.jujin.freeway.ioc.internal;
 
+import static java.lang.String.format;
+
 import com.jujin.freeway.ioc.*;
 import com.jujin.freeway.ioc.advisor.AdvisorDefinition;
 import com.jujin.freeway.ioc.advisor.AspectInterceptor;
@@ -7,13 +9,13 @@ import com.jujin.freeway.ioc.advisor.OperationTracker;
 import com.jujin.freeway.ioc.annotations.Local;
 import com.jujin.freeway.ioc.config.ContributionDef;
 import com.jujin.freeway.ioc.internal.util.ConcurrentBarrier;
+import com.jujin.freeway.ioc.internal.util.FieldInjector;
 import com.jujin.freeway.ioc.internal.util.InjectionContext;
+import com.jujin.freeway.ioc.internal.util.InjectionPlanner;
 import com.jujin.freeway.ioc.internal.util.InternalUtils;
 import com.jujin.freeway.ioc.internal.util.MappedInjectionContext;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 import com.jujin.freeway.ioc.lifecycle.ServiceLifecycle;
-import org.slf4j.Logger;
-
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
@@ -23,8 +25,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-
-import static java.lang.String.format;
+import org.slf4j.Logger;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class ModuleImpl implements Module {
@@ -41,8 +42,8 @@ public class ModuleImpl implements Module {
 
     // For JDK 25+, we can directly use Class.isSealed()
     // A class can be proxied if it's an interface and not sealed
-    private static final Predicate<Class<?>> canBeProxiedPredicate = 
-        c -> c.isInterface() && !c.isSealed();
+    private static final Predicate<Class<?>> canBeProxiedPredicate = c ->
+        c.isInterface() && !c.isSealed();
 
     /**
      * Lazily instantiated. Access is guarded by BARRIER.
@@ -59,16 +60,18 @@ public class ModuleImpl implements Module {
      * (proxies). Guarded by BARRIER.
      */
     private final Map<String, Object> services = new ConcurrentSkipListMap<>(
-        String.CASE_INSENSITIVE_ORDER);
+        String.CASE_INSENSITIVE_ORDER
+    );
 
     /**
      * EagerLoadProxies collection into which proxies for eager loaded services are
      * added. Guarded by BARRIER
      */
-    private final Collection<EagerLoadProxy> eagerLoadProxies = new ArrayList<>();
+    private final Collection<EagerLoadProxy> eagerLoadProxies =
+        new ArrayList<>();
 
-    private final Map<String, ServiceDefinition> serviceDefs = new ConcurrentSkipListMap<>(
-        String.CASE_INSENSITIVE_ORDER);
+    private final Map<String, ServiceDefinition> serviceDefs =
+        new ConcurrentSkipListMap<>(String.CASE_INSENSITIVE_ORDER);
 
     /**
      * The barrier is shared by all modules, which means that creation of *any*
@@ -85,7 +88,8 @@ public class ModuleImpl implements Module {
         ServiceActivityTracker tracker,
         ModuleDefinition moduleDef,
         JdkProxyFactory proxyFactory,
-        Logger logger) {
+        Logger logger
+    ) {
         this.registry = registry;
         this.tracker = tracker;
         this.proxyFactory = proxyFactory;
@@ -122,17 +126,22 @@ public class ModuleImpl implements Module {
                     "Service '%s' implements interface %s, which is not compatible with the requested type %s.",
                     serviceId,
                     def.getServiceInterface().getName(),
-                    serviceInterface.getName()));
+                    serviceInterface.getName()
+                )
+            );
         }
     }
 
     @Override
-    public Set<AdvisorDefinition> findMatchingServiceAdvisors(ServiceDefinition serviceDef) {
+    public Set<AdvisorDefinition> findMatchingServiceAdvisors(
+        ServiceDefinition serviceDef
+    ) {
         Set<AdvisorDefinition> result = new HashSet<>();
 
         for (AdvisorDefinition def : moduleDef.getAdvisorDefs()) {
-            if (def.matches(serviceDef) || markerMatched(serviceDef, def))
-                result.add(def);
+            if (
+                def.matches(serviceDef) || markerMatched(serviceDef, def)
+            ) result.add(def);
         }
 
         return result;
@@ -141,13 +150,15 @@ public class ModuleImpl implements Module {
     @Override
     @SuppressWarnings("unchecked")
     public Collection<String> findServiceIdsForInterface(
-        Class<?> serviceInterface) {
+        Class<?> serviceInterface
+    ) {
         assert serviceInterface != null;
         Collection<String> result = new ArrayList<>();
 
         for (ServiceDefinition def : serviceDefs.values()) {
-            if (serviceInterface.isAssignableFrom(def.getServiceInterface()))
-                result.add(def.getServiceId());
+            if (
+                serviceInterface.isAssignableFrom(def.getServiceInterface())
+            ) result.add(def.getServiceId());
         }
 
         return result;
@@ -187,8 +198,7 @@ public class ModuleImpl implements Module {
         Supplier<Object> find = () -> {
             Object result = services.get(key);
 
-            if (result == null)
-                result = BARRIER.withWrite(create);
+            if (result == null) result = BARRIER.withWrite(create);
 
             return result;
         };
@@ -198,13 +208,13 @@ public class ModuleImpl implements Module {
 
     @Override
     public void collectEagerLoadServices(
-        final Collection<EagerLoadProxy> proxies) {
+        final Collection<EagerLoadProxy> proxies
+    ) {
         Runnable work = new Runnable() {
             @Override
             public void run() {
                 for (ServiceDefinition def : serviceDefs.values()) {
-                    if (def.isEagerLoad())
-                        findOrCreate(def);
+                    if (def.isEagerLoad()) findOrCreate(def);
                 }
 
                 BARRIER.withWrite(() -> {
@@ -228,14 +238,15 @@ public class ModuleImpl implements Module {
         final Class<?> serviceInterface = def.getServiceInterface();
 
         final boolean canBeProxied = canBeProxiedPredicate.test(
-            serviceInterface);
+            serviceInterface
+        );
         String description = String.format(
             "Creating %s service %s",
             canBeProxied ? "proxy for" : "non-proxied instance of",
-            serviceId);
+            serviceId
+        );
 
-        if (logger.isDebugEnabled())
-            logger.debug(description);
+        if (logger.isDebugEnabled()) logger.debug(description);
 
         final Module module = this;
 
@@ -246,7 +257,8 @@ public class ModuleImpl implements Module {
                     module,
                     def,
                     proxyFactory,
-                    logger);
+                    logger
+                );
 
                 // Build up a stack of operations that will be needed to realize the service
                 // (by the proxy, at a later date).
@@ -259,14 +271,18 @@ public class ModuleImpl implements Module {
                 // deferred instantiation, service lifecycles, and decorators.
 
                 ServiceLifecycle lifecycle = registry.getServiceLifecycle(
-                    def.getServiceScope());
+                    def.getServiceScope()
+                );
 
                 if (!canBeProxied) {
-                    if (lifecycle.requiresProxy())
-                        throw new IllegalArgumentException(
-                            String.format(
-                                "Service scope '%s' requires a proxy, but the service does not have a service interface (necessary to create a proxy). Provide a service interface or select a different service scope.",
-                                def.getServiceScope()));
+                    if (
+                        lifecycle.requiresProxy()
+                    ) throw new IllegalArgumentException(
+                        String.format(
+                            "Service scope '%s' requires a proxy, but the service does not have a service interface (necessary to create a proxy). Provide a service interface or select a different service scope.",
+                            def.getServiceScope()
+                        )
+                    );
 
                     return creator.create();
                 }
@@ -276,13 +292,16 @@ public class ModuleImpl implements Module {
                     String.format(
                         "Instantiating service %s implementation via %s",
                         serviceId,
-                        creator),
-                    creator);
+                        creator
+                    ),
+                    creator
+                );
 
                 creator = new ScopeManagedCreator(
                     lifecycle,
                     resources,
-                    creator);
+                    creator
+                );
 
                 // Marked services (or services inside marked modules) are not decorated.
                 // FreewayIOCModule prevents decoration of its services. Note that all
@@ -297,48 +316,55 @@ public class ModuleImpl implements Module {
                         def,
                         creator,
                         getAspectDecorator(),
-                        registry);
+                        registry
+                    );
                 }
 
                 // Add a wrapper that checks for recursion.
 
-                creator = new ReentrantGuard(
-                    def,
-                    creator,
-                    logger);
+                creator = new ReentrantGuard(def, creator, logger);
 
                 creator = new OperationTrackingCreator(
                     registry,
                     "Realizing service " + serviceId,
-                    creator);
+                    creator
+                );
 
                 LazyObjectCreator delegate = new LazyObjectCreator(
                     tracker,
                     creator,
-                    serviceId);
+                    serviceId
+                );
 
                 Object proxy = createProxy(
                     resources,
                     delegate,
-                    def.isPreventDecoration());
+                    def.isPreventDecoration()
+                );
 
                 registry.addRegistryShutdownListener(delegate);
 
-                if (def.isEagerLoad())
-                    eagerLoadProxies.add(delegate);
+                if (def.isEagerLoad()) eagerLoadProxies.add(delegate);
 
                 tracker.setStatus(serviceId, ServiceStatus.VIRTUAL);
 
                 return proxy;
             } catch (Exception ex) {
-                logger.error("Failed to create service '{}': {}", serviceId, ex.getMessage(), ex);
+                logger.error(
+                    "Failed to create service '{}': {}",
+                    serviceId,
+                    ex.getMessage(),
+                    ex
+                );
                 throw new RuntimeException(
                     String.format(
                         "Error building service proxy for service '%s' (at %s): %s",
                         serviceId,
                         def,
-                        ex.getMessage()),
-                    ex);
+                        ex.getMessage()
+                    ),
+                    ex
+                );
             }
         };
 
@@ -346,7 +372,9 @@ public class ModuleImpl implements Module {
     }
 
     private AspectInterceptor getAspectDecorator() {
-        return registry.invoke("Obtaining AspectDecorator service", () -> registry.getService(AspectInterceptor.class));
+        return registry.invoke("Obtaining AspectDecorator service", () ->
+            registry.getService(AspectInterceptor.class)
+        );
     }
 
     private final Runnable instantiateModule = new Runnable() {
@@ -355,13 +383,13 @@ public class ModuleImpl implements Module {
             moduleInstance = registry.invoke(
                 "Constructing module class " +
                     moduleDef.getBuilderClass().getName(),
-                () -> instantiateModuleInstance());
+                () -> instantiateModuleInstance()
+            );
         }
     };
 
     private final Supplier<Object> provideModuleInstance = () -> {
-        if (moduleInstance == null)
-            BARRIER.withWrite(instantiateModule);
+        if (moduleInstance == null) BARRIER.withWrite(instantiateModule);
 
         return moduleInstance;
     };
@@ -376,11 +404,12 @@ public class ModuleImpl implements Module {
 
         Constructor[] constructors = moduleClass.getConstructors();
 
-        if (constructors.length == 0)
-            throw new RuntimeException(
-                String.format(
-                    "Module class %s does not contain any public constructors.",
-                    moduleClass.getName()));
+        if (constructors.length == 0) throw new RuntimeException(
+            String.format(
+                "Module class %s does not contain any public constructors.",
+                moduleClass.getName()
+            )
+        );
 
         if (constructors.length > 1) {
             // Sort the constructors ascending by number of parameters (descending); this is
@@ -392,8 +421,10 @@ public class ModuleImpl implements Module {
             Comparator<Constructor> comparator = new Comparator<Constructor>() {
                 @Override
                 public int compare(Constructor c1, Constructor c2) {
-                    return (c2.getParameterTypes().length -
-                        c1.getParameterTypes().length);
+                    return (
+                        c2.getParameterTypes().length -
+                        c1.getParameterTypes().length
+                    );
                 }
             };
 
@@ -403,17 +434,20 @@ public class ModuleImpl implements Module {
                 String.format(
                     "Module class %s contains more than one public constructor. The first constructor, %s, is being used. You should change the class to have only a single public constructor.",
                     moduleClass.getName(),
-                    constructors[0]));
+                    constructors[0]
+                )
+            );
         }
 
         Constructor constructor = constructors[0];
 
-        if (insideConstructor)
-            throw new RuntimeException(
-                String.format(
-                    "The constructor for module class %s is recursive: it depends on itself in some way. The constructor, %s, is in some way is triggering a service builder, advisor or contribution method within the class.",
-                    moduleClass.getName(),
-                    constructor));
+        if (insideConstructor) throw new RuntimeException(
+            String.format(
+                "The constructor for module class %s is recursive: it depends on itself in some way. The constructor, %s, is in some way is triggering a service builder, advisor or contribution method within the class.",
+                moduleClass.getName(),
+                constructor
+            )
+        );
 
         ServiceLocator locator = new ServiceLocatorImpl(registry, this);
         Map<Class<?>, Object> resourcesMap = new HashMap<>();
@@ -429,31 +463,32 @@ public class ModuleImpl implements Module {
         try {
             insideConstructor = true;
 
-            ObjectCreator[] parameterValues = InternalUtils.calculateParameters(
-                locator,
-                resources,
-                constructor.getParameterTypes(),
-                constructor.getGenericParameterTypes(),
-                constructor.getParameterAnnotations(),
-                registry);
+            ObjectCreator[] parameterValues =
+                InjectionPlanner.resolveParameters(
+                    locator,
+                    resources,
+                    constructor.getParameterTypes(),
+                    constructor.getGenericParameterTypes(),
+                    constructor.getParameterAnnotations(),
+                    registry
+                );
 
-            Object[] realized = InternalUtils.realizeObjects(parameterValues);
+            Object[] realized = InjectionPlanner.realizeAll(parameterValues);
 
-            java.lang.invoke.MethodHandle ctorHandle = com.jujin.freeway.ioc.internal.util.MethodHandleUtils
-                .constructorHandle(
-                    constructor);
+            java.lang.invoke.MethodHandle ctorHandle =
+                com.jujin.freeway.ioc.internal.util.MethodHandleUtils.constructorHandle(
+                    constructor
+                );
             Object result = ctorHandle.invokeWithArguments(realized);
 
-            InternalUtils.injectIntoFields(
-                result,
-                locator,
-                resources,
-                registry);
+            FieldInjector.injectFields(result, locator, resources, registry);
 
             return result;
         } catch (Throwable ex) {
             fail = (ex instanceof java.lang.reflect.InvocationTargetException)
-                ? ((java.lang.reflect.InvocationTargetException) ex).getTargetException()
+                ? (
+                      (java.lang.reflect.InvocationTargetException) ex
+                  ).getTargetException()
                 : ex;
         } finally {
             insideConstructor = false;
@@ -463,21 +498,25 @@ public class ModuleImpl implements Module {
             String.format(
                 "Unable to instantiate class %s as a module: %s",
                 moduleClass.getName(),
-                fail != null ? fail.getMessage() : "null"),
-            fail);
+                fail != null ? fail.getMessage() : "null"
+            ),
+            fail
+        );
     }
 
     private Object createProxy(
         ServiceContext resources,
         ObjectCreator creator,
-        boolean preventDecoration) {
+        boolean preventDecoration
+    ) {
         String serviceId = resources.getServiceId();
         Class<?> serviceInterface = resources.getServiceInterface();
 
         String toString = format(
             "<Proxy for %s(%s)>",
             serviceId,
-            serviceInterface.getName());
+            serviceInterface.getName()
+        );
 
         ServiceProxyToken token = SerializationSupport.createToken(serviceId);
 
@@ -486,7 +525,8 @@ public class ModuleImpl implements Module {
             token,
             serviceInterface,
             serviceId,
-            toString);
+            toString
+        );
     }
 
     private Object createProxyInstance(
@@ -494,18 +534,21 @@ public class ModuleImpl implements Module {
         final ServiceProxyToken token,
         final Class<?> serviceInterface,
         final String serviceId,
-        final String description) {
+        final String description
+    ) {
         InvocationHandler handler = new LazyProxyHandler(
             creator,
             token,
             serviceInterface,
             serviceId,
-            description);
+            description
+        );
 
         return Proxy.newProxyInstance(
             serviceInterface.getClassLoader(),
-            new Class[]{ serviceInterface, Serializable.class },
-            handler);
+            new Class[] { serviceInterface, Serializable.class },
+            handler
+        );
     }
 
     /**
@@ -520,7 +563,8 @@ public class ModuleImpl implements Module {
      * </p>
      */
     private static class LazyProxyHandler
-        implements InvocationHandler, Serializable {
+        implements InvocationHandler, Serializable
+    {
 
         private static final long serialVersionUID = 1L;
 
@@ -540,7 +584,8 @@ public class ModuleImpl implements Module {
             ServiceProxyToken token,
             Class<?> serviceInterface,
             String serviceId,
-            String description) {
+            String description
+        ) {
             this.creator = creator;
             this.serviceId = serviceId;
             this.serviceInterface = serviceInterface;
@@ -580,8 +625,7 @@ public class ModuleImpl implements Module {
          * helper; slots 1..N are per-method handles.
          */
         private synchronized MethodHandleInfo[] buildDispatchTable() {
-            if (dispatchTable != null)
-                return dispatchTable;
+            if (dispatchTable != null) return dispatchTable;
 
             Object svc = (service != null) ? service : createService();
             this.service = svc; // cache for serialization fallback
@@ -610,10 +654,13 @@ public class ModuleImpl implements Module {
          */
         private static java.lang.invoke.MethodHandle composeHandle(
             java.lang.reflect.Method method,
-            Object service) {
+            Object service
+        ) {
             try {
-                java.lang.invoke.MethodHandle raw = com.jujin.freeway.ioc.internal.util.MethodHandleUtils.methodHandle(
-                    method).bindTo(service);
+                java.lang.invoke.MethodHandle raw =
+                    com.jujin.freeway.ioc.internal.util.MethodHandleUtils.methodHandle(
+                        method
+                    ).bindTo(service);
                 int paramCount = method.getParameterCount();
                 if (paramCount == 0) {
                     // No-arg method: handle is already ()Object
@@ -621,7 +668,8 @@ public class ModuleImpl implements Module {
                     return java.lang.invoke.MethodHandles.dropArguments(
                         raw,
                         0,
-                        Object[].class);
+                        Object[].class
+                    );
                 }
                 // Spread the Object[] from InvocationHandler across parameters
                 return raw
@@ -629,11 +677,14 @@ public class ModuleImpl implements Module {
                     .asType(
                         java.lang.invoke.MethodType.methodType(
                             Object.class,
-                            Object[].class));
+                            Object[].class
+                        )
+                    );
             } catch (Exception e) {
                 throw new RuntimeException(
                     "Failed to compose handle for " + method,
-                    e);
+                    e
+                );
             }
         }
 
@@ -650,21 +701,30 @@ public class ModuleImpl implements Module {
          */
         private static final class MethodHandleInfo {
 
-            private final java.util.Map<java.lang.reflect.Method, Integer> methodIndex; // slot 0 only
+            private final java.util.Map<
+                java.lang.reflect.Method,
+                Integer
+            > methodIndex; // slot 0 only
             private final java.lang.invoke.MethodHandle handle; // slots 1..N
 
             MethodHandleInfo(
                 java.lang.reflect.Method[] methods,
-                java.lang.invoke.MethodHandle handle) {
+                java.lang.invoke.MethodHandle handle
+            ) {
                 this.methodIndex = (methods != null)
                     ? buildIndex(methods)
                     : null;
                 this.handle = handle;
             }
 
-            private static java.util.Map<java.lang.reflect.Method, Integer> buildIndex(
-                java.lang.reflect.Method[] methods) {
-                var map = new java.util.HashMap<java.lang.reflect.Method, Integer>(methods.length * 2);
+            private static java.util.Map<
+                java.lang.reflect.Method,
+                Integer
+            > buildIndex(java.lang.reflect.Method[] methods) {
+                var map = new java.util.HashMap<
+                    java.lang.reflect.Method,
+                    Integer
+                >(methods.length * 2);
                 for (int i = 0; i < methods.length; i++) {
                     map.put(methods[i], i + 1); // 1-based
                 }
@@ -685,11 +745,14 @@ public class ModuleImpl implements Module {
 
     @Override
     public Set<ContributionDef> getContributorDefsForService(
-        ServiceDefinition serviceDef) {
+        ServiceDefinition serviceDef
+    ) {
         Set<ContributionDef> result = new HashSet<>();
 
         for (ContributionDef next : moduleDef.getContributionDefs()) {
-            if (serviceDef.getServiceId().equalsIgnoreCase(next.getServiceId())) {
+            if (
+                serviceDef.getServiceId().equalsIgnoreCase(next.getServiceId())
+            ) {
                 result.add(next);
             } else {
                 if (markerMatched(serviceDef, next)) {
@@ -701,24 +764,29 @@ public class ModuleImpl implements Module {
         return result;
     }
 
-    private boolean markerMatched(ServiceDefinition serviceDef, Markable markable) {
+    private boolean markerMatched(
+        ServiceDefinition serviceDef,
+        Markable markable
+    ) {
         final Class<?> markableInterface = markable.getServiceInterface();
 
-        if (markableInterface == null ||
+        if (
+            markableInterface == null ||
             !markableInterface.isAssignableFrom(
-                serviceDef.getServiceInterface()))
-            return false;
+                serviceDef.getServiceInterface()
+            )
+        ) return false;
 
         Set<Class<?>> contributionMarkers = new HashSet<>(
-            markable.getMarkers());
+            markable.getMarkers()
+        );
 
         if (contributionMarkers.contains(Local.class)) {
             // If @Local is present, filter out services that aren't in the same module.
             // Don't consider @Local to be a marker annotation
             // for the later match, however.
 
-            if (!isLocalServiceDef(serviceDef))
-                return false;
+            if (!isLocalServiceDef(serviceDef)) return false;
 
             contributionMarkers.remove(Local.class);
         }
@@ -731,8 +799,9 @@ public class ModuleImpl implements Module {
         // @Advise and @Decorate default to Object.class service interface.
         // If @Match is present, no marker annotations are needed.
         // In such a case an empty contribution marker list should be ignored.
-        if (markableInterface == Object.class && contributionMarkers.isEmpty())
-            return false;
+        if (
+            markableInterface == Object.class && contributionMarkers.isEmpty()
+        ) return false;
 
         return serviceDef.getMarkers().containsAll(contributionMarkers);
     }

@@ -1,8 +1,6 @@
 package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.ServiceDefinition;
-import com.jujin.freeway.ioc.internal.util.InternalUtils;
-
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +17,8 @@ public record ServiceInstrumenterConfig(
     String[] constraints,
     JdkProxyFactory proxyFactory,
     Set<Class<?>> markers,
-    Class<?> serviceInterface) {
+    Class<?> serviceInterface
+) {
     public ServiceInstrumenterConfig {
         constraints = constraints != null ? constraints.clone() : new String[0];
     }
@@ -30,18 +29,20 @@ public record ServiceInstrumenterConfig(
         String[] constraints,
         Class<?> serviceInterface,
         Set<Class<?>> markers,
-        JdkProxyFactory proxyFactory) {
+        JdkProxyFactory proxyFactory
+    ) {
         List<IdMatcher> matchers = new ArrayList<>();
         for (String pattern : patterns) {
-            matchers.add(new InternalUtils.IdMatcherImpl(pattern));
+            matchers.add(new GlobIdMatcher(pattern));
         }
         return new ServiceInstrumenterConfig(
             method,
-            new InternalUtils.OrIdMatcher(matchers),
+            new OrIdMatcher(matchers),
             constraints,
             proxyFactory,
             markers,
-            serviceInterface);
+            serviceInterface
+        );
     }
 
     public boolean matches(ServiceDefinition serviceDef) {
