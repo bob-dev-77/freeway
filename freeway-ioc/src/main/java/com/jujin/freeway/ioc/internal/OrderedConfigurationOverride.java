@@ -1,7 +1,7 @@
 package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.config.ContributionDef;
-import com.jujin.freeway.ioc.internal.util.InternalUtils;
+import com.jujin.freeway.ioc.internal.util.ExceptionSupport;
 import com.jujin.freeway.ioc.internal.util.Orderer;
 
 class OrderedConfigurationOverride<T> {
@@ -21,7 +21,8 @@ class OrderedConfigurationOverride<T> {
         String id,
         T replacementObject,
         String[] constraints,
-        ContributionDef contribDef) {
+        ContributionDef contribDef
+    ) {
         this.orderer = orderer;
         this.id = id;
         this.replacementObject = replacementObject;
@@ -36,7 +37,8 @@ class OrderedConfigurationOverride<T> {
             String message = String.format(
                 "Failure processing override from %s: %s",
                 contribDef,
-                InternalUtils.toMessage(ex));
+                ExceptionSupport.toMessage(ex)
+            );
 
             throw new RuntimeException(message, ex);
         }

@@ -2,14 +2,13 @@ package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.*;
 import com.jujin.freeway.ioc.advisor.OperationTracker;
-import com.jujin.freeway.ioc.internal.util.InternalUtils;
+import com.jujin.freeway.ioc.internal.util.ReflectionSupport;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
-import org.slf4j.Logger;
-
 import java.lang.reflect.Constructor;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
 
 /**
  * Implementation of {@link ServiceBuilderContext}. We
@@ -23,7 +22,8 @@ import java.util.Map;
 @SuppressWarnings("rawtypes")
 public class ServiceContextImpl
     extends ServiceLocatorImpl
-    implements ServiceBuilderContext {
+    implements ServiceBuilderContext
+{
 
     private final InternalRegistry registry;
 
@@ -40,7 +40,8 @@ public class ServiceContextImpl
         Module module,
         ServiceDefinition serviceDef,
         JdkProxyFactory proxyFactory,
-        Logger logger) {
+        Logger logger
+    ) {
         super(registry, module);
         this.registry = registry;
         this.module = module;
@@ -71,11 +72,13 @@ public class ServiceContextImpl
 
     @Override
     public <T> Collection<T> getUnorderedConfiguration(
-        final Class<T> valueType) {
+        final Class<T> valueType
+    ) {
         Collection<T> result = registry.invoke(
             "Collecting unordered configuration for service " +
                 serviceDef.getServiceId(),
-            () -> registry.getUnorderedConfiguration(serviceDef, valueType));
+            () -> registry.getUnorderedConfiguration(serviceDef, valueType)
+        );
 
         logConfiguration(result);
 
@@ -83,8 +86,10 @@ public class ServiceContextImpl
     }
 
     private void logConfiguration(Collection configuration) {
-        if (logger.isDebugEnabled())
-            logger.debug("Constructed configuration: {}", configuration);
+        if (logger.isDebugEnabled()) logger.debug(
+            "Constructed configuration: {}",
+            configuration
+        );
     }
 
     @Override
@@ -92,7 +97,8 @@ public class ServiceContextImpl
         List<T> result = registry.invoke(
             "Collecting ordered configuration for service " +
                 serviceDef.getServiceId(),
-            () -> registry.getOrderedConfiguration(serviceDef, valueType));
+            () -> registry.getOrderedConfiguration(serviceDef, valueType)
+        );
 
         logConfiguration(result);
 
@@ -102,14 +108,19 @@ public class ServiceContextImpl
     @Override
     public <K, V> Map<K, V> getMappedConfiguration(
         final Class<K> keyType,
-        final Class<V> valueType) {
+        final Class<V> valueType
+    ) {
         Map<K, V> result = registry.invoke(
             "Collecting mapped configuration for service " +
                 serviceDef.getServiceId(),
-            () -> registry.getMappedConfiguration(serviceDef, keyType, valueType));
+            () ->
+                registry.getMappedConfiguration(serviceDef, keyType, valueType)
+        );
 
-        if (logger.isDebugEnabled())
-            logger.debug("Constructed configuration: {}", result);
+        if (logger.isDebugEnabled()) logger.debug(
+            "Constructed configuration: {}",
+            result
+        );
 
         return result;
     }
@@ -124,21 +135,23 @@ public class ServiceContextImpl
         assert clazz != null;
 
         return registry.invoke(description, () -> {
-            Constructor constructor = InternalUtils.findAutobuildConstructor(
-                clazz);
+            Constructor constructor =
+                ReflectionSupport.findAutobuildConstructor(clazz);
 
-            if (constructor == null)
-                throw new RuntimeException(
-                    String.format(
-                        "Class %s does not contain a public constructor needed to autobuild.",
-                        clazz.getName()));
+            if (constructor == null) throw new RuntimeException(
+                String.format(
+                    "Class %s does not contain a public constructor needed to autobuild.",
+                    clazz.getName()
+                )
+            );
 
             String ctorDescription = constructor.toString();
 
             ObjectCreator creator = new ConstructorServiceCreator(
                 ServiceContextImpl.this,
                 ctorDescription,
-                constructor);
+                constructor
+            );
 
             return clazz.cast(creator.create());
         });
@@ -150,7 +163,8 @@ public class ServiceContextImpl
 
         return autobuild(
             "Autobuilding instance of class " + clazz.getName(),
-            clazz);
+            clazz
+        );
     }
 
     @Override
@@ -166,9 +180,11 @@ public class ServiceContextImpl
     @Override
     public AnnotationProvider getMethodAnnotationProvider(
         String methodName,
-        Class... parameterTypes) {
+        Class... parameterTypes
+    ) {
         return serviceDef.getMethodAnnotationProvider(
             methodName,
-            parameterTypes);
+            parameterTypes
+        );
     }
 }

@@ -14,10 +14,10 @@ import java.util.NoSuchElementException;
  * for loop.
  * <p>
  * This class is not threadsafe.
- *
  */
 public class LocalizedNameGenerator
-    implements Iterator<String>, Iterable<String> {
+    implements Iterator<String>, Iterable<String>
+{
 
     private final int baseNameLength;
 
@@ -49,30 +49,16 @@ public class LocalizedNameGenerator
 
     private static final int EXHAUSTED = 6;
 
-    /**
-     * Creates a new generator for the given path and locale.
-     *
-     * @param path
-     *            non-blank path
-     * @param locale
-     *            non-null locale
-     */
     public LocalizedNameGenerator(String path, Locale locale) {
-        assert InternalUtils.isNonBlank(path);
+        assert DisplayUtils.isNonBlank(path);
         assert locale != null;
 
         int dotx = path.lastIndexOf('.');
 
-        // When there is no dot in the name, pretend it exists after the
-        // end of the string. The locale extensions will be tacked on there.
-
-        if (dotx == -1)
-            dotx = path.length();
+        if (dotx == -1) dotx = path.length();
 
         String baseName = path.substring(0, dotx);
-
         suffix = path.substring(dotx);
-
         baseNameLength = dotx;
 
         language = locale.getLanguage();
@@ -95,28 +81,19 @@ public class LocalizedNameGenerator
 
             switch (state) {
                 case LCV:
-                    if (InternalUtils.isBlank(variant))
-                        continue;
-
+                    if (DisplayUtils.isBlank(variant)) continue;
                     return;
                 case LC:
-                    if (InternalUtils.isBlank(country))
-                        continue;
-
+                    if (DisplayUtils.isBlank(country)) continue;
                     return;
                 case LV:
-                    // If country is null, then we've already generated this string
-                    // as state LCV and we can continue directly to state L
-
-                    if (InternalUtils.isBlank(variant) ||
-                        InternalUtils.isBlank(country))
-                        continue;
-
+                    if (
+                        DisplayUtils.isBlank(variant) ||
+                        DisplayUtils.isBlank(country)
+                    ) continue;
                     return;
                 case L:
-                    if (InternalUtils.isBlank(language))
-                        continue;
-
+                    if (DisplayUtils.isBlank(language)) continue;
                     return;
                 case BARE:
                 default:
@@ -125,31 +102,17 @@ public class LocalizedNameGenerator
         }
     }
 
-    /**
-     * Returns true if there are more name variants to be returned, false otherwise.
-     */
-
     @Override
     public boolean hasNext() {
         return state != EXHAUSTED;
     }
 
-    /**
-     * Returns the next localized variant.
-     *
-     * @throws NoSuchElementException
-     *             if all variants have been returned.
-     */
-
     @Override
     public String next() {
-        if (state == EXHAUSTED)
-            throw new NoSuchElementException();
+        if (state == EXHAUSTED) throw new NoSuchElementException();
 
         String result = build();
-
         advance();
-
         return result;
     }
 
@@ -161,14 +124,9 @@ public class LocalizedNameGenerator
             builder.append(language);
         }
 
-        // For LV, we want two underscores between language
-        // and variant.
-
         if (state == LC || state == LCV || state == LV) {
             builder.append('_');
-
-            if (state != LV)
-                builder.append(country);
+            if (state != LV) builder.append(country);
         }
 
         if (state == LV || state == LCV) {
@@ -176,8 +134,7 @@ public class LocalizedNameGenerator
             builder.append(variant);
         }
 
-        if (suffix != null)
-            builder.append(suffix);
+        if (suffix != null) builder.append(suffix);
 
         return builder.toString();
     }
@@ -185,11 +142,21 @@ public class LocalizedNameGenerator
     public Locale getCurrentLocale() {
         switch (prevState) {
             case LCV:
-                return new Locale.Builder().setLanguage(language).setRegion(country).setVariant(variant).build();
+                return new Locale.Builder()
+                    .setLanguage(language)
+                    .setRegion(country)
+                    .setVariant(variant)
+                    .build();
             case LC:
-                return new Locale.Builder().setLanguage(language).setRegion(country).build();
+                return new Locale.Builder()
+                    .setLanguage(language)
+                    .setRegion(country)
+                    .build();
             case LV:
-                return new Locale.Builder().setLanguage(language).setVariant(variant).build();
+                return new Locale.Builder()
+                    .setLanguage(language)
+                    .setVariant(variant)
+                    .build();
             case L:
                 return new Locale.Builder().setLanguage(language).build();
             default:
@@ -197,17 +164,11 @@ public class LocalizedNameGenerator
         }
     }
 
-    /**
-     * @throws UnsupportedOperationException
-     */
     @Override
     public void remove() {
         throw new UnsupportedOperationException();
     }
 
-    /**
-     * So that LNG may be used with the for loop.
-     */
     @Override
     public Iterator<String> iterator() {
         return this;

@@ -6,10 +6,9 @@ import com.jujin.freeway.ioc.advisor.MethodAdviceReceiver;
 import com.jujin.freeway.ioc.advisor.MethodInvocation;
 import com.jujin.freeway.ioc.annotations.NotLazy;
 import com.jujin.freeway.ioc.annotations.PreventServiceDecoration;
-import com.jujin.freeway.ioc.internal.util.InternalUtils;
+import com.jujin.freeway.ioc.internal.util.DisplayUtils;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 import com.jujin.freeway.ioc.threading.ThunkCreator;
-
 import java.lang.reflect.Method;
 
 @PreventServiceDecoration
@@ -23,10 +22,10 @@ public class LazyAdvisorImpl implements LazyAdvisor {
 
     @Override
     public void addLazyMethodInvocationAdvice(
-        MethodAdviceReceiver methodAdviceReceiver) {
+        MethodAdviceReceiver methodAdviceReceiver
+    ) {
         for (Method m : methodAdviceReceiver.getInterface().getMethods()) {
-            if (filter(m))
-                addAdvice(m, methodAdviceReceiver);
+            if (filter(m)) addAdvice(m, methodAdviceReceiver);
         }
     }
 
@@ -36,7 +35,8 @@ public class LazyAdvisorImpl implements LazyAdvisor {
         final String description = String.format(
             "<%s Thunk for %s>",
             thunkType.getName(),
-            InternalUtils.asString(method));
+            DisplayUtils.asString(method)
+        );
 
         MethodAdvice advice = new MethodAdvice() {
             /**
@@ -50,12 +50,14 @@ public class LazyAdvisorImpl implements LazyAdvisor {
                     return invocation.getReturnValue();
                 };
 
-                ObjectCreator<?> cachingObjectCreator = new CachingObjectCreator<>(deferred);
+                ObjectCreator<?> cachingObjectCreator =
+                    new CachingObjectCreator<>(deferred);
 
                 Object thunk = thunkCreator.createThunk(
                     thunkType,
                     cachingObjectCreator,
-                    description);
+                    description
+                );
 
                 invocation.setReturnValue(thunk);
             }
@@ -65,15 +67,12 @@ public class LazyAdvisorImpl implements LazyAdvisor {
     }
 
     private boolean filter(Method method) {
-        if (method.getAnnotation(NotLazy.class) != null)
-            return false;
+        if (method.getAnnotation(NotLazy.class) != null) return false;
 
-        if (!method.getReturnType().isInterface())
-            return false;
+        if (!method.getReturnType().isInterface()) return false;
 
         for (Class<?> extype : method.getExceptionTypes()) {
-            if (!RuntimeException.class.isAssignableFrom(extype))
-                return false;
+            if (!RuntimeException.class.isAssignableFrom(extype)) return false;
         }
 
         return true;

@@ -1,11 +1,10 @@
 package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.Registry;
-import com.jujin.freeway.ioc.internal.util.InternalUtils;
+import com.jujin.freeway.ioc.internal.util.ExceptionSupport;
 import com.jujin.freeway.ioc.internal.util.OneShotLock;
-import org.slf4j.Logger;
-
 import java.util.List;
+import org.slf4j.Logger;
 
 /**
  * Startup service for Freeway IoC: automatically invoked at
@@ -44,8 +43,9 @@ public class RegistryStartup implements Runnable {
 
                 logger.error(
                     "An exception occurred during startup: {}",
-                    InternalUtils.toMessage(ex),
-                    ex);
+                    ExceptionSupport.toMessage(ex),
+                    ex
+                );
             }
         }
 

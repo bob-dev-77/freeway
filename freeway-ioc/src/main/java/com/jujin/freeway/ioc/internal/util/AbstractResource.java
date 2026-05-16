@@ -26,7 +26,8 @@ public abstract class AbstractResource implements Resource {
 
     private volatile boolean existsComputed;
 
-    private final ConcurrentHashMap<Locale, Resource> localizationCache = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Locale, Resource> localizationCache =
+        new ConcurrentHashMap<>();
 
     protected AbstractResource(String path) {
         assert path != null;
@@ -84,7 +85,9 @@ public abstract class AbstractResource implements Resource {
                         String.format(
                             "Relative path '%s' for %s would go above root.",
                             relativePath,
-                            this));
+                            this
+                        )
+                    );
                 }
 
                 terms.remove(terms.size() - 1);
@@ -115,15 +118,15 @@ public abstract class AbstractResource implements Resource {
     public final Resource forLocale(Locale locale) {
         return localizationCache.computeIfAbsent(
             locale,
-            this::findLocalizedResource);
+            this::findLocalizedResource
+        );
     }
 
     private Resource findLocalizedResource(Locale locale) {
         for (String path : new LocalizedNameGenerator(this.path, locale)) {
             Resource potential = createResource(path);
 
-            if (potential.exists())
-                return potential;
+            if (potential.exists()) return potential;
         }
 
         return null;
@@ -131,11 +134,10 @@ public abstract class AbstractResource implements Resource {
 
     @Override
     public final Resource withExtension(String extension) {
-        assert InternalUtils.isNonBlank(extension);
+        assert DisplayUtils.isNonBlank(extension);
         int dotx = path.lastIndexOf('.');
 
-        if (dotx < 0)
-            return createResource(path + "." + extension);
+        if (dotx < 0) return createResource(path + "." + extension);
 
         return createResource(path.substring(0, dotx + 1) + extension);
     }
@@ -145,8 +147,7 @@ public abstract class AbstractResource implements Resource {
      * (in which case, this resource is returned).
      */
     private Resource createResource(String path) {
-        if (this.path.equals(path))
-            return this;
+        if (this.path.equals(path)) return this;
 
         return newResource(path);
     }
@@ -190,20 +191,23 @@ public abstract class AbstractResource implements Resource {
             int indexOfExclamationMark = urlAsString.indexOf('!');
 
             String resourceInJar = urlAsString.substring(
-                indexOfExclamationMark + 2);
+                indexOfExclamationMark + 2
+            );
 
             URL directoryResource = Thread.currentThread()
                 .getContextClassLoader()
                 .getResource(resourceInJar + "/");
 
-            boolean isDirectory = directoryResource != null &&
+            boolean isDirectory =
+                directoryResource != null &&
                 "jar".equals(directoryResource.getProtocol());
 
             if (isDirectory) {
                 throw new IOException(
                     "Cannot open a stream for a resource that references a directory inside a JAR file (" +
                         url +
-                        ").");
+                        ")."
+                );
             }
         }
 
@@ -256,7 +260,8 @@ public abstract class AbstractResource implements Resource {
             // (which use a foward slash).
             String sep = System.getProperty("file.separator");
             expectedFileName = extractFile(
-                file.getCanonicalPath().replace(sep, "/"));
+                file.getCanonicalPath().replace(sep, "/")
+            );
         } catch (IOException e) {
             return;
         }
@@ -271,7 +276,9 @@ public abstract class AbstractResource implements Resource {
             String.format(
                 "Resource %s does not match the case of the actual file name, '%s'.",
                 this,
-                expectedFileName));
+                expectedFileName
+            )
+        );
     }
 
     private File toFile(URL url) {

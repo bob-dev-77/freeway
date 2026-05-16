@@ -1,5 +1,6 @@
 package com.jujin.freeway.ioc.internal.util;
 
+import com.jujin.freeway.ioc.internal.util.CollectionSupport;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -73,7 +74,8 @@ public final class IdAllocator {
 
     private IdAllocator(
         String namespace,
-        Map<String, NameGenerator> generatorMap) {
+        Map<String, NameGenerator> generatorMap
+    ) {
         this.namespace = namespace;
         this.generatorMap = generatorMap;
     }
@@ -82,7 +84,7 @@ public final class IdAllocator {
      * Returns a list of all allocated ids, sorted alphabetically.
      */
     public List<String> getAllocatedIds() {
-        return InternalUtils.sortedKeys(generatorMap);
+        return CollectionSupport.sortedKeys(generatorMap);
     }
 
     /**
@@ -97,7 +99,8 @@ public final class IdAllocator {
         // instance. We need to clone the NameGenerators, then build a new map around
         // the clones.
 
-        IdentityHashMap<NameGenerator, NameGenerator> transformMap = new IdentityHashMap<NameGenerator, NameGenerator>();
+        IdentityHashMap<NameGenerator, NameGenerator> transformMap =
+            new IdentityHashMap<NameGenerator, NameGenerator>();
 
         for (NameGenerator original : generatorMap.values()) {
             NameGenerator copy = original.clone();
@@ -129,14 +132,12 @@ public final class IdAllocator {
         if (g == null) {
             g = new NameGenerator(key);
             result = key;
-        } else
-            result = g.nextId();
+        } else result = g.nextId();
 
         // Handle the degenerate case, where a base name of the form "foo_0" has been
         // requested. Skip over any duplicates thus formed.
 
-        while (generatorMap.containsKey(result))
-            result = g.nextId();
+        while (generatorMap.containsKey(result)) result = g.nextId();
 
         generatorMap.put(result, g);
 

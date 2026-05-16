@@ -3,9 +3,8 @@ package com.jujin.freeway.ioc.internal;
 import com.jujin.freeway.ioc.AnnotationProvider;
 import com.jujin.freeway.ioc.ServiceBuilderContext;
 import com.jujin.freeway.ioc.ServiceDefinition;
-import com.jujin.freeway.ioc.internal.util.InternalUtils;
+import com.jujin.freeway.ioc.internal.util.ReflectionSupport;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
-
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -57,7 +56,8 @@ public class ServiceDefinitionImpl implements ServiceDefinition {
         String scope,
         boolean eagerLoad,
         boolean preventDecoration,
-        ObjectCreatorFactory source) {
+        ObjectCreatorFactory source
+    ) {
         this.serviceInterface = serviceInterface;
         this.serviceImplementation = serviceImplementation;
         this.serviceId = serviceId;
@@ -76,7 +76,8 @@ public class ServiceDefinitionImpl implements ServiceDefinition {
 
     @Override
     public ObjectCreator<?> createServiceCreator(
-        ServiceBuilderContext resources) {
+        ServiceBuilderContext resources
+    ) {
         return source.construct(resources);
     }
 
@@ -117,34 +118,45 @@ public class ServiceDefinitionImpl implements ServiceDefinition {
 
     private Stream<Class<?>> searchPath() {
         return Stream.of(serviceImplementation, serviceInterface).filter(
-            Objects::nonNull);
+            Objects::nonNull
+        );
     }
 
     @Override
     public AnnotationProvider getClassAnnotationProvider() {
         return AnnotationProviderChain.create(
             searchPath()
-                .map(InternalUtils.CLASS_TO_AP_MAPPER)
-                .collect(Collectors.toList()));
+                .map(ReflectionSupport.CLASS_TO_AP_MAPPER)
+                .collect(Collectors.toList())
+        );
     }
 
     @Override
     @SuppressWarnings("rawtypes")
     public AnnotationProvider getMethodAnnotationProvider(
         final String methodName,
-        final Class... argumentTypes) {
+        final Class... argumentTypes
+    ) {
         return AnnotationProviderChain.create(
             searchPath()
-                .map(element -> InternalUtils.findMethod(element, methodName, argumentTypes))
-                .map(InternalUtils.METHOD_TO_AP_MAPPER)
-                .collect(Collectors.toList()));
+                .map(element ->
+                    ReflectionSupport.findMethod(
+                        element,
+                        methodName,
+                        argumentTypes
+                    )
+                )
+                .map(ReflectionSupport.METHOD_TO_AP_MAPPER)
+                .collect(Collectors.toList())
+        );
     }
 
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((serviceId == null) ? 0 : serviceId.hashCode());
+        result =
+            prime * result + ((serviceId == null) ? 0 : serviceId.hashCode());
         return result;
     }
 

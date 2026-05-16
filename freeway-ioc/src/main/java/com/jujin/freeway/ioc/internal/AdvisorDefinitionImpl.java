@@ -5,8 +5,7 @@ import com.jujin.freeway.ioc.ServiceContext;
 import com.jujin.freeway.ioc.ServiceDefinition;
 import com.jujin.freeway.ioc.advisor.AdvisorDefinition;
 import com.jujin.freeway.ioc.advisor.ServiceAdvisor;
-import com.jujin.freeway.ioc.internal.util.InternalUtils;
-
+import com.jujin.freeway.ioc.internal.util.DisplayUtils;
 import java.lang.reflect.Method;
 import java.util.Set;
 
@@ -22,8 +21,9 @@ public class AdvisorDefinitionImpl implements AdvisorDefinition {
         JdkProxyFactory proxyFactory,
         String advisorId,
         Class<?> serviceInterface,
-        Set<Class<?>> markers) {
-        assert InternalUtils.isNonBlank(advisorId);
+        Set<Class<?>> markers
+    ) {
+        assert DisplayUtils.isNonBlank(advisorId);
         validateConstraints(constraints, advisorId);
 
         this.config = ServiceInstrumenterConfig.of(
@@ -32,36 +32,49 @@ public class AdvisorDefinitionImpl implements AdvisorDefinition {
             constraints,
             serviceInterface,
             markers,
-            proxyFactory);
+            proxyFactory
+        );
         this.advisorId = advisorId;
     }
 
-    private static void validateConstraints(String[] constraints, String advisorId) {
-        if (constraints == null)
-            return;
+    private static void validateConstraints(
+        String[] constraints,
+        String advisorId
+    ) {
+        if (constraints == null) return;
         for (String c : constraints) {
             int colon = c.indexOf(':');
-            if (colon <= 0)
-                throw new IllegalArgumentException(
-                    "Invalid constraint '" + c + "' for advisor '" + advisorId +
-                    "': expected format 'before:<id>' or 'after:<id>'");
+            if (colon <= 0) throw new IllegalArgumentException(
+                "Invalid constraint '" +
+                    c +
+                    "' for advisor '" +
+                    advisorId +
+                    "': expected format 'before:<id>' or 'after:<id>'"
+            );
             String type = c.substring(0, colon);
-            if (!"before".equals(type) && !"after".equals(type))
-                throw new IllegalArgumentException(
-                    "Invalid constraint '" + c + "' for advisor '" + advisorId +
-                    "': type must be 'before' or 'after'");
+            if (
+                !"before".equals(type) && !"after".equals(type)
+            ) throw new IllegalArgumentException(
+                "Invalid constraint '" +
+                    c +
+                    "' for advisor '" +
+                    advisorId +
+                    "': type must be 'before' or 'after'"
+            );
         }
     }
 
     @Override
     public ServiceAdvisor createAdvisor(
         ModuleInstanceSource moduleSource,
-        ServiceContext resources) {
+        ServiceContext resources
+    ) {
         return new ServiceAdvisorImpl(
             moduleSource,
             config.method(),
             resources,
-            config.proxyFactory());
+            config.proxyFactory()
+        );
     }
 
     @Override
@@ -91,6 +104,6 @@ public class AdvisorDefinitionImpl implements AdvisorDefinition {
 
     @Override
     public String toString() {
-        return InternalUtils.asString(config.method());
+        return DisplayUtils.asString(config.method());
     }
 }

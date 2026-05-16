@@ -2,16 +2,15 @@ package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.UpdateListener;
 import com.jujin.freeway.ioc.advisor.OperationTracker;
-import com.jujin.freeway.ioc.internal.util.InternalUtils;
+import com.jujin.freeway.ioc.internal.util.ExceptionSupport;
 import com.jujin.freeway.ioc.internal.util.URLChangeTracker;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 import com.jujin.freeway.ioc.lifecycle.ReloadAware;
-import org.slf4j.Logger;
-
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
+import org.slf4j.Logger;
 
 /**
  * Simplified reloadable object creator that uses standard Java reflection
@@ -52,7 +51,8 @@ public final class ClassReloader implements ObjectCreator, UpdateListener {
         ClassLoader baseClassLoader,
         String implementationClassName,
         Logger logger,
-        OperationTracker tracker) {
+        OperationTracker tracker
+    ) {
         this.instanceFactory = instanceFactory;
         this.proxyFactory = proxyFactory;
         this.baseClassLoader = baseClassLoader;
@@ -69,7 +69,8 @@ public final class ClassReloader implements ObjectCreator, UpdateListener {
 
         logger.debug(
             "Implementation class {} has changed and will be reloaded on next use.",
-            implementationClassName);
+            implementationClassName
+        );
 
         changeTracker.clear();
 
@@ -108,7 +109,8 @@ public final class ClassReloader implements ObjectCreator, UpdateListener {
                 Class reloadedClass = reloadImplementationClass();
 
                 return instanceFactory.apply(reloadedClass);
-            });
+            }
+        );
     }
 
     private Class reloadImplementationClass() {
@@ -116,7 +118,8 @@ public final class ClassReloader implements ObjectCreator, UpdateListener {
             logger.debug(
                 "{} class {}.",
                 firstTime ? "Loading" : "Reloading",
-                implementationClassName);
+                implementationClassName
+            );
         }
 
         try {
@@ -134,8 +137,10 @@ public final class ClassReloader implements ObjectCreator, UpdateListener {
                     "Unable to %s class %s: %s",
                     firstTime ? "load" : "reload",
                     implementationClassName,
-                    InternalUtils.toMessage(ex)),
-                ex);
+                    ExceptionSupport.toMessage(ex)
+                ),
+                ex
+            );
         }
     }
 
@@ -160,7 +165,8 @@ public final class ClassReloader implements ObjectCreator, UpdateListener {
         throws ClassNotFoundException {
         logger.debug("BEGIN Loading {}", className);
 
-        ClassLoader loader = activeLoader != null ? activeLoader : baseClassLoader;
+        ClassLoader loader =
+            activeLoader != null ? activeLoader : baseClassLoader;
 
         Class<?> result = loader.loadClass(className);
 

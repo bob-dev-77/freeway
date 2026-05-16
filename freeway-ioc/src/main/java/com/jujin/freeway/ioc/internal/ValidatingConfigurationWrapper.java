@@ -2,8 +2,7 @@ package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.ServiceLocator;
 import com.jujin.freeway.ioc.config.Configuration;
-import com.jujin.freeway.ioc.internal.util.InternalUtils;
-
+import com.jujin.freeway.ioc.internal.util.ReflectionSupport;
 import java.util.Collection;
 
 /**
@@ -30,7 +29,8 @@ public class ValidatingConfigurationWrapper<T> implements Configuration<T> {
         ServiceLocator locator,
         TypeCoercerProxy typeCoercer,
         Collection<T> collection,
-        String serviceId) {
+        String serviceId
+    ) {
         this.contributionType = expectedType;
         this.locator = locator;
         this.typeCoercer = typeCoercer;
@@ -42,9 +42,12 @@ public class ValidatingConfigurationWrapper<T> implements Configuration<T> {
 
     @Override
     public void add(T object) {
-        if (object == null)
-            throw new NullPointerException(
-                String.format("Service contribution (to service '%s') was null.", serviceId));
+        if (object == null) throw new NullPointerException(
+            String.format(
+                "Service contribution (to service '%s') was null.",
+                serviceId
+            )
+        );
 
         T coerced = typeCoercer.coerce(object, expectedType);
 
@@ -53,6 +56,6 @@ public class ValidatingConfigurationWrapper<T> implements Configuration<T> {
 
     @Override
     public void addInstance(Class<? extends T> clazz) {
-        add(InternalUtils.instantiate(contributionType, locator, clazz));
+        add(ReflectionSupport.instantiate(contributionType, locator, clazz));
     }
 }

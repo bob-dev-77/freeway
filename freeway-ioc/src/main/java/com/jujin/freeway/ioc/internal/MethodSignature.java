@@ -1,7 +1,7 @@
 package com.jujin.freeway.ioc.internal;
 
-import com.jujin.freeway.ioc.internal.util.InternalUtils;
-
+import com.jujin.freeway.ioc.internal.util.CollectionSupport;
+import com.jujin.freeway.ioc.internal.util.DisplayUtils;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
@@ -19,6 +19,7 @@ import java.util.Arrays;
  */
 @SuppressWarnings("rawtypes")
 public class MethodSignature {
+
     private int hashCode = -1;
 
     private final Class returnType;
@@ -31,16 +32,26 @@ public class MethodSignature {
 
     private final Method method;
 
-    public MethodSignature(Class returnType, String name, Class[] parameterTypes, Class[] exceptionTypes) {
+    public MethodSignature(
+        Class returnType,
+        String name,
+        Class[] parameterTypes,
+        Class[] exceptionTypes
+    ) {
         this(null, returnType, name, parameterTypes, exceptionTypes);
     }
 
-    private MethodSignature(Method method, Class returnType, String name, Class[] parameterTypes,
-        Class[] exceptionTypes) {
+    private MethodSignature(
+        Method method,
+        Class returnType,
+        String name,
+        Class[] parameterTypes,
+        Class[] exceptionTypes
+    ) {
         this.method = method;
         assert returnType != null;
         this.returnType = returnType;
-        assert InternalUtils.isNonBlank(name);
+        assert DisplayUtils.isNonBlank(name);
         this.name = name;
 
         // Can be null!
@@ -49,7 +60,13 @@ public class MethodSignature {
     }
 
     public MethodSignature(Method m) {
-        this(m, m.getReturnType(), m.getName(), m.getParameterTypes(), m.getExceptionTypes());
+        this(
+            m,
+            m.getReturnType(),
+            m.getName(),
+            m.getParameterTypes(),
+            m.getExceptionTypes()
+        );
     }
 
     /**
@@ -87,20 +104,19 @@ public class MethodSignature {
     @Override
     public int hashCode() {
         if (hashCode == -1) {
-
             hashCode = returnType.hashCode();
 
             hashCode = 31 * hashCode + name.hashCode();
 
-            int count = InternalUtils.size(parameterTypes);
+            int count = CollectionSupport.size(parameterTypes);
 
-            for (int i = 0; i < count; i++)
-                hashCode = 31 * hashCode + parameterTypes[i].hashCode();
+            for (int i = 0; i < count; i++) hashCode =
+                31 * hashCode + parameterTypes[i].hashCode();
 
-            count = InternalUtils.size(exceptionTypes);
+            count = CollectionSupport.size(exceptionTypes);
 
-            for (int i = 0; i < count; i++)
-                hashCode = 31 * hashCode + exceptionTypes[i].hashCode();
+            for (int i = 0; i < count; i++) hashCode =
+                31 * hashCode + exceptionTypes[i].hashCode();
         }
 
         return hashCode;
@@ -115,37 +131,31 @@ public class MethodSignature {
      */
     @Override
     public boolean equals(Object o) {
-        if (o == null || !(o instanceof MethodSignature))
-            return false;
+        if (o == null || !(o instanceof MethodSignature)) return false;
 
         MethodSignature ms = (MethodSignature) o;
 
-        if (returnType != ms.returnType)
-            return false;
+        if (returnType != ms.returnType) return false;
 
-        if (!name.equals(ms.name))
-            return false;
+        if (!name.equals(ms.name)) return false;
 
-        if (mismatch(parameterTypes, ms.parameterTypes))
-            return false;
+        if (mismatch(parameterTypes, ms.parameterTypes)) return false;
 
         return !mismatch(exceptionTypes, ms.exceptionTypes);
     }
 
     private boolean mismatch(Class[] a1, Class[] a2) {
-        int a1Count = InternalUtils.size(a1);
-        int a2Count = InternalUtils.size(a2);
+        int a1Count = CollectionSupport.size(a1);
+        int a2Count = CollectionSupport.size(a2);
 
-        if (a1Count != a2Count)
-            return true;
+        if (a1Count != a2Count) return true;
 
         // Hm. What if order is important (for exceptions)? We're really saying here
         // that they
         // were derived from the name Method.
 
         for (int i = 0; i < a1Count; i++) {
-            if (a1[i] != a2[i])
-                return true;
+            if (a1[i] != a2[i]) return true;
         }
 
         return false;
@@ -160,16 +170,15 @@ public class MethodSignature {
         buffer.append(name);
         buffer.append('(');
 
-        for (int i = 0; i < InternalUtils.size(parameterTypes); i++) {
-            if (i > 0)
-                buffer.append(", ");
+        for (int i = 0; i < CollectionSupport.size(parameterTypes); i++) {
+            if (i > 0) buffer.append(", ");
 
             buffer.append(toTypeName(parameterTypes[i]));
         }
 
         buffer.append(')');
 
-        int _exceptionCount = InternalUtils.size(exceptionTypes);
+        int _exceptionCount = CollectionSupport.size(exceptionTypes);
         String _exceptionNames[] = new String[_exceptionCount];
         for (int i = 0; i < _exceptionCount; i++) {
             _exceptionNames[i] = exceptionTypes[i].getName();
@@ -178,10 +187,8 @@ public class MethodSignature {
         Arrays.sort(_exceptionNames);
 
         for (int i = 0; i < _exceptionCount; i++) {
-            if (i == 0)
-                buffer.append(" throws ");
-            else
-                buffer.append(", ");
+            if (i == 0) buffer.append(" throws ");
+            else buffer.append(", ");
 
             buffer.append(_exceptionNames[i]);
         }
@@ -203,9 +210,8 @@ public class MethodSignature {
         StringBuilder buffer = new StringBuilder(name);
         buffer.append('(');
 
-        for (int i = 0; i < InternalUtils.size(parameterTypes); i++) {
-            if (i > 0)
-                buffer.append(',');
+        for (int i = 0; i < CollectionSupport.size(parameterTypes); i++) {
+            if (i > 0) buffer.append(',');
 
             buffer.append(toTypeName(parameterTypes[i]));
         }
@@ -223,14 +229,11 @@ public class MethodSignature {
      */
 
     public boolean isOverridingSignatureOf(MethodSignature ms) {
-        if (returnType != ms.returnType)
-            return false;
+        if (returnType != ms.returnType) return false;
 
-        if (!name.equals(ms.name))
-            return false;
+        if (!name.equals(ms.name)) return false;
 
-        if (mismatch(parameterTypes, ms.parameterTypes))
-            return false;
+        if (mismatch(parameterTypes, ms.parameterTypes)) return false;
 
         return exceptionsEncompass(ms.exceptionTypes);
     }
@@ -242,14 +245,13 @@ public class MethodSignature {
 
     @SuppressWarnings("unchecked")
     private boolean exceptionsEncompass(Class[] otherExceptions) {
-        int ourCount = InternalUtils.size(exceptionTypes);
-        int otherCount = InternalUtils.size(otherExceptions);
+        int ourCount = CollectionSupport.size(exceptionTypes);
+        int otherCount = CollectionSupport.size(otherExceptions);
 
         // If we have no exceptions, then ours encompass theirs only if they
         // have no exceptions, either.
 
-        if (ourCount == 0)
-            return otherCount == 0;
+        if (ourCount == 0) return otherCount == 0;
 
         boolean[] matched = new boolean[otherCount];
         int unmatched = otherCount;
@@ -258,8 +260,7 @@ public class MethodSignature {
             for (int j = 0; j < otherCount; j++) {
                 // Ignore exceptions that have already been matched
 
-                if (matched[j])
-                    continue;
+                if (matched[j]) continue;
 
                 // When one of our exceptions is a super-class of one of their exceptions,
                 // then their exceptions is matched.
@@ -275,10 +276,8 @@ public class MethodSignature {
     }
 
     private static String toTypeName(Class type) {
-        if (type == null)
-            return "null";
-        if (type.isArray())
-            return toTypeName(type.getComponentType()) + "[]";
+        if (type == null) return "null";
+        if (type.isArray()) return toTypeName(type.getComponentType()) + "[]";
         String name = type.getCanonicalName();
         return name != null ? name : type.getName();
     }

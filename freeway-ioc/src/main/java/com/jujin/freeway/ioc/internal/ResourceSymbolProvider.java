@@ -1,7 +1,7 @@
 package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.Resource;
-import com.jujin.freeway.ioc.internal.util.InternalUtils;
+import com.jujin.freeway.ioc.internal.util.ReflectionSupport;
 import com.jujin.freeway.ioc.symbol.SymbolProvider;
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,7 +50,7 @@ public class ResourceSymbolProvider implements SymbolProvider {
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         } finally {
-            InternalUtils.close(is);
+            ReflectionSupport.close(is);
         }
     }
 

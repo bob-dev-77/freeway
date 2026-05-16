@@ -17,7 +17,6 @@ import com.jujin.freeway.ioc.exception.ExceptionAnalyzer;
 import com.jujin.freeway.ioc.exception.ExceptionTracker;
 import com.jujin.freeway.ioc.internal.*;
 import com.jujin.freeway.ioc.internal.cron.PeriodicExecutorImpl;
-import com.jujin.freeway.ioc.internal.util.InternalUtils;
 import com.jujin.freeway.ioc.internal.util.IocConstants;
 import com.jujin.freeway.ioc.internal.util.Scopes;
 import com.jujin.freeway.ioc.lifecycle.ServiceLifecycle;

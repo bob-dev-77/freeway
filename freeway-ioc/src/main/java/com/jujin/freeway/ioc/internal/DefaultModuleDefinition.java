@@ -13,7 +13,8 @@ import com.jujin.freeway.ioc.config.ContributionDef;
 import com.jujin.freeway.ioc.config.MappedConfiguration;
 import com.jujin.freeway.ioc.config.OrderedConfiguration;
 import com.jujin.freeway.ioc.exception.FreewayException;
-import com.jujin.freeway.ioc.internal.util.InternalUtils;
+import com.jujin.freeway.ioc.internal.util.DisplayUtils;
+import com.jujin.freeway.ioc.internal.util.ReflectionSupport;
 import com.jujin.freeway.ioc.internal.util.Scopes;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 import com.jujin.freeway.ioc.lifecycle.StartupDef;
@@ -113,7 +114,7 @@ public class DefaultModuleDefinition
         Marker annotation = moduleClass.getAnnotation(Marker.class);
 
         if (annotation != null) {
-            InternalUtils.validateMarkerAnnotations(annotation.value());
+            ReflectionSupport.validateMarkerAnnotations(annotation.value());
             for (Class<?> c : annotation.value()) {
                 defaultMarkers.add(c);
             }
@@ -164,7 +165,7 @@ public class DefaultModuleDefinition
             String.format(
                 "Module class %s contains unrecognized public methods: %s.",
                 moduleClass.getName(),
-                InternalUtils.joinSorted(methods)
+                DisplayUtils.joinSorted(methods)
             )
         );
     }
@@ -197,7 +198,7 @@ public class DefaultModuleDefinition
         return String.format(
             "ModuleDefinition[%s %s]",
             moduleClass.getName(),
-            InternalUtils.joinSorted(serviceDefs.keySet())
+            DisplayUtils.joinSorted(serviceDefs.keySet())
         );
     }
 
@@ -333,8 +334,8 @@ public class DefaultModuleDefinition
             throw new RuntimeException(
                 String.format(
                     "Method %s is named like a service contributor method, but the return type (%s) is not appropriate (it should be void). The return value will be ignored.",
-                    InternalUtils.asString(method),
-                    InternalUtils.toSimpleTypeName(returnType)
+                    DisplayUtils.asString(method),
+                    DisplayUtils.toSimpleTypeName(returnType)
                 )
             );
         }
@@ -349,7 +350,7 @@ public class DefaultModuleDefinition
                 if (type != null) throw new RuntimeException(
                     String.format(
                         "Service contribution method %s contains more than one parameter of type Configuration, OrderedConfiguration, or MappedConfiguration. Exactly one such parameter is required for a service contribution method.",
-                        InternalUtils.asString(method)
+                        DisplayUtils.asString(method)
                     )
                 );
 
@@ -360,7 +361,7 @@ public class DefaultModuleDefinition
         if (type == null) throw new RuntimeException(
             String.format(
                 "Service contribution method %s does not contain a parameter of type Configuration, OrderedConfiguration or MappedConfiguration. This parameter is how the method make contributions into the service's configuration.",
-                InternalUtils.asString(method)
+                DisplayUtils.asString(method)
             )
         );
 
@@ -419,7 +420,7 @@ public class DefaultModuleDefinition
                     advisorId,
                     moduleClass.getName(),
                     existing.toString(),
-                    InternalUtils.asString(method)
+                    DisplayUtils.asString(method)
                 )
             );
         }
@@ -467,13 +468,11 @@ public class DefaultModuleDefinition
     }
 
     private String extractId(Class<?> serviceInterface, String id) {
-        return InternalUtils.isBlank(id)
-            ? serviceInterface.getSimpleName()
-            : id;
+        return DisplayUtils.isBlank(id) ? serviceInterface.getSimpleName() : id;
     }
 
     private String toString(Method method) {
-        return InternalUtils.asString(method);
+        return DisplayUtils.asString(method);
     }
 
     private String stripMethodPrefix(Method method, String prefix) {
@@ -487,7 +486,7 @@ public class DefaultModuleDefinition
         final Method method,
         boolean modulePreventsServiceDecoration
     ) {
-        var serviceId = InternalUtils.getServiceId(method);
+        var serviceId = ReflectionSupport.getServiceId(method);
 
         if (serviceId == null) {
             serviceId = stripMethodPrefix(method, BUILD_METHOD_NAME_PREFIX);
@@ -512,7 +511,7 @@ public class DefaultModuleDefinition
         ) throw new RuntimeException(
             String.format(
                 "Method %s is named like a service builder method, but the return type (%s) is not acceptable (try an interface).",
-                InternalUtils.asString(method),
+                DisplayUtils.asString(method),
                 method.getReturnType().getCanonicalName()
             )
         );

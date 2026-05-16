@@ -3,8 +3,7 @@ package com.jujin.freeway.ioc.internal;
 import com.jujin.freeway.ioc.*;
 import com.jujin.freeway.ioc.advisor.OperationTracker;
 import com.jujin.freeway.ioc.annotations.PreventServiceDecoration;
-import com.jujin.freeway.ioc.internal.util.InternalUtils;
-
+import com.jujin.freeway.ioc.internal.util.DisplayUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -18,8 +17,11 @@ public class DependencyResolverImpl implements DependencyResolver {
 
     public DependencyResolverImpl(
         List<DependencyPolicy> configuration,
-        OperationTracker tracker) {
-        this.configuration = new ArrayList<>(Objects.requireNonNull(configuration, "configuration"));
+        OperationTracker tracker
+    ) {
+        this.configuration = new ArrayList<>(
+            Objects.requireNonNull(configuration, "configuration")
+        );
         this.tracker = Objects.requireNonNull(tracker, "tracker");
 
         // Add this special case to the front of the list.
@@ -27,7 +29,9 @@ public class DependencyResolverImpl implements DependencyResolver {
             0,
             new BuiltinStaticProvider<OperationTracker>(
                 OperationTracker.class,
-                tracker));
+                tracker
+            )
+        );
     }
 
     @Override
@@ -35,29 +39,31 @@ public class DependencyResolverImpl implements DependencyResolver {
         final Class<T> objectType,
         final AnnotationProvider annotationProvider,
         final ServiceLocator locator,
-        final boolean required) {
+        final boolean required
+    ) {
         return tracker.invoke(
             String.format(
                 "Resolving object of type %s using DependencyResolver",
-                InternalUtils.toSimpleTypeName(objectType)),
+                DisplayUtils.toSimpleTypeName(objectType)
+            ),
             () -> {
                 for (DependencyPolicy resolver : configuration) {
                     T result = resolver.resolve(
                         objectType,
                         annotationProvider,
-                        locator);
+                        locator
+                    );
 
-                    if (result != null)
-                        return result;
+                    if (result != null) return result;
                 }
 
                 // If required, then we must obtain it the hard way, by
                 // seeing if there's a single service that implements the interface.
 
-                if (required)
-                    return locator.getService(objectType);
+                if (required) return locator.getService(objectType);
 
                 return null;
-            });
+            }
+        );
     }
 }

@@ -2,9 +2,8 @@ package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.ServiceBuilderContext;
 import com.jujin.freeway.ioc.UpdateListener;
-import com.jujin.freeway.ioc.internal.util.InternalUtils;
+import com.jujin.freeway.ioc.internal.util.ReflectionSupport;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
-
 import java.lang.reflect.Constructor;
 
 /**
@@ -16,7 +15,8 @@ import java.lang.reflect.Constructor;
  */
 @SuppressWarnings("rawtypes")
 public class ReloadableServiceImplementationObjectCreator
-    implements ObjectCreator, UpdateListener {
+    implements ObjectCreator, UpdateListener
+{
 
     private final ClassReloader reloader;
 
@@ -24,21 +24,26 @@ public class ReloadableServiceImplementationObjectCreator
         JdkProxyFactory proxyFactory,
         ServiceBuilderContext resources,
         ClassLoader baseClassLoader,
-        String implementationClassName) {
+        String implementationClassName
+    ) {
         this.reloader = new ClassReloader(
             clazz -> {
-                final Constructor constructor = InternalUtils.findAutobuildConstructor(clazz);
+                final Constructor constructor =
+                    ReflectionSupport.findAutobuildConstructor(clazz);
 
-                if (constructor == null)
-                    throw new RuntimeException(
-                        String.format(
-                            "Service implementation class %s does not have a suitable public constructor.",
-                            clazz.getName()));
+                if (constructor == null) throw new RuntimeException(
+                    String.format(
+                        "Service implementation class %s does not have a suitable public constructor.",
+                        clazz.getName()
+                    )
+                );
 
-                ObjectCreator constructorServiceCreator = new ConstructorServiceCreator(
-                    resources,
-                    constructor.toString(),
-                    constructor);
+                ObjectCreator constructorServiceCreator =
+                    new ConstructorServiceCreator(
+                        resources,
+                        constructor.toString(),
+                        constructor
+                    );
 
                 return constructorServiceCreator.create();
             },
@@ -46,7 +51,8 @@ public class ReloadableServiceImplementationObjectCreator
             baseClassLoader,
             implementationClassName,
             resources.getLogger(),
-            resources.getTracker());
+            resources.getTracker()
+        );
     }
 
     @Override

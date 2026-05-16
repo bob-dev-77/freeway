@@ -9,10 +9,10 @@ import com.jujin.freeway.ioc.advisor.OperationTracker;
 import com.jujin.freeway.ioc.annotations.Local;
 import com.jujin.freeway.ioc.config.ContributionDef;
 import com.jujin.freeway.ioc.internal.util.ConcurrentBarrier;
+import com.jujin.freeway.ioc.internal.util.DisplayUtils;
 import com.jujin.freeway.ioc.internal.util.FieldInjector;
 import com.jujin.freeway.ioc.internal.util.InjectionContext;
 import com.jujin.freeway.ioc.internal.util.InjectionPlanner;
-import com.jujin.freeway.ioc.internal.util.InternalUtils;
 import com.jujin.freeway.ioc.internal.util.MappedInjectionContext;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 import com.jujin.freeway.ioc.lifecycle.ServiceLifecycle;
@@ -105,7 +105,7 @@ public class ModuleImpl implements Module {
 
     @Override
     public <T> T getService(String serviceId, Class<T> serviceInterface) {
-        assert InternalUtils.isNonBlank(serviceId);
+        assert DisplayUtils.isNonBlank(serviceId);
         assert serviceInterface != null;
         ServiceDefinition def = getServiceDef(serviceId);
 

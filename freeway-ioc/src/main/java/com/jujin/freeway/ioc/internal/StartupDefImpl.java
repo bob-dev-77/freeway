@@ -3,10 +3,11 @@ package com.jujin.freeway.ioc.internal;
 import com.jujin.freeway.ioc.ModuleInstanceSource;
 import com.jujin.freeway.ioc.ServiceLocator;
 import com.jujin.freeway.ioc.advisor.OperationTracker;
+import com.jujin.freeway.ioc.internal.util.DisplayUtils;
 import com.jujin.freeway.ioc.internal.util.InjectionContext;
 import com.jujin.freeway.ioc.internal.util.InjectionPlanner;
-import com.jujin.freeway.ioc.internal.util.InternalUtils;
 import com.jujin.freeway.ioc.internal.util.MappedInjectionContext;
+import com.jujin.freeway.ioc.internal.util.ReflectionSupport;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 import com.jujin.freeway.ioc.lifecycle.StartupDef;
 import java.lang.reflect.InvocationTargetException;
@@ -33,7 +34,7 @@ public class StartupDefImpl implements StartupDef {
         tracker.run(
             String.format(
                 "Invoking startup method %s.",
-                InternalUtils.asString(startupMethod)
+                DisplayUtils.asString(startupMethod)
             ),
             new Runnable() {
                 @Override
@@ -48,7 +49,7 @@ public class StartupDefImpl implements StartupDef {
 
                     Throwable fail = null;
 
-                    Object moduleInstance = InternalUtils.isStatic(
+                    Object moduleInstance = ReflectionSupport.isStatic(
                         startupMethod
                     )
                         ? null

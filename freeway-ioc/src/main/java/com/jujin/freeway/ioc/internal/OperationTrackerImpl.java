@@ -1,15 +1,15 @@
 package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.advisor.OperationTracker;
-import com.jujin.freeway.ioc.internal.util.InternalUtils;
-import org.slf4j.Logger;
-
+import com.jujin.freeway.ioc.internal.util.DisplayUtils;
+import com.jujin.freeway.ioc.internal.util.ExceptionSupport;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.function.Supplier;
+import org.slf4j.Logger;
 
 /**
  * Core implementation that manages a logger and catches and reports exception.
@@ -17,6 +17,7 @@ import java.util.function.Supplier;
  * @see com.jujin.freeway.ioc.internal.PerThreadOperationTracker
  */
 public class OperationTrackerImpl implements OperationTracker {
+
     private final Logger logger;
 
     private final Deque<String> operations = new ArrayDeque<>();
@@ -29,7 +30,7 @@ public class OperationTrackerImpl implements OperationTracker {
 
     @Override
     public void run(String description, final Runnable operation) {
-        assert InternalUtils.isNonBlank(description);
+        assert DisplayUtils.isNonBlank(description);
         assert operation != null;
 
         long startNanos = start(description);
@@ -38,7 +39,6 @@ public class OperationTrackerImpl implements OperationTracker {
             operation.run();
 
             finish(description, startNanos);
-
         } catch (RuntimeException ex) {
             logAndRethrow(ex);
         } catch (Error ex) {
@@ -50,7 +50,7 @@ public class OperationTrackerImpl implements OperationTracker {
 
     @Override
     public <T> T invoke(String description, Supplier<T> operation) {
-        assert InternalUtils.isNonBlank(description);
+        assert DisplayUtils.isNonBlank(description);
         assert operation != null;
 
         long startNanos = start(description);
@@ -61,7 +61,6 @@ public class OperationTrackerImpl implements OperationTracker {
             finish(description, startNanos);
 
             return result;
-
         } catch (RuntimeException ex) {
             return handleRuntimeException(ex);
         } catch (Error ex) {
@@ -72,8 +71,9 @@ public class OperationTrackerImpl implements OperationTracker {
     }
 
     @Override
-    public <T> T perform(String description, IOOperation<T> operation) throws IOException {
-        InternalUtils.isNonBlank(description);
+    public <T> T perform(String description, IOOperation<T> operation)
+        throws IOException {
+        DisplayUtils.isNonBlank(description);
         assert operation != null;
 
         long startNanos = start(description);
@@ -84,7 +84,6 @@ public class OperationTrackerImpl implements OperationTracker {
             finish(description, startNanos);
 
             return result;
-
         } catch (RuntimeException ex) {
             return handleRuntimeException(ex);
         } catch (Error ex) {
@@ -98,11 +97,14 @@ public class OperationTrackerImpl implements OperationTracker {
 
     private <T> T handleRuntimeException(RuntimeException ex) {
         // This is to prevent the error level log messages
-        if (InternalUtils.isAnnotationInStackTrace(ex, NonLoggableException.class))
-            // pass through without logging
-            throw ex;
-        else
-            return logAndRethrow(ex);
+        if (
+            ExceptionSupport.isAnnotationInStackTrace(
+                ex,
+                NonLoggableException.class
+            )
+        ) // pass through without logging
+        throw ex;
+        else return logAndRethrow(ex);
     }
 
     private void handleFinally() {
@@ -129,7 +131,14 @@ public class OperationTrackerImpl implements OperationTracker {
             long elapsedNanos = System.nanoTime() - startNanos;
             double elapsedMillis = ((double) elapsedNanos) / 1000000.d;
 
-            logger.debug(String.format("[%3d] <-- %s [%,.2f ms]", operations.size(), description, elapsedMillis));
+            logger.debug(
+                String.format(
+                    "[%3d] <-- %s [%,.2f ms]",
+                    operations.size(),
+                    description,
+                    elapsedMillis
+                )
+            );
         }
     }
 
@@ -138,7 +147,13 @@ public class OperationTrackerImpl implements OperationTracker {
 
         if (logger.isDebugEnabled()) {
             startNanos = System.nanoTime();
-            logger.debug(String.format("[%3d] --> %s", operations.size() + 1, description));
+            logger.debug(
+                String.format(
+                    "[%3d] --> %s",
+                    operations.size() + 1,
+                    description
+                )
+            );
         }
 
         operations.push(description);
@@ -170,7 +185,7 @@ public class OperationTrackerImpl implements OperationTracker {
     }
 
     private String[] log(Throwable ex) {
-        logger.error(InternalUtils.toMessage(ex));
+        logger.error(ExceptionSupport.toMessage(ex));
         logger.error("Operations trace:");
 
         var snapshot = new ArrayList<>(operations);

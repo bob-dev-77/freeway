@@ -3,9 +3,9 @@ package com.jujin.freeway.ioc.internal;
 import com.jujin.freeway.ioc.ServiceLocator;
 import com.jujin.freeway.ioc.config.ContributionDef;
 import com.jujin.freeway.ioc.config.OrderedConfiguration;
-import com.jujin.freeway.ioc.internal.util.InternalUtils;
+import com.jujin.freeway.ioc.internal.util.DisplayUtils;
 import com.jujin.freeway.ioc.internal.util.Orderer;
-
+import com.jujin.freeway.ioc.internal.util.ReflectionSupport;
 import java.util.Map;
 
 /**
@@ -15,7 +15,9 @@ import java.util.Map;
  *
  * @param <T>
  */
-public class ValidatingOrderedConfigurationWrapper<T> implements OrderedConfiguration<T> {
+public class ValidatingOrderedConfigurationWrapper<
+    T
+> implements OrderedConfiguration<T> {
 
     private final TypeCoercerProxy typeCoercer;
 
@@ -40,7 +42,8 @@ public class ValidatingOrderedConfigurationWrapper<T> implements OrderedConfigur
         TypeCoercerProxy typeCoercer,
         Orderer<T> orderer,
         Map<String, OrderedConfigurationOverride<T>> overrides,
-        ContributionDef contribDef) {
+        ContributionDef contribDef
+    ) {
         this.contributionType = expectedType;
         this.locator = locator;
         this.typeCoercer = typeCoercer;
@@ -53,14 +56,15 @@ public class ValidatingOrderedConfigurationWrapper<T> implements OrderedConfigur
 
     @Override
     public void add(String id, T object, String... constraints) {
-        T coerced = object == null ? null : typeCoercer.coerce(object, expectedType);
+        T coerced =
+            object == null ? null : typeCoercer.coerce(object, expectedType);
 
         // https://issues.apache.org/jira/browse/ // Order each added contribution after
         // the previously added contribution
         // (in the same method) if no other constraint is supplied.
         if (constraints.length == 0 && priorId != null) {
             // Ugly: reassigning parameters is yuck.
-            constraints = new String[]{ "after:" + priorId };
+            constraints = new String[] { "after:" + priorId };
         }
 
         orderer.add(id, coerced, constraints);
@@ -70,18 +74,20 @@ public class ValidatingOrderedConfigurationWrapper<T> implements OrderedConfigur
 
     @Override
     public void override(String id, T object, String... constraints) {
-        assert InternalUtils.isNonBlank(id);
+        assert DisplayUtils.isNonBlank(id);
 
-        T coerced = object == null ? null : typeCoercer.coerce(object, expectedType);
+        T coerced =
+            object == null ? null : typeCoercer.coerce(object, expectedType);
 
         OrderedConfigurationOverride<T> existing = overrides.get(id);
 
-        if (existing != null)
-            throw new IllegalArgumentException(
-                String.format(
-                    "Contribution '%s' has already been overridden (by %s).",
-                    id,
-                    existing.getContribDef()));
+        if (existing != null) throw new IllegalArgumentException(
+            String.format(
+                "Contribution '%s' has already been overridden (by %s).",
+                id,
+                existing.getContribDef()
+            )
+        );
 
         overrides.put(
             id,
@@ -90,28 +96,34 @@ public class ValidatingOrderedConfigurationWrapper<T> implements OrderedConfigur
                 id,
                 coerced,
                 constraints,
-                contribDef));
+                contribDef
+            )
+        );
     }
 
     @Override
     public void addInstance(
         String id,
         Class<? extends T> clazz,
-        String... constraints) {
+        String... constraints
+    ) {
         add(
             id,
-            InternalUtils.instantiate(contributionType, locator, clazz),
-            constraints);
+            ReflectionSupport.instantiate(contributionType, locator, clazz),
+            constraints
+        );
     }
 
     @Override
     public void overrideInstance(
         String id,
         Class<? extends T> clazz,
-        String... constraints) {
+        String... constraints
+    ) {
         override(
             id,
-            InternalUtils.instantiate(contributionType, locator, clazz),
-            constraints);
+            ReflectionSupport.instantiate(contributionType, locator, clazz),
+            constraints
+        );
     }
 }

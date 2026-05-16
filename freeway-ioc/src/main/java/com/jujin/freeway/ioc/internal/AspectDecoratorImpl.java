@@ -7,8 +7,7 @@ import com.jujin.freeway.ioc.advisor.AspectInterceptorBuilder;
 import com.jujin.freeway.ioc.advisor.MethodAdvice;
 import com.jujin.freeway.ioc.annotations.Builtin;
 import com.jujin.freeway.ioc.annotations.PreventServiceDecoration;
-import com.jujin.freeway.ioc.internal.util.InternalUtils;
-
+import com.jujin.freeway.ioc.internal.util.DisplayUtils;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
@@ -25,12 +24,14 @@ public class AspectDecoratorImpl implements AspectInterceptor {
     public <T> AspectInterceptorBuilder<T> createBuilder(
         Class<T> serviceInterface,
         final T delegate,
-        String description) {
+        String description
+    ) {
         return createBuilder(
             serviceInterface,
             delegate,
             new AnnotationAccessImpl(delegate.getClass()),
-            description);
+            description
+        );
     }
 
     @Override
@@ -38,10 +39,11 @@ public class AspectDecoratorImpl implements AspectInterceptor {
         final Class<T> serviceInterface,
         final T delegate,
         AnnotationAccess annotationAccess,
-        final String description) {
+        final String description
+    ) {
         assert serviceInterface != null;
         assert delegate != null;
-        assert InternalUtils.isNonBlank(description);
+        assert DisplayUtils.isNonBlank(description);
 
         // The inner class here defers the creation of the AspectInterceptorBuilderImpl
         // (which now uses MethodHandle + hidden classes via JDK 25 Class-File API)
@@ -59,19 +61,23 @@ public class AspectDecoratorImpl implements AspectInterceptor {
             @Override
             public AnnotationProvider getMethodAnnotationProvider(
                 String methodName,
-                Class<?>... parameterTypes) {
+                Class<?>... parameterTypes
+            ) {
                 return aa.getMethodAnnotationProvider(
                     methodName,
-                    parameterTypes);
+                    parameterTypes
+                );
             }
 
             @Override
             public <A extends Annotation> A getMethodAnnotation(
                 Method method,
-                Class<A> annotationType) {
+                Class<A> annotationType
+            ) {
                 return getMethodAnnotationProvider(
                     method.getName(),
-                    method.getParameterTypes()).getAnnotation(annotationType);
+                    method.getParameterTypes()
+                ).getAnnotation(annotationType);
             }
 
             @Override
@@ -95,13 +101,15 @@ public class AspectDecoratorImpl implements AspectInterceptor {
             }
 
             private AspectInterceptorBuilder<T> getBuilder() {
-                if (builder == null)
-                    builder = new AspectInterceptorBuilderImpl<T>(
-                        annotationAccess,
-                        proxyFactory,
-                        serviceInterface,
-                        delegate,
-                        description);
+                if (builder == null) builder = new AspectInterceptorBuilderImpl<
+                    T
+                >(
+                    annotationAccess,
+                    proxyFactory,
+                    serviceInterface,
+                    delegate,
+                    description
+                );
 
                 return builder;
             }

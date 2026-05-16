@@ -3,8 +3,7 @@ package com.jujin.freeway.ioc.internal;
 import com.jujin.freeway.ioc.classpath.ClassPathMatcher;
 import com.jujin.freeway.ioc.classpath.ClassPathScanner;
 import com.jujin.freeway.ioc.classpath.ClassPathURLConverter;
-import com.jujin.freeway.ioc.internal.util.InternalUtils;
-
+import com.jujin.freeway.ioc.internal.util.ReflectionSupport;
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -14,13 +13,15 @@ import java.util.regex.Pattern;
 
 public class ClassPathScannerImpl implements ClassPathScanner {
 
-    private final ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+    private final ClassLoader contextClassLoader =
+        Thread.currentThread().getContextClassLoader();
 
     private final ClassPathURLConverter converter;
 
     private static final Pattern FOLDER_NAME_PATTERN = Pattern.compile(
         "^\\p{javaJavaIdentifierStart}[\\p{javaJavaIdentifierPart}]*$",
-        Pattern.CASE_INSENSITIVE);
+        Pattern.CASE_INSENSITIVE
+    );
 
     public ClassPathScannerImpl(ClassPathURLConverter converter) {
         this.converter = converter;
@@ -46,7 +47,8 @@ public class ClassPathScannerImpl implements ClassPathScanner {
         assert matcher != null;
 
         return new Job(matcher, contextClassLoader, converter).findMatches(
-            packagePath);
+            packagePath
+        );
     }
 
     /**
@@ -65,7 +67,7 @@ public class ClassPathScannerImpl implements ClassPathScanner {
         } catch (IOException ex) {
             return false;
         } finally {
-            InternalUtils.close(is);
+            ReflectionSupport.close(is);
         }
     }
 
@@ -134,7 +136,8 @@ public class ClassPathScannerImpl implements ClassPathScanner {
         Job(
             ClassPathMatcher matcher,
             ClassLoader classloader,
-            ClassPathURLConverter converter) {
+            ClassPathURLConverter converter
+        ) {
             this.matcher = matcher;
             this.classloader = classloader;
             this.converter = converter;
@@ -181,7 +184,8 @@ public class ClassPathScannerImpl implements ClassPathScanner {
                         public void run() throws IOException {
                             scanDirStream(packagePath, url);
                         }
-                    });
+                    }
+                );
             } else {
                 // Try scanning file system.
 
@@ -204,7 +208,8 @@ public class ClassPathScannerImpl implements ClassPathScanner {
                     String fileName = file.getName();
 
                     if (file.isDirectory()) {
-                        final String nestedPackagePath = packagePath + fileName + "/";
+                        final String nestedPackagePath =
+                            packagePath + fileName + "/";
 
                         queue.push(
                             new IOWork() {
@@ -212,7 +217,8 @@ public class ClassPathScannerImpl implements ClassPathScanner {
                                 public void run() throws IOException {
                                     scanDir(nestedPackagePath, file);
                                 }
-                            });
+                            }
+                        );
                     }
 
                     if (matcher.matches(packagePath, fileName)) {
@@ -245,8 +251,7 @@ public class ClassPathScannerImpl implements ClassPathScanner {
                 while (true) {
                     String line = lineReader.readLine();
 
-                    if (line == null)
-                        break;
+                    if (line == null) break;
 
                     if (matcher.matches(packagePath, line)) {
                         matches.add(packagePath + line);
@@ -258,11 +263,14 @@ public class ClassPathScannerImpl implements ClassPathScanner {
                         if (FOLDER_NAME_PATTERN.matcher(line).matches()) {
                             final URL newURL;
                             try {
-                                newURL = new URI(packageURL.toExternalForm() + line + "/").toURL();
+                                newURL = new URI(
+                                    packageURL.toExternalForm() + line + "/"
+                                ).toURL();
                             } catch (URISyntaxException e) {
                                 throw new RuntimeException(e);
                             }
-                            final String nestedPackagePath = packagePath + line + "/";
+                            final String nestedPackagePath =
+                                packagePath + line + "/";
 
                             queue.push(
                                 new IOWork() {
@@ -270,7 +278,8 @@ public class ClassPathScannerImpl implements ClassPathScanner {
                                     public void run() throws IOException {
                                         scanURL(nestedPackagePath, newURL);
                                     }
-                                });
+                                }
+                            );
                         }
                     }
                 }
@@ -278,7 +287,7 @@ public class ClassPathScannerImpl implements ClassPathScanner {
                 lineReader.close();
                 lineReader = null;
             } finally {
-                InternalUtils.close(lineReader);
+                ReflectionSupport.close(lineReader);
             }
         }
 
@@ -288,8 +297,7 @@ public class ClassPathScannerImpl implements ClassPathScanner {
             while (e.hasMoreElements()) {
                 String name = e.nextElement().getName();
 
-                if (!name.startsWith(packagePath))
-                    continue;
+                if (!name.startsWith(packagePath)) continue;
 
                 int lastSlashx = name.lastIndexOf('/');
 

@@ -3,8 +3,7 @@ package com.jujin.freeway.ioc.internal;
 import com.jujin.freeway.ioc.ServiceLocator;
 import com.jujin.freeway.ioc.config.ContributionDef;
 import com.jujin.freeway.ioc.config.MappedConfiguration;
-import com.jujin.freeway.ioc.internal.util.InternalUtils;
-
+import com.jujin.freeway.ioc.internal.util.ReflectionSupport;
 import java.util.Map;
 
 /**
@@ -26,7 +25,10 @@ import java.util.Map;
  * @param <V>
  *            the value type
  */
-public class ValidatingMappedConfigurationWrapper<K, V> implements MappedConfiguration<K, V> {
+public class ValidatingMappedConfigurationWrapper<
+    K,
+    V
+> implements MappedConfiguration<K, V> {
 
     private final TypeCoercerProxy typeCoercer;
 
@@ -57,7 +59,8 @@ public class ValidatingMappedConfigurationWrapper<K, V> implements MappedConfigu
         String serviceId,
         ContributionDef contributionDef,
         Class<K> expectedKeyType,
-        Map<K, ContributionDef> keyToContributor) {
+        Map<K, ContributionDef> keyToContributor
+    ) {
         this.contributionType = expectedValueType;
         this.locator = locator;
 
@@ -75,21 +78,25 @@ public class ValidatingMappedConfigurationWrapper<K, V> implements MappedConfigu
     public void add(K key, V value) {
         validateKey(key);
 
-        if (value == null)
-            throw new NullPointerException(
-                String.format("Service contribution (to service '%s') was null.", serviceId));
+        if (value == null) throw new NullPointerException(
+            String.format(
+                "Service contribution (to service '%s') was null.",
+                serviceId
+            )
+        );
 
         V coerced = typeCoercer.coerce(value, expectedValueType);
 
         ContributionDef existing = keyToContributor.get(key);
 
-        if (existing != null)
-            throw new IllegalArgumentException(
-                String.format(
-                    "Service contribution (to service '%s') for key '%s' conflicts with existing contribution (by %s).",
-                    serviceId,
-                    key,
-                    existing));
+        if (existing != null) throw new IllegalArgumentException(
+            String.format(
+                "Service contribution (to service '%s') for key '%s' conflicts with existing contribution (by %s).",
+                serviceId,
+                key,
+                existing
+            )
+        );
 
         map.put(key, coerced);
 
@@ -100,42 +107,53 @@ public class ValidatingMappedConfigurationWrapper<K, V> implements MappedConfigu
     }
 
     private void validateKey(K key) {
-        if (key == null)
-            throw new NullPointerException(
-                String.format("Key for service contribution (to service '%s') was null.", serviceId));
+        if (key == null) throw new NullPointerException(
+            String.format(
+                "Key for service contribution (to service '%s') was null.",
+                serviceId
+            )
+        );
 
         // Key types don't get coerced; not worth the effort, keys are almost always
         // String or Class
         // anyway.
 
-        if (!expectedKeyType.isInstance(key))
-            throw new IllegalArgumentException(
-                String.format(
-                    "Key for service contribution (to service '%s') was an instance of %s, but the expected key type was %s.",
-                    serviceId,
-                    key.getClass().getName(),
-                    expectedKeyType.getName()));
+        if (
+            !expectedKeyType.isInstance(key)
+        ) throw new IllegalArgumentException(
+            String.format(
+                "Key for service contribution (to service '%s') was an instance of %s, but the expected key type was %s.",
+                serviceId,
+                key.getClass().getName(),
+                expectedKeyType.getName()
+            )
+        );
     }
 
     @Override
     public void addInstance(K key, Class<? extends V> clazz) {
-        add(key, InternalUtils.instantiate(contributionType, locator, clazz));
+        add(
+            key,
+            ReflectionSupport.instantiate(contributionType, locator, clazz)
+        );
     }
 
     @Override
     public void override(K key, V value) {
         validateKey(key);
 
-        V coerced = value == null ? null : typeCoercer.coerce(value, expectedValueType);
+        V coerced =
+            value == null ? null : typeCoercer.coerce(value, expectedValueType);
 
         MappedConfigurationOverride<K, V> existing = overrides.get(key);
 
-        if (existing != null)
-            throw new IllegalArgumentException(
-                String.format(
-                    "Contribution key %s has already been overridden (by %s).",
-                    key,
-                    existing.getContribDef()));
+        if (existing != null) throw new IllegalArgumentException(
+            String.format(
+                "Contribution key %s has already been overridden (by %s).",
+                key,
+                existing.getContribDef()
+            )
+        );
 
         overrides.put(
             key,
@@ -143,13 +161,16 @@ public class ValidatingMappedConfigurationWrapper<K, V> implements MappedConfigu
                 contributionDef,
                 map,
                 key,
-                coerced));
+                coerced
+            )
+        );
     }
 
     @Override
     public void overrideInstance(K key, Class<? extends V> clazz) {
         override(
             key,
-            InternalUtils.instantiate(contributionType, locator, clazz));
+            ReflectionSupport.instantiate(contributionType, locator, clazz)
+        );
     }
 }

@@ -3,10 +3,11 @@ package com.jujin.freeway.ioc.internal.util;
 import com.jujin.freeway.ioc.AnnotationProvider;
 import com.jujin.freeway.ioc.ServiceLocator;
 import com.jujin.freeway.ioc.advisor.OperationTracker;
-
-import javax.inject.Named;
+import com.jujin.freeway.ioc.internal.util.DisplayUtils;
+import com.jujin.freeway.ioc.internal.util.ExceptionSupport;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import javax.inject.Named;
 
 /**
  * Injects values into {@code @Inject}-annotated fields of an already-constructed object.
@@ -22,54 +23,81 @@ public class FieldInjector {
      * can be used alongside to specify the service id.
      */
     public static void injectFields(
-            Object object,
-            ServiceLocator locator,
-            InjectionContext resources,
-            OperationTracker tracker) {
+        Object object,
+        ServiceLocator locator,
+        InjectionContext resources,
+        OperationTracker tracker
+    ) {
         Class clazz = object.getClass();
         while (clazz != Object.class) {
             Field[] fields = clazz.getDeclaredFields();
             for (final Field f : fields) {
                 int fieldModifiers = f.getModifiers();
-                if (Modifier.isStatic(fieldModifiers) || Modifier.isFinal(fieldModifiers))
-                    continue;
+                if (
+                    Modifier.isStatic(fieldModifiers) ||
+                    Modifier.isFinal(fieldModifiers)
+                ) continue;
 
                 final var ap = new AnnotationProvider() {
                     @Override
-                    public <T extends java.lang.annotation.Annotation> T getAnnotation(Class<T> annotationClass) {
+                    public <
+                        T extends java.lang.annotation.Annotation
+                    > T getAnnotation(Class<T> annotationClass) {
                         return f.getAnnotation(annotationClass);
                     }
                 };
 
                 var description = String.format(
-                        "Calculating possible injection value for field %s.%s (%s)",
-                        clazz.getName(), f.getName(),
-                        InternalUtils.toSimpleTypeName(f.getType()));
+                    "Calculating possible injection value for field %s.%s (%s)",
+                    clazz.getName(),
+                    f.getName(),
+                    DisplayUtils.toSimpleTypeName(f.getType())
+                );
 
                 tracker.run(description, () -> {
                     final Class<?> fieldType = f.getType();
 
                     com.jujin.freeway.ioc.annotations.Inject fwFieldInject =
-                            ap.getAnnotation(com.jujin.freeway.ioc.annotations.Inject.class);
+                        ap.getAnnotation(
+                            com.jujin.freeway.ioc.annotations.Inject.class
+                        );
 
-                    if (ap.getAnnotation(javax.inject.Inject.class) != null || fwFieldInject != null) {
+                    if (
+                        ap.getAnnotation(javax.inject.Inject.class) != null ||
+                        fwFieldInject != null
+                    ) {
                         if (fwFieldInject != null) {
                             String sid = fwFieldInject.value();
                             if (sid != null && !sid.isEmpty()) {
-                                injectField(object, f, locator.getService(sid, fieldType));
+                                injectField(
+                                    object,
+                                    f,
+                                    locator.getService(sid, fieldType)
+                                );
                                 return;
                             }
                         }
                         Named named = ap.getAnnotation(Named.class);
                         if (named == null) {
-                            Object value = resources.findResource(fieldType, f.getGenericType());
+                            Object value = resources.findResource(
+                                fieldType,
+                                f.getGenericType()
+                            );
                             if (value != null) {
                                 injectField(object, f, value);
                                 return;
                             }
-                            injectField(object, f, locator.getObject(fieldType, ap));
+                            injectField(
+                                object,
+                                f,
+                                locator.getObject(fieldType, ap)
+                            );
                         } else {
-                            injectField(object, f, locator.getService(named.value(), fieldType));
+                            injectField(
+                                object,
+                                f,
+                                locator.getService(named.value(), fieldType)
+                            );
                         }
                     }
                 });
@@ -82,9 +110,15 @@ public class FieldInjector {
         try {
             MethodHandleUtils.varHandle(field).set(target, value);
         } catch (Exception ex) {
-            throw new RuntimeException(String.format(
+            throw new RuntimeException(
+                String.format(
                     "Unable to set field '%s' of %s to %s: %s",
-                    field.getName(), target, value, InternalUtils.toMessage(ex)));
+                    field.getName(),
+                    target,
+                    value,
+                    ExceptionSupport.toMessage(ex)
+                )
+            );
         }
     }
 

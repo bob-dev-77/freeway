@@ -1,8 +1,7 @@
 package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.coercion.*;
-import com.jujin.freeway.ioc.internal.util.InternalUtils;
-
+import com.jujin.freeway.ioc.internal.util.CollectionSupport;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -13,7 +12,8 @@ public class TypeCoercerImpl implements TypeCoercer {
 
     // Constructed from the service's configuration.
 
-    private final Map<Class, List<CoercionTuple>> sourceTypeToTuple = new HashMap<>();
+    private final Map<Class, List<CoercionTuple>> sourceTypeToTuple =
+        new HashMap<>();
 
     /**
      * A coercion to a specific target type. Manages a cache of coercions to
@@ -51,8 +51,10 @@ public class TypeCoercerImpl implements TypeCoercer {
                         String.valueOf(input),
                         type.getCanonicalName(),
                         c,
-                        ex.getMessage()),
-                    ex);
+                        ex.getMessage()
+                    ),
+                    ex
+                );
             }
         }
 
@@ -75,7 +77,8 @@ public class TypeCoercerImpl implements TypeCoercer {
     /**
      * Map from a target type to a TargetCoercion for that type.
      */
-    private final Map<Class<?>, TargetCoercion> typeToTargetCoercion = new ConcurrentHashMap<>();
+    private final Map<Class<?>, TargetCoercion> typeToTargetCoercion =
+        new ConcurrentHashMap<>();
 
     private static final Coercion NO_COERCION = new Coercion<Object, Object>() {
         @Override
@@ -84,7 +87,10 @@ public class TypeCoercerImpl implements TypeCoercer {
         }
     };
 
-    private static final Coercion COERCION_NULL_TO_OBJECT = new Coercion<Void, Object>() {
+    private static final Coercion COERCION_NULL_TO_OBJECT = new Coercion<
+        Void,
+        Object
+    >() {
         @Override
         public Object coerce(Void input) {
             return null;
@@ -100,7 +106,7 @@ public class TypeCoercerImpl implements TypeCoercer {
         for (CoercionTuple tuple : tuples.values()) {
             Class key = tuple.sourceType();
 
-            InternalUtils.addToMapList(sourceTypeToTuple, key, tuple);
+            CollectionSupport.addToMapList(sourceTypeToTuple, key, tuple);
         }
     }
 
@@ -122,7 +128,8 @@ public class TypeCoercerImpl implements TypeCoercer {
     @SuppressWarnings("unchecked")
     public <S, T> Coercion<S, T> getCoercion(
         Class<S> sourceType,
-        Class<T> targetType) {
+        Class<T> targetType
+    ) {
         assert sourceType != null;
         assert targetType != null;
 
@@ -134,7 +141,8 @@ public class TypeCoercerImpl implements TypeCoercer {
         }
 
         return getTargetCoercion(effectiveTargetType).getCoercion(
-            effectiveSourceType);
+            effectiveSourceType
+        );
     }
 
     @Override
@@ -154,13 +162,15 @@ public class TypeCoercerImpl implements TypeCoercer {
         }
 
         return getTargetCoercion(effectiveTargetType).explain(
-            effectiveSourceType);
+            effectiveSourceType
+        );
     }
 
     private TargetCoercion getTargetCoercion(Class<?> targetType) {
         return typeToTargetCoercion.computeIfAbsent(
             targetType,
-            TargetCoercion::new);
+            TargetCoercion::new
+        );
     }
 
     @Override
@@ -207,8 +217,10 @@ public class TypeCoercerImpl implements TypeCoercer {
         Optional<CoercionTuple> maybeTuple = getTuples(sourceType, targetType)
             .stream()
             .filter(
-                t -> sourceType.equals(t.sourceType()) &&
-                    targetType.equals(t.targetType()))
+                t ->
+                    sourceType.equals(t.sourceType()) &&
+                    targetType.equals(t.targetType())
+            )
             .findFirst();
 
         if (maybeTuple.isPresent()) {
@@ -253,7 +265,8 @@ public class TypeCoercerImpl implements TypeCoercer {
                 targetType,
                 tuple,
                 consideredTuples,
-                queue);
+                queue
+            );
         }
 
         // Not found anywhere. Identify the source and target type and a (sorted) list
@@ -264,10 +277,12 @@ public class TypeCoercerImpl implements TypeCoercer {
             String.format(
                 "Could not find a coercion from type %s to type %s.",
                 sourceType.getName(),
-                targetType.getName()),
+                targetType.getName()
+            ),
             buildCoercionCatalog(),
             sourceType,
-            targetType);
+            targetType
+        );
     }
 
     /**
@@ -285,8 +300,7 @@ public class TypeCoercerImpl implements TypeCoercer {
         for (CoercionTuple tuple : tuples) {
             var tupleTargetType = tuple.targetType();
 
-            if (targetType.equals(tupleTargetType))
-                return tuple.coercion();
+            if (targetType.equals(tupleTargetType)) return tuple.coercion();
         }
 
         // Typical case: no match, this coercion passes the null through
@@ -317,7 +331,8 @@ public class TypeCoercerImpl implements TypeCoercer {
         Class sourceType,
         Class targetType,
         Set<CoercionTuple.Key> consideredTuples,
-        LinkedList<CoercionTuple> queue) {
+        LinkedList<CoercionTuple> queue
+    ) {
         // Work from the source type up looking for tuples
 
         for (Class c : new InheritanceSearch(sourceType)) {
@@ -364,7 +379,8 @@ public class TypeCoercerImpl implements TypeCoercer {
         Class targetType,
         CoercionTuple intermediateTuple,
         Set<CoercionTuple.Key> consideredTuples,
-        LinkedList<CoercionTuple> queue) {
+        LinkedList<CoercionTuple> queue
+    ) {
         Class intermediateType = intermediateTuple.targetType();
 
         for (Class c : new InheritanceSearch(intermediateType)) {
@@ -391,12 +407,14 @@ public class TypeCoercerImpl implements TypeCoercer {
 
                 var compoundCoercer = new CompoundCoercion(
                     intermediateTuple.coercion(),
-                    tuple.coercion());
+                    tuple.coercion()
+                );
 
                 var compoundTuple = new CoercionTuple(
                     sourceType,
                     newIntermediateType,
-                    compoundCoercer);
+                    compoundCoercer
+                );
 
                 // So, every tuple that is added to the queue can take as input the sourceType.
                 // The target type may be another intermediate type, or may be something
@@ -437,16 +455,22 @@ public class TypeCoercerImpl implements TypeCoercer {
         // part of the TypeCoercer
         // configuration), but on the whole, this is cheap and works.
 
-        if (sourceType == String.class &&
-            Enum.class.isAssignableFrom(targetType)) {
+        if (
+            sourceType == String.class &&
+            Enum.class.isAssignableFrom(targetType)
+        ) {
             tuples = extend(
                 tuples,
                 new CoercionTuple(
                     sourceType,
                     targetType,
-                    new StringToEnumCoercion(targetType)));
-        } else if (Enum.class.isAssignableFrom(sourceType) &&
-            targetType == String.class) {
+                    new StringToEnumCoercion(targetType)
+                )
+            );
+        } else if (
+            Enum.class.isAssignableFrom(sourceType) &&
+            targetType == String.class
+        ) {
             // tuples = extend(tuples, new CoercionTuple(sourceType, targetType, (value) ->
             // ((Enum) value).name()));
         }
@@ -456,26 +480,19 @@ public class TypeCoercerImpl implements TypeCoercer {
 
     private static <T> List<T> extend(List<T> list, T extraValue) {
         return Stream.concat(list.stream(), Stream.of(extraValue)).collect(
-            Collectors.toList());
+            Collectors.toList()
+        );
     }
 
     private static Class<?> toWrapperType(Class<?> clazz) {
-        if (clazz == int.class)
-            return Integer.class;
-        if (clazz == long.class)
-            return Long.class;
-        if (clazz == double.class)
-            return Double.class;
-        if (clazz == float.class)
-            return Float.class;
-        if (clazz == boolean.class)
-            return Boolean.class;
-        if (clazz == char.class)
-            return Character.class;
-        if (clazz == short.class)
-            return Short.class;
-        if (clazz == byte.class)
-            return Byte.class;
+        if (clazz == int.class) return Integer.class;
+        if (clazz == long.class) return Long.class;
+        if (clazz == double.class) return Double.class;
+        if (clazz == float.class) return Float.class;
+        if (clazz == boolean.class) return Boolean.class;
+        if (clazz == char.class) return Character.class;
+        if (clazz == short.class) return Short.class;
+        if (clazz == byte.class) return Byte.class;
         return clazz;
     }
 }

@@ -3,12 +3,12 @@ package com.jujin.freeway.ioc.internal;
 import com.jujin.freeway.ioc.advisor.*;
 import com.jujin.freeway.ioc.annotations.Operation;
 import com.jujin.freeway.ioc.annotations.PreventServiceDecoration;
-import com.jujin.freeway.ioc.internal.util.InternalUtils;
-
+import com.jujin.freeway.ioc.internal.util.DisplayUtils;
 import java.lang.reflect.Method;
 
 @PreventServiceDecoration
 public class OperationAdvisorImpl implements OperationAdvisor {
+
     private final OperationTracker tracker;
 
     public OperationAdvisorImpl(OperationTracker tracker) {
@@ -20,6 +20,7 @@ public class OperationAdvisorImpl implements OperationAdvisor {
     }
 
     private class SimpleAdvice implements MethodAdvice {
+
         private final String description;
 
         SimpleAdvice(String description) {
@@ -33,6 +34,7 @@ public class OperationAdvisorImpl implements OperationAdvisor {
     }
 
     private class FormattedAdvice implements MethodAdvice {
+
         private final String format;
 
         FormattedAdvice(String format) {
@@ -64,8 +66,10 @@ public class OperationAdvisorImpl implements OperationAdvisor {
     @Override
     public void addOperationAdvice(MethodAdviceReceiver receiver) {
         for (Method m : receiver.getInterface().getMethods()) {
-
-            Operation annotation = receiver.getMethodAnnotation(m, Operation.class);
+            Operation annotation = receiver.getMethodAnnotation(
+                m,
+                Operation.class
+            );
 
             if (annotation != null) {
                 String value = annotation.value();
@@ -77,7 +81,7 @@ public class OperationAdvisorImpl implements OperationAdvisor {
 
     @Override
     public MethodAdvice createAdvice(String description) {
-        assert InternalUtils.isNonBlank(description);
+        assert DisplayUtils.isNonBlank(description);
 
         if (description.contains("%")) {
             return new FormattedAdvice(description);

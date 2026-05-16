@@ -3,7 +3,7 @@ package com.jujin.freeway.ioc;
 import com.jujin.freeway.ioc.annotations.EagerLoad;
 import com.jujin.freeway.ioc.annotations.ImportModule;
 import com.jujin.freeway.ioc.internal.*;
-import com.jujin.freeway.ioc.internal.util.InternalUtils;
+import com.jujin.freeway.ioc.internal.util.ExceptionSupport;
 import com.jujin.freeway.ioc.internal.util.OneShotLock;
 import org.slf4j.Logger;
 
@@ -163,7 +163,7 @@ public interface Registry extends ServiceLocator {
                     String.format(
                         "Failure loading Freeway IoC module class %s: %s",
                         classname,
-                        InternalUtils.toMessage(ex)),
+                        ExceptionSupport.toMessage(ex)),
                     ex);
             }
 
@@ -184,7 +184,7 @@ public interface Registry extends ServiceLocator {
          * <p>
          * A typical SPI declaration for a library module:
          * </p>
-         * 
+         *
          * <pre>{@code
          * # META-INF/services/com.jujin.freeway.ioc.ModuleProvider
          * com.example.mylib.MyLibModuleProvider
