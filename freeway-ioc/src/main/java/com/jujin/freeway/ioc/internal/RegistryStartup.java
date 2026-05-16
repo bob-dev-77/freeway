@@ -1,7 +1,7 @@
 package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.Registry;
-import com.jujin.freeway.ioc.internal.util.ExceptionSupport;
+import com.jujin.freeway.ioc.internal.util.ExceptionUtils;
 import com.jujin.freeway.ioc.internal.util.OneShotLock;
 import java.util.List;
 import org.slf4j.Logger;
@@ -43,7 +43,7 @@ public class RegistryStartup implements Runnable {
 
                 logger.error(
                     "An exception occurred during startup: {}",
-                    ExceptionSupport.toMessage(ex),
+                    ExceptionUtils.toMessage(ex),
                     ex
                 );
             }

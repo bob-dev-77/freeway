@@ -52,7 +52,7 @@ public class MethodHandleInvoker<T> implements Supplier<T> {
             throw new RuntimeException(
                 String.format(
                     "Error invoking method via MethodHandle: %s",
-                    ExceptionSupport.toMessage(t)
+                    ExceptionUtils.toMessage(t)
                 ),
                 t
             );

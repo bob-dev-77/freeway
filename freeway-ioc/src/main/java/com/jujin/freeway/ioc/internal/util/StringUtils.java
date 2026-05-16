@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 /**
  * String formatting, display, and type-name utilities.
  */
-public class DisplayUtils {
+public class StringUtils {
 
     private static final Pattern NON_WORD_PATTERN = Pattern.compile("\\W");
     private static final Pattern NAME_PATTERN = Pattern.compile(
@@ -146,5 +146,5 @@ public class DisplayUtils {
         return pattern.matcher(input).replaceAll(replacement);
     }
 
-    private DisplayUtils() {}
+    private StringUtils() {}
 }

@@ -50,7 +50,7 @@ public class LocalizedNameGenerator
     private static final int EXHAUSTED = 6;
 
     public LocalizedNameGenerator(String path, Locale locale) {
-        assert DisplayUtils.isNonBlank(path);
+        assert StringUtils.isNonBlank(path);
         assert locale != null;
 
         int dotx = path.lastIndexOf('.');
@@ -81,19 +81,19 @@ public class LocalizedNameGenerator
 
             switch (state) {
                 case LCV:
-                    if (DisplayUtils.isBlank(variant)) continue;
+                    if (StringUtils.isBlank(variant)) continue;
                     return;
                 case LC:
-                    if (DisplayUtils.isBlank(country)) continue;
+                    if (StringUtils.isBlank(country)) continue;
                     return;
                 case LV:
                     if (
-                        DisplayUtils.isBlank(variant) ||
-                        DisplayUtils.isBlank(country)
+                        StringUtils.isBlank(variant) ||
+                        StringUtils.isBlank(country)
                     ) continue;
                     return;
                 case L:
-                    if (DisplayUtils.isBlank(language)) continue;
+                    if (StringUtils.isBlank(language)) continue;
                     return;
                 case BARE:
                 default:

@@ -6,7 +6,7 @@ import com.jujin.freeway.ioc.ServiceLocator;
 import com.jujin.freeway.ioc.advisor.OperationTracker;
 import com.jujin.freeway.ioc.internal.util.InjectionContext;
 import com.jujin.freeway.ioc.internal.util.InstancePlanBuilder;
-import com.jujin.freeway.ioc.internal.util.ReflectionSupport;
+import com.jujin.freeway.ioc.internal.util.ReflectionUtils;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -57,7 +57,7 @@ public class MethodInvoker {
     }
 
     private Object getModuleInstance() {
-        return ReflectionSupport.isStatic(method)
+        return ReflectionUtils.isStatic(method)
             ? null
             : moduleSource.getInstance();
     }

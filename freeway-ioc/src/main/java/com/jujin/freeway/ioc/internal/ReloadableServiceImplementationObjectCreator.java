@@ -2,7 +2,7 @@ package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.ServiceBuilderContext;
 import com.jujin.freeway.ioc.UpdateListener;
-import com.jujin.freeway.ioc.internal.util.ReflectionSupport;
+import com.jujin.freeway.ioc.internal.util.ReflectionUtils;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 import java.lang.reflect.Constructor;
 
@@ -29,7 +29,7 @@ public class ReloadableServiceImplementationObjectCreator
         this.reloader = new ClassReloader(
             clazz -> {
                 final Constructor constructor =
-                    ReflectionSupport.findAutobuildConstructor(clazz);
+                    ReflectionUtils.findAutobuildConstructor(clazz);
 
                 if (constructor == null) throw new RuntimeException(
                     String.format(

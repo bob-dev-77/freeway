@@ -1,6 +1,6 @@
 package com.jujin.freeway.ioc.config;
 
-import com.jujin.freeway.ioc.internal.util.DisplayUtils;
+import com.jujin.freeway.ioc.internal.util.StringUtils;
 
 /**
  * A wrapper that allows objects of a target type to be ordered. Each Orderable
@@ -28,7 +28,7 @@ public class Orderable<T> {
      */
 
     public Orderable(String id, T target, String... constraints) {
-        assert DisplayUtils.isNonBlank(id);
+        assert StringUtils.isNonBlank(id);
         this.id = id;
         this.target = target;
         this.constraints = constraints;

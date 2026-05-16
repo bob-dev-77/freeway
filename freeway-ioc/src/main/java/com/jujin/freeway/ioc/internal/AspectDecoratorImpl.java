@@ -7,7 +7,7 @@ import com.jujin.freeway.ioc.advisor.AspectInterceptorBuilder;
 import com.jujin.freeway.ioc.advisor.MethodAdvice;
 import com.jujin.freeway.ioc.annotations.Builtin;
 import com.jujin.freeway.ioc.annotations.PreventServiceDecoration;
-import com.jujin.freeway.ioc.internal.util.DisplayUtils;
+import com.jujin.freeway.ioc.internal.util.StringUtils;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
@@ -43,7 +43,7 @@ public class AspectDecoratorImpl implements AspectInterceptor {
     ) {
         assert serviceInterface != null;
         assert delegate != null;
-        assert DisplayUtils.isNonBlank(description);
+        assert StringUtils.isNonBlank(description);
 
         // The inner class here defers the creation of the AspectInterceptorBuilderImpl
         // (which now uses MethodHandle + hidden classes via JDK 25 Class-File API)

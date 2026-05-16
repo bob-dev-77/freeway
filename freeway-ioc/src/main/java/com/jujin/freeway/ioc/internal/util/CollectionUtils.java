@@ -5,7 +5,7 @@ import java.util.*;
 /**
  * Collection, array, and map utility methods.
  */
-public class CollectionSupport {
+public class CollectionUtils {
 
     public static int size(Object[] array) {
         return array == null ? 0 : array.length;
@@ -60,5 +60,5 @@ public class CollectionSupport {
         };
     }
 
-    private CollectionSupport() {}
+    private CollectionUtils() {}
 }

@@ -1,7 +1,7 @@
 package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.annotations.Builtin;
-import com.jujin.freeway.ioc.internal.util.DisplayUtils;
+import com.jujin.freeway.ioc.internal.util.StringUtils;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 import com.jujin.freeway.ioc.threading.ThunkCreator;
 import java.lang.reflect.InvocationHandler;
@@ -24,7 +24,7 @@ public class ThunkCreatorImpl implements ThunkCreator {
     ) {
         assert proxyType != null;
         assert objectCreator != null;
-        assert DisplayUtils.isNonBlank(description);
+        assert StringUtils.isNonBlank(description);
 
         if (!proxyType.isInterface()) throw new IllegalArgumentException(
             String.format(

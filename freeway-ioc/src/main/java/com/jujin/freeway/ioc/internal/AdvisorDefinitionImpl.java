@@ -5,7 +5,7 @@ import com.jujin.freeway.ioc.ServiceContext;
 import com.jujin.freeway.ioc.ServiceDefinition;
 import com.jujin.freeway.ioc.advisor.AdvisorDefinition;
 import com.jujin.freeway.ioc.advisor.ServiceAdvisor;
-import com.jujin.freeway.ioc.internal.util.DisplayUtils;
+import com.jujin.freeway.ioc.internal.util.StringUtils;
 import java.lang.reflect.Method;
 import java.util.Set;
 
@@ -23,7 +23,7 @@ public class AdvisorDefinitionImpl implements AdvisorDefinition {
         Class<?> serviceInterface,
         Set<Class<?>> markers
     ) {
-        assert DisplayUtils.isNonBlank(advisorId);
+        assert StringUtils.isNonBlank(advisorId);
         validateConstraints(constraints, advisorId);
 
         this.config = ServiceInstrumenterConfig.of(
@@ -104,6 +104,6 @@ public class AdvisorDefinitionImpl implements AdvisorDefinition {
 
     @Override
     public String toString() {
-        return DisplayUtils.asString(config.method());
+        return StringUtils.asString(config.method());
     }
 }

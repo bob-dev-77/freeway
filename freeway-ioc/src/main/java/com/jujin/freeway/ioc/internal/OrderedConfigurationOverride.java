@@ -1,7 +1,7 @@
 package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.config.ContributionDef;
-import com.jujin.freeway.ioc.internal.util.ExceptionSupport;
+import com.jujin.freeway.ioc.internal.util.ExceptionUtils;
 import com.jujin.freeway.ioc.internal.util.Orderer;
 
 class OrderedConfigurationOverride<T> {
@@ -37,7 +37,7 @@ class OrderedConfigurationOverride<T> {
             String message = String.format(
                 "Failure processing override from %s: %s",
                 contribDef,
-                ExceptionSupport.toMessage(ex)
+                ExceptionUtils.toMessage(ex)
             );
 
             throw new RuntimeException(message, ex);

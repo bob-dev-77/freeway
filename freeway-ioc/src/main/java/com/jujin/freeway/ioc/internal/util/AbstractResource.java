@@ -134,7 +134,7 @@ public abstract class AbstractResource implements Resource {
 
     @Override
     public final Resource withExtension(String extension) {
-        assert DisplayUtils.isNonBlank(extension);
+        assert StringUtils.isNonBlank(extension);
         int dotx = path.lastIndexOf('.');
 
         if (dotx < 0) return createResource(path + "." + extension);

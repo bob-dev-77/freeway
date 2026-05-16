@@ -1,7 +1,7 @@
 package com.jujin.freeway.ioc.internal;
 
-import com.jujin.freeway.ioc.internal.util.CollectionSupport;
-import com.jujin.freeway.ioc.internal.util.DisplayUtils;
+import com.jujin.freeway.ioc.internal.util.CollectionUtils;
+import com.jujin.freeway.ioc.internal.util.StringUtils;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
@@ -51,7 +51,7 @@ public class MethodSignature {
         this.method = method;
         assert returnType != null;
         this.returnType = returnType;
-        assert DisplayUtils.isNonBlank(name);
+        assert StringUtils.isNonBlank(name);
         this.name = name;
 
         // Can be null!
@@ -108,12 +108,12 @@ public class MethodSignature {
 
             hashCode = 31 * hashCode + name.hashCode();
 
-            int count = CollectionSupport.size(parameterTypes);
+            int count = CollectionUtils.size(parameterTypes);
 
             for (int i = 0; i < count; i++) hashCode =
                 31 * hashCode + parameterTypes[i].hashCode();
 
-            count = CollectionSupport.size(exceptionTypes);
+            count = CollectionUtils.size(exceptionTypes);
 
             for (int i = 0; i < count; i++) hashCode =
                 31 * hashCode + exceptionTypes[i].hashCode();
@@ -145,8 +145,8 @@ public class MethodSignature {
     }
 
     private boolean mismatch(Class[] a1, Class[] a2) {
-        int a1Count = CollectionSupport.size(a1);
-        int a2Count = CollectionSupport.size(a2);
+        int a1Count = CollectionUtils.size(a1);
+        int a2Count = CollectionUtils.size(a2);
 
         if (a1Count != a2Count) return true;
 
@@ -170,7 +170,7 @@ public class MethodSignature {
         buffer.append(name);
         buffer.append('(');
 
-        for (int i = 0; i < CollectionSupport.size(parameterTypes); i++) {
+        for (int i = 0; i < CollectionUtils.size(parameterTypes); i++) {
             if (i > 0) buffer.append(", ");
 
             buffer.append(toTypeName(parameterTypes[i]));
@@ -178,7 +178,7 @@ public class MethodSignature {
 
         buffer.append(')');
 
-        int _exceptionCount = CollectionSupport.size(exceptionTypes);
+        int _exceptionCount = CollectionUtils.size(exceptionTypes);
         String _exceptionNames[] = new String[_exceptionCount];
         for (int i = 0; i < _exceptionCount; i++) {
             _exceptionNames[i] = exceptionTypes[i].getName();
@@ -210,7 +210,7 @@ public class MethodSignature {
         StringBuilder buffer = new StringBuilder(name);
         buffer.append('(');
 
-        for (int i = 0; i < CollectionSupport.size(parameterTypes); i++) {
+        for (int i = 0; i < CollectionUtils.size(parameterTypes); i++) {
             if (i > 0) buffer.append(',');
 
             buffer.append(toTypeName(parameterTypes[i]));
@@ -245,8 +245,8 @@ public class MethodSignature {
 
     @SuppressWarnings("unchecked")
     private boolean exceptionsEncompass(Class[] otherExceptions) {
-        int ourCount = CollectionSupport.size(exceptionTypes);
-        int otherCount = CollectionSupport.size(otherExceptions);
+        int ourCount = CollectionUtils.size(exceptionTypes);
+        int otherCount = CollectionUtils.size(otherExceptions);
 
         // If we have no exceptions, then ours encompass theirs only if they
         // have no exceptions, either.

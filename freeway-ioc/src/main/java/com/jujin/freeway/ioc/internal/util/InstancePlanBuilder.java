@@ -4,9 +4,9 @@ import com.jujin.freeway.ioc.AnnotationProvider;
 import com.jujin.freeway.ioc.ServiceLocator;
 import com.jujin.freeway.ioc.advisor.OperationTracker;
 import com.jujin.freeway.ioc.annotations.PostInjection;
-import com.jujin.freeway.ioc.internal.util.DisplayUtils;
-import com.jujin.freeway.ioc.internal.util.ExceptionSupport;
-import com.jujin.freeway.ioc.internal.util.ReflectionSupport;
+import com.jujin.freeway.ioc.internal.util.StringUtils;
+import com.jujin.freeway.ioc.internal.util.ExceptionUtils;
+import com.jujin.freeway.ioc.internal.util.ReflectionUtils;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 import java.lang.annotation.Annotation;
 import java.lang.invoke.MethodHandle;
@@ -47,7 +47,7 @@ public class InstancePlanBuilder {
                 constructor
             ),
             () -> {
-                ReflectionSupport.validateConstructorForAutobuild(constructor);
+                ReflectionUtils.validateConstructorForAutobuild(constructor);
 
                 ObjectCreator[] constructorParameters =
                     InjectionPlanner.resolveParameters(
@@ -166,7 +166,7 @@ public class InstancePlanBuilder {
                     "Calculating possible injection value for field %s.%s (%s)",
                     clazz.getName(),
                     f.getName(),
-                    DisplayUtils.toSimpleTypeName(f.getType())
+                    StringUtils.toSimpleTypeName(f.getType())
                 );
 
                 tracker.run(desc, () -> {
@@ -225,7 +225,7 @@ public class InstancePlanBuilder {
                     return String.format(
                         "Injecting value into field %s (%s)",
                         field.getName(),
-                        DisplayUtils.toSimpleTypeName(field.getType())
+                        StringUtils.toSimpleTypeName(field.getType())
                     );
                 }
 
@@ -243,7 +243,7 @@ public class InstancePlanBuilder {
                                 field.getName(),
                                 instance,
                                 injectedValue,
-                                ExceptionSupport.toMessage(ex)
+                                ExceptionUtils.toMessage(ex)
                             )
                         );
                     }
@@ -328,7 +328,7 @@ public class InstancePlanBuilder {
                                     String.format(
                                         "Exception invoking method %s: %s",
                                         method,
-                                        ExceptionSupport.toMessage(t)
+                                        ExceptionUtils.toMessage(t)
                                     ),
                                     t
                                 );

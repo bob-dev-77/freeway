@@ -51,7 +51,7 @@ public class ContributionDefImpl implements ContributionDef {
 
     @Override
     public String toString() {
-        return DisplayUtils.asString(contributorMethod);
+        return StringUtils.asString(contributorMethod);
     }
 
     @Override
@@ -142,7 +142,7 @@ public class ContributionDefImpl implements ContributionDef {
 
         Throwable fail = null;
 
-        Object moduleInstance = ReflectionSupport.isStatic(contributorMethod)
+        Object moduleInstance = ReflectionUtils.isStatic(contributorMethod)
             ? null
             : source.getInstance();
 
@@ -169,7 +169,7 @@ public class ContributionDefImpl implements ContributionDef {
         if (fail != null) throw new RuntimeException(
             String.format(
                 "Error invoking service contribution method %s: %s",
-                DisplayUtils.asString(contributorMethod),
+                StringUtils.asString(contributorMethod),
                 fail.getMessage()
             ),
             fail

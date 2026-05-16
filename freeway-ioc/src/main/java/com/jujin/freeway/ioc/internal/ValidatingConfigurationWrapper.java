@@ -2,7 +2,7 @@ package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.ServiceLocator;
 import com.jujin.freeway.ioc.config.Configuration;
-import com.jujin.freeway.ioc.internal.util.ReflectionSupport;
+import com.jujin.freeway.ioc.internal.util.ReflectionUtils;
 import java.util.Collection;
 
 /**
@@ -56,6 +56,6 @@ public class ValidatingConfigurationWrapper<T> implements Configuration<T> {
 
     @Override
     public void addInstance(Class<? extends T> clazz) {
-        add(ReflectionSupport.instantiate(contributionType, locator, clazz));
+        add(ReflectionUtils.instantiate(contributionType, locator, clazz));
     }
 }

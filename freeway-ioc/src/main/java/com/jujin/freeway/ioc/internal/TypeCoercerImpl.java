@@ -1,7 +1,7 @@
 package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.coercion.*;
-import com.jujin.freeway.ioc.internal.util.CollectionSupport;
+import com.jujin.freeway.ioc.internal.util.CollectionUtils;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -106,7 +106,7 @@ public class TypeCoercerImpl implements TypeCoercer {
         for (CoercionTuple tuple : tuples.values()) {
             Class key = tuple.sourceType();
 
-            CollectionSupport.addToMapList(sourceTypeToTuple, key, tuple);
+            CollectionUtils.addToMapList(sourceTypeToTuple, key, tuple);
         }
     }
 

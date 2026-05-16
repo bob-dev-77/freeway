@@ -3,9 +3,9 @@ package com.jujin.freeway.ioc.internal;
 import com.jujin.freeway.ioc.ServiceLocator;
 import com.jujin.freeway.ioc.config.ContributionDef;
 import com.jujin.freeway.ioc.config.OrderedConfiguration;
-import com.jujin.freeway.ioc.internal.util.DisplayUtils;
+import com.jujin.freeway.ioc.internal.util.StringUtils;
 import com.jujin.freeway.ioc.internal.util.Orderer;
-import com.jujin.freeway.ioc.internal.util.ReflectionSupport;
+import com.jujin.freeway.ioc.internal.util.ReflectionUtils;
 import java.util.Map;
 
 /**
@@ -74,7 +74,7 @@ public class ValidatingOrderedConfigurationWrapper<
 
     @Override
     public void override(String id, T object, String... constraints) {
-        assert DisplayUtils.isNonBlank(id);
+        assert StringUtils.isNonBlank(id);
 
         T coerced =
             object == null ? null : typeCoercer.coerce(object, expectedType);
@@ -109,7 +109,7 @@ public class ValidatingOrderedConfigurationWrapper<
     ) {
         add(
             id,
-            ReflectionSupport.instantiate(contributionType, locator, clazz),
+            ReflectionUtils.instantiate(contributionType, locator, clazz),
             constraints
         );
     }
@@ -122,7 +122,7 @@ public class ValidatingOrderedConfigurationWrapper<
     ) {
         override(
             id,
-            ReflectionSupport.instantiate(contributionType, locator, clazz),
+            ReflectionUtils.instantiate(contributionType, locator, clazz),
             constraints
         );
     }

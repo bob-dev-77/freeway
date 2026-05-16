@@ -2,10 +2,10 @@ package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.*;
 import com.jujin.freeway.ioc.annotations.*;
-import com.jujin.freeway.ioc.internal.util.DisplayUtils;
+import com.jujin.freeway.ioc.internal.util.StringUtils;
 import com.jujin.freeway.ioc.internal.util.IocConstants;
 import com.jujin.freeway.ioc.internal.util.OneShotLock;
-import com.jujin.freeway.ioc.internal.util.ReflectionSupport;
+import com.jujin.freeway.ioc.internal.util.ReflectionUtils;
 import com.jujin.freeway.ioc.internal.util.Scopes;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 import java.lang.annotation.Annotation;
@@ -118,7 +118,7 @@ public class ServiceBinderImpl implements ServiceBinder, ServiceBindingOptions {
             !preventReloading &&
             isProxiable() &&
             reloadableScope() &&
-            ReflectionSupport.isLocalFile(serviceImplementation)
+            ReflectionUtils.isLocalFile(serviceImplementation)
         ) return createReloadableConstructorBasedObjectCreatorStrategy();
 
         return createStandardConstructorBasedObjectCreatorStrategy();
@@ -143,7 +143,7 @@ public class ServiceBinderImpl implements ServiceBinder, ServiceBindingOptions {
             )
         );
         final Constructor constructor =
-            ReflectionSupport.findAutobuildConstructor(serviceImplementation);
+            ReflectionUtils.findAutobuildConstructor(serviceImplementation);
 
         if (constructor == null) throw new RuntimeException(
             String.format(
@@ -168,7 +168,7 @@ public class ServiceBinderImpl implements ServiceBinder, ServiceBindingOptions {
                 return String.format(
                     "%s via %s",
                     constructor.getName(),
-                    DisplayUtils.asString(bindMethod)
+                    StringUtils.asString(bindMethod)
                 );
             }
         };
@@ -254,7 +254,7 @@ public class ServiceBinderImpl implements ServiceBinder, ServiceBindingOptions {
 
             @Override
             public String description() {
-                return DisplayUtils.asString(bindMethod);
+                return StringUtils.asString(bindMethod);
             }
         };
 
@@ -289,7 +289,7 @@ public class ServiceBinderImpl implements ServiceBinder, ServiceBindingOptions {
         eagerLoad =
             serviceImplementation.getAnnotation(EagerLoad.class) != null;
 
-        serviceId = ReflectionSupport.getServiceId(serviceImplementation);
+        serviceId = ReflectionUtils.getServiceId(serviceImplementation);
 
         if (serviceId == null) {
             serviceId = serviceInterface.getSimpleName();
@@ -302,7 +302,7 @@ public class ServiceBinderImpl implements ServiceBinder, ServiceBindingOptions {
         Marker marker = serviceImplementation.getAnnotation(Marker.class);
 
         if (marker != null) {
-            ReflectionSupport.validateMarkerAnnotations(marker.value());
+            ReflectionUtils.validateMarkerAnnotations(marker.value());
             @SuppressWarnings("unchecked")
             Class<? extends Annotation>[] markerValues = (Class<
                 ? extends Annotation
@@ -355,7 +355,7 @@ public class ServiceBinderImpl implements ServiceBinder, ServiceBindingOptions {
 
     @Override
     public ServiceBindingOptions withId(String id) {
-        if (!DisplayUtils.isNonBlank(id)) {
+        if (!StringUtils.isNonBlank(id)) {
             throw new IllegalArgumentException("id must not be null or blank");
         }
         lock.check();
@@ -378,7 +378,7 @@ public class ServiceBinderImpl implements ServiceBinder, ServiceBindingOptions {
 
     @Override
     public ServiceBindingOptions scope(String scope) {
-        if (!DisplayUtils.isNonBlank(scope)) {
+        if (!StringUtils.isNonBlank(scope)) {
             throw new IllegalArgumentException(
                 "scope must not be null or blank"
             );
@@ -396,7 +396,7 @@ public class ServiceBinderImpl implements ServiceBinder, ServiceBindingOptions {
     ) {
         lock.check();
 
-        ReflectionSupport.validateMarkerAnnotations(marker);
+        ReflectionUtils.validateMarkerAnnotations(marker);
 
         markers.addAll(Arrays.asList(marker));
 

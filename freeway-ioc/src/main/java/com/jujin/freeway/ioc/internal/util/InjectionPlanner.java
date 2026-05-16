@@ -4,8 +4,8 @@ import com.jujin.freeway.ioc.AnnotationProvider;
 import com.jujin.freeway.ioc.ServiceLocator;
 import com.jujin.freeway.ioc.advisor.OperationTracker;
 import com.jujin.freeway.ioc.annotations.Autobuild;
-import com.jujin.freeway.ioc.internal.util.DisplayUtils;
-import com.jujin.freeway.ioc.internal.util.ExceptionSupport;
+import com.jujin.freeway.ioc.internal.util.StringUtils;
+import com.jujin.freeway.ioc.internal.util.ExceptionUtils;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 import java.lang.annotation.Annotation;
 import java.lang.invoke.MethodHandle;
@@ -157,7 +157,7 @@ public class InjectionPlanner {
             var description = String.format(
                 "Determining injection value for parameter #%d (%s)",
                 i + 1,
-                DisplayUtils.toSimpleTypeName(type)
+                StringUtils.toSimpleTypeName(type)
             );
 
             final Supplier<ObjectCreator> operation = () ->
@@ -201,7 +201,7 @@ public class InjectionPlanner {
             throw new RuntimeException(
                 String.format(
                     "Error invoking constructor via MethodHandle: %s",
-                    ExceptionSupport.toMessage(t)
+                    ExceptionUtils.toMessage(t)
                 ),
                 t
             );

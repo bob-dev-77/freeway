@@ -3,7 +3,7 @@ package com.jujin.freeway.ioc.internal;
 import com.jujin.freeway.ioc.advisor.*;
 import com.jujin.freeway.ioc.annotations.Operation;
 import com.jujin.freeway.ioc.annotations.PreventServiceDecoration;
-import com.jujin.freeway.ioc.internal.util.DisplayUtils;
+import com.jujin.freeway.ioc.internal.util.StringUtils;
 import java.lang.reflect.Method;
 
 @PreventServiceDecoration
@@ -81,7 +81,7 @@ public class OperationAdvisorImpl implements OperationAdvisor {
 
     @Override
     public MethodAdvice createAdvice(String description) {
-        assert DisplayUtils.isNonBlank(description);
+        assert StringUtils.isNonBlank(description);
 
         if (description.contains("%")) {
             return new FormattedAdvice(description);

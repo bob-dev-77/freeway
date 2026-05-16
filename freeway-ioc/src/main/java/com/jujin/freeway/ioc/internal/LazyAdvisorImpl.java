@@ -6,7 +6,7 @@ import com.jujin.freeway.ioc.advisor.MethodAdviceReceiver;
 import com.jujin.freeway.ioc.advisor.MethodInvocation;
 import com.jujin.freeway.ioc.annotations.NotLazy;
 import com.jujin.freeway.ioc.annotations.PreventServiceDecoration;
-import com.jujin.freeway.ioc.internal.util.DisplayUtils;
+import com.jujin.freeway.ioc.internal.util.StringUtils;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 import com.jujin.freeway.ioc.threading.ThunkCreator;
 import java.lang.reflect.Method;
@@ -35,7 +35,7 @@ public class LazyAdvisorImpl implements LazyAdvisor {
         final String description = String.format(
             "<%s Thunk for %s>",
             thunkType.getName(),
-            DisplayUtils.asString(method)
+            StringUtils.asString(method)
         );
 
         MethodAdvice advice = new MethodAdvice() {

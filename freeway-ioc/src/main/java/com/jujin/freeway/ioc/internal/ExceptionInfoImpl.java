@@ -3,7 +3,7 @@ package com.jujin.freeway.ioc.internal;
 import static java.util.Collections.unmodifiableList;
 
 import com.jujin.freeway.ioc.exception.ExceptionInfo;
-import com.jujin.freeway.ioc.internal.util.CollectionSupport;
+import com.jujin.freeway.ioc.internal.util.CollectionUtils;
 import java.util.List;
 import java.util.Map;
 
@@ -46,7 +46,7 @@ public class ExceptionInfoImpl implements ExceptionInfo {
 
     @Override
     public List<String> getPropertyNames() {
-        return CollectionSupport.sortedKeys(properties);
+        return CollectionUtils.sortedKeys(properties);
     }
 
     @Override

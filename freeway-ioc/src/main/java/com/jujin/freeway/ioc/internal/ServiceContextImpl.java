@@ -2,7 +2,7 @@ package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.*;
 import com.jujin.freeway.ioc.advisor.OperationTracker;
-import com.jujin.freeway.ioc.internal.util.ReflectionSupport;
+import com.jujin.freeway.ioc.internal.util.ReflectionUtils;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 import java.lang.reflect.Constructor;
 import java.util.Collection;
@@ -136,7 +136,7 @@ public class ServiceContextImpl
 
         return registry.invoke(description, () -> {
             Constructor constructor =
-                ReflectionSupport.findAutobuildConstructor(clazz);
+                ReflectionUtils.findAutobuildConstructor(clazz);
 
             if (constructor == null) throw new RuntimeException(
                 String.format(

@@ -3,7 +3,7 @@ package com.jujin.freeway.ioc.internal;
 import com.jujin.freeway.ioc.AnnotationProvider;
 import com.jujin.freeway.ioc.ServiceBuilderContext;
 import com.jujin.freeway.ioc.ServiceDefinition;
-import com.jujin.freeway.ioc.internal.util.ReflectionSupport;
+import com.jujin.freeway.ioc.internal.util.ReflectionUtils;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 import java.util.Objects;
 import java.util.Set;
@@ -126,7 +126,7 @@ public class ServiceDefinitionImpl implements ServiceDefinition {
     public AnnotationProvider getClassAnnotationProvider() {
         return AnnotationProviderChain.create(
             searchPath()
-                .map(ReflectionSupport.CLASS_TO_AP_MAPPER)
+                .map(ReflectionUtils.CLASS_TO_AP_MAPPER)
                 .collect(Collectors.toList())
         );
     }
@@ -140,13 +140,13 @@ public class ServiceDefinitionImpl implements ServiceDefinition {
         return AnnotationProviderChain.create(
             searchPath()
                 .map(element ->
-                    ReflectionSupport.findMethod(
+                    ReflectionUtils.findMethod(
                         element,
                         methodName,
                         argumentTypes
                     )
                 )
-                .map(ReflectionSupport.METHOD_TO_AP_MAPPER)
+                .map(ReflectionUtils.METHOD_TO_AP_MAPPER)
                 .collect(Collectors.toList())
         );
     }

@@ -1,6 +1,6 @@
 package com.jujin.freeway.ioc.internal.util;
 
-import com.jujin.freeway.ioc.internal.util.CollectionSupport;
+import com.jujin.freeway.ioc.internal.util.CollectionUtils;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -84,7 +84,7 @@ public final class IdAllocator {
      * Returns a list of all allocated ids, sorted alphabetically.
      */
     public List<String> getAllocatedIds() {
-        return CollectionSupport.sortedKeys(generatorMap);
+        return CollectionUtils.sortedKeys(generatorMap);
     }
 
     /**

@@ -2,7 +2,7 @@ package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.ServiceBuilderContext;
 import com.jujin.freeway.ioc.internal.util.InstancePlanBuilder;
-import com.jujin.freeway.ioc.internal.util.ReflectionSupport;
+import com.jujin.freeway.ioc.internal.util.ReflectionUtils;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 import java.lang.reflect.Method;
 import org.slf4j.Logger;
@@ -45,7 +45,7 @@ public class ServiceBuilderMethodInvoker implements ObjectCreator<Object> {
             // possible
             // moment. If the method is static, there's no need to even get the builder.
 
-            final Object moduleInstance = ReflectionSupport.isStatic(
+            final Object moduleInstance = ReflectionUtils.isStatic(
                 builderMethod
             )
                 ? null

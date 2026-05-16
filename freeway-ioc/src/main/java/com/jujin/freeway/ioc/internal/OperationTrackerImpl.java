@@ -1,8 +1,8 @@
 package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.advisor.OperationTracker;
-import com.jujin.freeway.ioc.internal.util.DisplayUtils;
-import com.jujin.freeway.ioc.internal.util.ExceptionSupport;
+import com.jujin.freeway.ioc.internal.util.StringUtils;
+import com.jujin.freeway.ioc.internal.util.ExceptionUtils;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -30,7 +30,7 @@ public class OperationTrackerImpl implements OperationTracker {
 
     @Override
     public void run(String description, final Runnable operation) {
-        assert DisplayUtils.isNonBlank(description);
+        assert StringUtils.isNonBlank(description);
         assert operation != null;
 
         long startNanos = start(description);
@@ -50,7 +50,7 @@ public class OperationTrackerImpl implements OperationTracker {
 
     @Override
     public <T> T invoke(String description, Supplier<T> operation) {
-        assert DisplayUtils.isNonBlank(description);
+        assert StringUtils.isNonBlank(description);
         assert operation != null;
 
         long startNanos = start(description);
@@ -73,7 +73,7 @@ public class OperationTrackerImpl implements OperationTracker {
     @Override
     public <T> T perform(String description, IOOperation<T> operation)
         throws IOException {
-        DisplayUtils.isNonBlank(description);
+        StringUtils.isNonBlank(description);
         assert operation != null;
 
         long startNanos = start(description);
@@ -98,7 +98,7 @@ public class OperationTrackerImpl implements OperationTracker {
     private <T> T handleRuntimeException(RuntimeException ex) {
         // This is to prevent the error level log messages
         if (
-            ExceptionSupport.isAnnotationInStackTrace(
+            ExceptionUtils.isAnnotationInStackTrace(
                 ex,
                 NonLoggableException.class
             )
@@ -185,7 +185,7 @@ public class OperationTrackerImpl implements OperationTracker {
     }
 
     private String[] log(Throwable ex) {
-        logger.error(ExceptionSupport.toMessage(ex));
+        logger.error(ExceptionUtils.toMessage(ex));
         logger.error("Operations trace:");
 
         var snapshot = new ArrayList<>(operations);

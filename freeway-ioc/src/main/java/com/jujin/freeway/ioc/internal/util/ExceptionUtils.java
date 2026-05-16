@@ -8,7 +8,7 @@ import java.lang.annotation.Annotation;
 /**
  * Exception introspection and message extraction utilities.
  */
-public class ExceptionSupport {
+public class ExceptionUtils {
 
     public static String toMessage(Throwable exception) {
         assert exception != null;
@@ -52,5 +52,5 @@ public class ExceptionSupport {
         return false;
     }
 
-    private ExceptionSupport() {}
+    private ExceptionUtils() {}
 }

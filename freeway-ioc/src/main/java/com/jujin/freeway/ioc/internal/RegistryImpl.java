@@ -9,15 +9,15 @@ import com.jujin.freeway.ioc.annotations.Builtin;
 import com.jujin.freeway.ioc.annotations.Local;
 import com.jujin.freeway.ioc.config.*;
 import com.jujin.freeway.ioc.exception.UnknownValueException;
-import com.jujin.freeway.ioc.internal.util.CollectionSupport;
-import com.jujin.freeway.ioc.internal.util.DisplayUtils;
+import com.jujin.freeway.ioc.internal.util.CollectionUtils;
+import com.jujin.freeway.ioc.internal.util.StringUtils;
 import com.jujin.freeway.ioc.internal.util.InjectionPlanner;
 import com.jujin.freeway.ioc.internal.util.InstancePlanBuilder;
 import com.jujin.freeway.ioc.internal.util.IocConstants;
 import com.jujin.freeway.ioc.internal.util.MappedInjectionContext;
 import com.jujin.freeway.ioc.internal.util.OneShotLock;
 import com.jujin.freeway.ioc.internal.util.Orderer;
-import com.jujin.freeway.ioc.internal.util.ReflectionSupport;
+import com.jujin.freeway.ioc.internal.util.ReflectionUtils;
 import com.jujin.freeway.ioc.internal.util.Scopes;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 import com.jujin.freeway.ioc.lifecycle.ServiceLifecycle;
@@ -221,7 +221,7 @@ public class RegistryImpl
                 tracker.define(serviceDef, ServiceStatus.DEFINED);
 
                 for (Class<?> marker : serviceDef.getMarkers())
-                    CollectionSupport.addToMapList(
+                    CollectionUtils.addToMapList(
                         markerToServiceDef,
                         marker,
                         serviceDef
@@ -471,7 +471,7 @@ public class RegistryImpl
 
             @Override
             public AnnotationProvider getClassAnnotationProvider() {
-                return ReflectionSupport.toAnnotationProvider(
+                return ReflectionUtils.toAnnotationProvider(
                     getServiceInterface()
                 );
             }
@@ -482,8 +482,8 @@ public class RegistryImpl
                 String methodName,
                 Class... argumentTypes
             ) {
-                return ReflectionSupport.toAnnotationProvider(
-                    ReflectionSupport.findMethod(
+                return ReflectionUtils.toAnnotationProvider(
+                    ReflectionUtils.findMethod(
                         getServiceInterface(),
                         methodName,
                         argumentTypes
@@ -525,7 +525,7 @@ public class RegistryImpl
         };
 
         for (Class<?> marker : serviceDef.getMarkers()) {
-            CollectionSupport.addToMapList(
+            CollectionUtils.addToMapList(
                 markerToServiceDef,
                 marker,
                 serviceDef
@@ -1271,10 +1271,10 @@ public class RegistryImpl
      */
     private String toJavaClassNames(List<Class<?>> classes) {
         Class<?>[] asArray = classes.toArray(new Class<?>[classes.size()]);
-        String[] namesArray = DisplayUtils.toSimpleTypeNames(asArray);
+        String[] namesArray = StringUtils.toSimpleTypeNames(asArray);
         List<String> names = new ArrayList<>(Arrays.asList(namesArray));
 
-        return DisplayUtils.joinSorted(names);
+        return StringUtils.joinSorted(names);
     }
 
     /**
@@ -1304,7 +1304,7 @@ public class RegistryImpl
                 throw new RuntimeException(
                     String.format(
                         "Unable to locate any service assignable to type %s with marker annotation(s) %s.",
-                        DisplayUtils.toSimpleTypeName(objectType),
+                        StringUtils.toSimpleTypeName(objectType),
                         toJavaClassNames(markers)
                     )
                 );
@@ -1312,9 +1312,9 @@ public class RegistryImpl
                 throw new RuntimeException(
                     String.format(
                         "Unable to locate a single service assignable to type %s with marker annotation(s) %s. All of the following services match: %s.",
-                        DisplayUtils.toSimpleTypeName(objectType),
+                        StringUtils.toSimpleTypeName(objectType),
                         toJavaClassNames(markers),
-                        DisplayUtils.joinSorted(matches)
+                        StringUtils.joinSorted(matches)
                     )
                 );
         }
@@ -1391,7 +1391,7 @@ public class RegistryImpl
         // Again, a bit of work to avoid instantiating the SymbolSource until absolutely
         // necessary.
 
-        if (!DisplayUtils.containsSymbols(input)) return input;
+        if (!StringUtils.containsSymbols(input)) return input;
 
         return getSymbolSource().expand(input);
     }
@@ -1417,7 +1417,7 @@ public class RegistryImpl
     public <T> T autobuild(final Class<T> clazz) {
         assert clazz != null;
         final Constructor constructor =
-            ReflectionSupport.findAutobuildConstructor(clazz);
+            ReflectionUtils.findAutobuildConstructor(clazz);
 
         if (constructor == null) {
             throw new RuntimeException(
@@ -1464,7 +1464,7 @@ public class RegistryImpl
 
         if (
             IocConstants.SERVICE_CLASS_RELOADING_ENABLED &&
-            ReflectionSupport.isLocalFile(implementationClass)
+            ReflectionUtils.isLocalFile(implementationClass)
         ) return createReloadingProxy(
             interfaceClass,
             implementationClass,

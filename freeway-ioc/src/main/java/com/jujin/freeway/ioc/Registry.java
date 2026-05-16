@@ -3,7 +3,7 @@ package com.jujin.freeway.ioc;
 import com.jujin.freeway.ioc.annotations.EagerLoad;
 import com.jujin.freeway.ioc.annotations.ImportModule;
 import com.jujin.freeway.ioc.internal.*;
-import com.jujin.freeway.ioc.internal.util.ExceptionSupport;
+import com.jujin.freeway.ioc.internal.util.ExceptionUtils;
 import com.jujin.freeway.ioc.internal.util.OneShotLock;
 import org.slf4j.Logger;
 
@@ -163,7 +163,7 @@ public interface Registry extends ServiceLocator {
                     String.format(
                         "Failure loading Freeway IoC module class %s: %s",
                         classname,
-                        ExceptionSupport.toMessage(ex)),
+                        ExceptionUtils.toMessage(ex)),
                     ex);
             }
 

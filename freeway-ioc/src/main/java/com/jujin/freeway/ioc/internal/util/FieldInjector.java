@@ -3,8 +3,8 @@ package com.jujin.freeway.ioc.internal.util;
 import com.jujin.freeway.ioc.AnnotationProvider;
 import com.jujin.freeway.ioc.ServiceLocator;
 import com.jujin.freeway.ioc.advisor.OperationTracker;
-import com.jujin.freeway.ioc.internal.util.DisplayUtils;
-import com.jujin.freeway.ioc.internal.util.ExceptionSupport;
+import com.jujin.freeway.ioc.internal.util.StringUtils;
+import com.jujin.freeway.ioc.internal.util.ExceptionUtils;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import javax.inject.Named;
@@ -51,7 +51,7 @@ public class FieldInjector {
                     "Calculating possible injection value for field %s.%s (%s)",
                     clazz.getName(),
                     f.getName(),
-                    DisplayUtils.toSimpleTypeName(f.getType())
+                    StringUtils.toSimpleTypeName(f.getType())
                 );
 
                 tracker.run(description, () -> {
@@ -116,7 +116,7 @@ public class FieldInjector {
                     field.getName(),
                     target,
                     value,
-                    ExceptionSupport.toMessage(ex)
+                    ExceptionUtils.toMessage(ex)
                 )
             );
         }

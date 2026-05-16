@@ -3,7 +3,7 @@ package com.jujin.freeway.ioc.internal;
 import com.jujin.freeway.ioc.ServiceLocator;
 import com.jujin.freeway.ioc.config.ContributionDef;
 import com.jujin.freeway.ioc.config.MappedConfiguration;
-import com.jujin.freeway.ioc.internal.util.ReflectionSupport;
+import com.jujin.freeway.ioc.internal.util.ReflectionUtils;
 import java.util.Map;
 
 /**
@@ -134,7 +134,7 @@ public class ValidatingMappedConfigurationWrapper<
     public void addInstance(K key, Class<? extends V> clazz) {
         add(
             key,
-            ReflectionSupport.instantiate(contributionType, locator, clazz)
+            ReflectionUtils.instantiate(contributionType, locator, clazz)
         );
     }
 
@@ -170,7 +170,7 @@ public class ValidatingMappedConfigurationWrapper<
     public void overrideInstance(K key, Class<? extends V> clazz) {
         override(
             key,
-            ReflectionSupport.instantiate(contributionType, locator, clazz)
+            ReflectionUtils.instantiate(contributionType, locator, clazz)
         );
     }
 }

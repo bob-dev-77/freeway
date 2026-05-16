@@ -3,7 +3,7 @@ package com.jujin.freeway.ioc.internal;
 import com.jujin.freeway.ioc.*;
 import com.jujin.freeway.ioc.advisor.OperationTracker;
 import com.jujin.freeway.ioc.annotations.PreventServiceDecoration;
-import com.jujin.freeway.ioc.internal.util.DisplayUtils;
+import com.jujin.freeway.ioc.internal.util.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -44,7 +44,7 @@ public class DependencyResolverImpl implements DependencyResolver {
         return tracker.invoke(
             String.format(
                 "Resolving object of type %s using DependencyResolver",
-                DisplayUtils.toSimpleTypeName(objectType)
+                StringUtils.toSimpleTypeName(objectType)
             ),
             () -> {
                 for (DependencyPolicy resolver : configuration) {

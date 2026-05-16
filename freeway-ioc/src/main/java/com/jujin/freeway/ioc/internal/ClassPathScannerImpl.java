@@ -3,7 +3,7 @@ package com.jujin.freeway.ioc.internal;
 import com.jujin.freeway.ioc.classpath.ClassPathMatcher;
 import com.jujin.freeway.ioc.classpath.ClassPathScanner;
 import com.jujin.freeway.ioc.classpath.ClassPathURLConverter;
-import com.jujin.freeway.ioc.internal.util.ReflectionSupport;
+import com.jujin.freeway.ioc.internal.util.ReflectionUtils;
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -67,7 +67,7 @@ public class ClassPathScannerImpl implements ClassPathScanner {
         } catch (IOException ex) {
             return false;
         } finally {
-            ReflectionSupport.close(is);
+            ReflectionUtils.close(is);
         }
     }
 
@@ -287,7 +287,7 @@ public class ClassPathScannerImpl implements ClassPathScanner {
                 lineReader.close();
                 lineReader = null;
             } finally {
-                ReflectionSupport.close(lineReader);
+                ReflectionUtils.close(lineReader);
             }
         }
 

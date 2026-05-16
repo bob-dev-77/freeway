@@ -2,7 +2,7 @@ package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.UpdateListener;
 import com.jujin.freeway.ioc.advisor.OperationTracker;
-import com.jujin.freeway.ioc.internal.util.ExceptionSupport;
+import com.jujin.freeway.ioc.internal.util.ExceptionUtils;
 import com.jujin.freeway.ioc.internal.util.URLChangeTracker;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 import com.jujin.freeway.ioc.lifecycle.ReloadAware;
@@ -137,7 +137,7 @@ public final class ClassReloader implements ObjectCreator, UpdateListener {
                     "Unable to %s class %s: %s",
                     firstTime ? "load" : "reload",
                     implementationClassName,
-                    ExceptionSupport.toMessage(ex)
+                    ExceptionUtils.toMessage(ex)
                 ),
                 ex
             );

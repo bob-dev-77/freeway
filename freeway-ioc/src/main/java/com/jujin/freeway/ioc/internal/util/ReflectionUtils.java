@@ -20,7 +20,7 @@ import javax.inject.Named;
 /**
  * Reflection, class-loading, annotation-processing and instantiation utilities.
  */
-public class ReflectionSupport {
+public class ReflectionUtils {
 
     /** A null-object AnnotationProvider that always returns null. */
     public static final AnnotationProvider NULL_ANNOTATION_PROVIDER =
@@ -35,13 +35,13 @@ public class ReflectionSupport {
 
     /** Maps a Class to an AnnotationProvider. */
     public static final Function<Class, AnnotationProvider> CLASS_TO_AP_MAPPER =
-        ReflectionSupport::toAnnotationProvider;
+        ReflectionUtils::toAnnotationProvider;
 
     /** Maps a Method to an AnnotationProvider. */
     public static final Function<
         Method,
         AnnotationProvider
-    > METHOD_TO_AP_MAPPER = ReflectionSupport::toAnnotationProvider;
+    > METHOD_TO_AP_MAPPER = ReflectionUtils::toAnnotationProvider;
 
     // ── Constructor utilities ───────────────────────────────────────
 
@@ -184,7 +184,7 @@ public class ReflectionSupport {
         var named = annotated.getAnnotation(Named.class);
         if (named != null) {
             var val = named.value();
-            if (DisplayUtils.isNonBlank(val)) return val;
+            if (StringUtils.isNonBlank(val)) return val;
         }
         return null;
     }
@@ -223,5 +223,5 @@ public class ReflectionSupport {
         }
     }
 
-    private ReflectionSupport() {}
+    private ReflectionUtils() {}
 }
