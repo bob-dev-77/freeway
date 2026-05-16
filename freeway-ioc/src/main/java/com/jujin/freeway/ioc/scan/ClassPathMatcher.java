@@ -1,4 +1,4 @@
-package com.jujin.freeway.ioc.classpath;
+package com.jujin.freeway.ioc.scan;
 
 /**
  * Used to determine which files will be included in the set of matches paths

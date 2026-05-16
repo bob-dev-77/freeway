@@ -2,7 +2,7 @@ package com.jujin.freeway.db.internal;
 
 import com.jujin.freeway.db.Database;
 import com.jujin.freeway.db.SqlException;
-import com.jujin.freeway.ioc.classpath.ClassPathScanner;
+import com.jujin.freeway.ioc.scan.ClassPathScanner;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -82,7 +82,8 @@ public class MigrationRunner {
             // Fail fast on blank migration files — this is likely a mistake
             if (sql.isBlank()) {
                 throw new SqlException(
-                    "Migration file is empty or contains only whitespace: " + file
+                    "Migration file is empty or contains only whitespace: " +
+                        file
                 );
             }
 
@@ -157,7 +158,9 @@ public class MigrationRunner {
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
         try (InputStream in = cl.getResourceAsStream(path)) {
             if (in == null) {
-                throw new SqlException("Migration file not found on classpath: " + path);
+                throw new SqlException(
+                    "Migration file not found on classpath: " + path
+                );
             }
             return new String(in.readAllBytes(), StandardCharsets.UTF_8);
         } catch (IOException e) {

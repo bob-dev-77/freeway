@@ -1,4 +1,4 @@
-package com.jujin.freeway.ioc.classpath;
+package com.jujin.freeway.ioc.scan;
 
 import java.util.Collection;
 

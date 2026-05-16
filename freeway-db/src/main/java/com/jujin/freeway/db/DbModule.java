@@ -13,10 +13,10 @@ import com.jujin.freeway.ioc.annotations.FactoryDefaults;
 import com.jujin.freeway.ioc.annotations.Marker;
 import com.jujin.freeway.ioc.annotations.Startup;
 import com.jujin.freeway.ioc.annotations.Symbol;
-import com.jujin.freeway.ioc.classpath.ClassPathScanner;
 import com.jujin.freeway.ioc.coercion.TypeCoercer;
 import com.jujin.freeway.ioc.config.MappedConfiguration;
 import com.jujin.freeway.ioc.property.PropertyAccess;
+import com.jujin.freeway.ioc.scan.ClassPathScanner;
 import com.jujin.freeway.ioc.symbol.SymbolProvider;
 import com.jujin.freeway.ioc.symbol.SymbolSource;
 import java.util.ArrayList;
@@ -156,9 +156,15 @@ public class DbModule {
             var config = DatabaseConfig.fromSymbols(symbols, dsPrefix);
 
             // Fail fast on incomplete datasource configuration
-            if (config.url() == null || config.username() == null || config.password() == null) {
+            if (
+                config.url() == null ||
+                config.username() == null ||
+                config.password() == null
+            ) {
                 errors.add(
-                    "Datasource '" + name + "' is missing required config: " +
+                    "Datasource '" +
+                        name +
+                        "' is missing required config: " +
                         (config.url() == null ? "url " : "") +
                         (config.username() == null ? "username " : "") +
                         (config.password() == null ? "password" : "")

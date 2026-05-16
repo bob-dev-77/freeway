@@ -1,7 +1,6 @@
 package com.jujin.freeway.ioc.internal.util;
 
-import com.jujin.freeway.ioc.classpath.ClassPathURLConverter;
-
+import com.jujin.freeway.ioc.scan.ClassPathURLConverter;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -26,9 +25,11 @@ import java.util.concurrent.ConcurrentHashMap;
  *            <code>hashCode()</code>.
  */
 public class URLChangeTracker<T> {
+
     private static final long FILE_DOES_NOT_EXIST_TIMESTAMP = -1L;
 
-    private final Map<File, TrackingInfo> fileToTimestamp = new ConcurrentHashMap<>();
+    private final Map<File, TrackingInfo> fileToTimestamp =
+        new ConcurrentHashMap<>();
 
     private final boolean granularitySeconds;
 
@@ -56,7 +57,6 @@ public class URLChangeTracker<T> {
      */
     public URLChangeTracker(ClassPathURLConverter classpathURLConverter) {
         this(classpathURLConverter, false);
-
     }
 
     /**
@@ -69,7 +69,10 @@ public class URLChangeTracker<T> {
      *            whether or not to use second granularity (as opposed to
      *            millisecond granularity)
      */
-    public URLChangeTracker(ClassPathURLConverter classpathURLConverter, boolean granularitySeconds) {
+    public URLChangeTracker(
+        ClassPathURLConverter classpathURLConverter,
+        boolean granularitySeconds
+    ) {
         this(classpathURLConverter, granularitySeconds, true);
     }
 
@@ -87,8 +90,11 @@ public class URLChangeTracker<T> {
      *            containing the file (this is useful when concerned about additions
      *            to a folder)
      */
-    public URLChangeTracker(ClassPathURLConverter classpathURLConverter, boolean granularitySeconds,
-        boolean trackFolderChanges) {
+    public URLChangeTracker(
+        ClassPathURLConverter classpathURLConverter,
+        boolean granularitySeconds,
+        boolean trackFolderChanges
+    ) {
         this.granularitySeconds = granularitySeconds;
         this.classpathURLConverter = classpathURLConverter;
         this.trackFolderChanges = trackFolderChanges;
@@ -101,8 +107,11 @@ public class URLChangeTracker<T> {
     public static File toFileFromFileProtocolURL(URL url) {
         assert url != null;
 
-        if (!url.getProtocol().equals("file"))
-            throw new IllegalArgumentException(String.format("URL %s does not use the 'file' protocol.", url));
+        if (
+            !url.getProtocol().equals("file")
+        ) throw new IllegalArgumentException(
+            String.format("URL %s does not use the 'file' protocol.", url)
+        );
 
         // http://weblogs.java.net/blog/kohsuke/archive/2007/04/how_to_convert.html
 
@@ -140,25 +149,29 @@ public class URLChangeTracker<T> {
      *         granularity reasons), or 0 if the URL is null
      */
     public long add(URL url, T resourceInfo) {
-        if (url == null)
-            return 0;
+        if (url == null) return 0;
 
         URL converted = classpathURLConverter.convert(url);
 
-        if (!converted.getProtocol().equals("file"))
-            return timestampForNonFileURL(converted);
+        if (
+            !converted.getProtocol().equals("file")
+        ) return timestampForNonFileURL(converted);
 
         File resourceFile = toFileFromFileProtocolURL(converted);
 
-        if (fileToTimestamp.containsKey(resourceFile))
-            return fileToTimestamp.get(resourceFile).timestamp;
+        if (
+            fileToTimestamp.containsKey(resourceFile)
+        ) return fileToTimestamp.get(resourceFile).timestamp;
 
         long timestamp = readTimestamp(resourceFile);
 
         // A quick and imperfect fix for TAPESTRY-1918. When a file
         // is added, add the directory containing the file as well.
 
-        fileToTimestamp.put(resourceFile, new TrackingInfo(timestamp, resourceInfo));
+        fileToTimestamp.put(
+            resourceFile,
+            new TrackingInfo(timestamp, resourceInfo)
+        );
 
         if (trackFolderChanges) {
             File dir = resourceFile.getParentFile();
@@ -206,8 +219,7 @@ public class URLChangeTracker<T> {
             long newTimestamp = readTimestamp(entry.getKey());
             long current = entry.getValue().timestamp;
 
-            if (current == newTimestamp)
-                continue;
+            if (current == newTimestamp) continue;
 
             result = true;
             entry.getValue().timestamp = newTimestamp;
@@ -221,7 +233,6 @@ public class URLChangeTracker<T> {
      * resource information for all files with a changed timestamp.
      */
     public Set<T> getChangedResourcesInfo() {
-
         Set<T> changedResourcesInfo = new HashSet<>();
 
         for (Map.Entry<File, TrackingInfo> entry : fileToTimestamp.entrySet()) {
@@ -245,8 +256,7 @@ public class URLChangeTracker<T> {
      * down to the nearest second.
      */
     private long readTimestamp(File file) {
-        if (!file.exists())
-            return FILE_DOES_NOT_EXIST_TIMESTAMP;
+        if (!file.exists()) return FILE_DOES_NOT_EXIST_TIMESTAMP;
 
         return applyGranularity(file.lastModified());
     }
@@ -260,8 +270,7 @@ public class URLChangeTracker<T> {
         // positives
         // for changes, and undermines HTTP response caching in the client.
 
-        if (granularitySeconds)
-            return timestamp - (timestamp % 1000);
+        if (granularitySeconds) return timestamp - (timestamp % 1000);
 
         return timestamp;
     }
@@ -295,9 +304,13 @@ public class URLChangeTracker<T> {
 
         @Override
         public String toString() {
-            return "Info [timestamp=" + timestamp + ", resourceInfo=" + resourceInfo + "]";
+            return (
+                "Info [timestamp=" +
+                timestamp +
+                ", resourceInfo=" +
+                resourceInfo +
+                "]"
+            );
         }
-
     }
-
 }
