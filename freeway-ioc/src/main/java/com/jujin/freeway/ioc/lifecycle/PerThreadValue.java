@@ -1,4 +1,4 @@
-package com.jujin.freeway.ioc.threading;
+package com.jujin.freeway.ioc.lifecycle;
 
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -7,10 +7,10 @@ import java.util.function.Supplier;
 
 /**
  * Provides access to per-thread (and, by extension, per-request) data, managed
- * by the {@link PerthreadManager}. A PerThreadValue stores a particular type of
+ * by the {@link PerThreadManager}. A PerThreadValue stores a particular type of
  * information.
  *
- * @see com.jujin.freeway.ioc.PerthreadManager#createValue()
+ * @see com.jujin.freeway.ioc.lifecycle.PerThreadManager#createValue()
  */
 public interface PerThreadValue<T> {
     /**

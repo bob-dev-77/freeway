@@ -2,7 +2,6 @@ package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.*;
 import com.jujin.freeway.ioc.annotations.PreventServiceDecoration;
-
 import java.util.Map;
 
 @PreventServiceDecoration
@@ -15,13 +14,14 @@ public class ServiceOverrideImpl implements ServiceOverride {
     }
 
     @Override
-    public DependencyPolicy getServiceOverrideProvider() {
-        return new DependencyPolicy() {
+    public InjectionProvider getServiceOverrideProvider() {
+        return new InjectionProvider() {
             @Override
-            public <T> T resolve(
+            public <T> T provide(
                 Class<T> objectType,
                 AnnotationProvider annotationProvider,
-                ServiceLocator locator) {
+                ServiceLocator locator
+            ) {
                 return objectType.cast(configuration.get(objectType));
             }
         };

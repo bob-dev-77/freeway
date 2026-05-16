@@ -1,4 +1,4 @@
-package com.jujin.freeway.ioc.threading;
+package com.jujin.freeway.ioc.lifecycle;
 
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 import java.util.function.Supplier;

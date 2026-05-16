@@ -1,7 +1,6 @@
-package com.jujin.freeway.ioc.threading;
+package com.jujin.freeway.ioc.lifecycle;
 
 import com.jujin.freeway.ioc.Registry;
-
 import java.util.Locale;
 
 /**

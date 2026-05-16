@@ -73,7 +73,8 @@ public interface ServiceLocator {
     @SuppressWarnings("unchecked")
     <T> T getService(
         Class<T> serviceInterface,
-        Class<? extends Annotation>... markerTypes);
+        Class<? extends Annotation>... markerTypes
+    );
 
     /**
      * Returns all services that implement the given service interface. Unlike
@@ -90,7 +91,7 @@ public interface ServiceLocator {
 
     /**
      * Obtains an object indirectly, using the
-     * {@link DependencyResolver} service.
+     * {@link InjectionResolver} service.
      *
      * @param objectType
      *            the type of object to be returned
@@ -102,7 +103,7 @@ public interface ServiceLocator {
      *            object type)
      * @param <T>
      * @return the requested object
-     * @see DependencyPolicy
+     * @see InjectionProvider
      */
     <T> T getObject(Class<T> objectType, AnnotationProvider annotationProvider);
 
@@ -113,7 +114,7 @@ public interface ServiceLocator {
      * the {@code @Inject} annotation. There are two cases: constructing a service
      * implementation, and constructing an arbitrary object. In the former case,
      * many <em>service resources</em> are also available for injection, not just
-     * dependencies or objects provided via the DependencyResolver service.
+     * dependencies or objects provided via the InjectionResolver service.
      *
      * @param <T>
      * @param clazz
@@ -146,7 +147,7 @@ public interface ServiceLocator {
      * until just-in-time (that is, first method invocation). In a limited number of
      * cases, it is necessary to use such a proxy to prevent service construction
      * cycles, particularly when contributing (directly or indirectly) to the
-     * {@link DependencyResolver} (which is itself at the heart of
+     * {@link InjectionResolver} (which is itself at the heart of
      * autobuilding).
      * <p>
      * If the class file for the class is a file on the file system (not a file
@@ -164,5 +165,6 @@ public interface ServiceLocator {
      */
     <T> T proxy(
         Class<T> interfaceClass,
-        Class<? extends T> implementationClass);
+        Class<? extends T> implementationClass
+    );
 }

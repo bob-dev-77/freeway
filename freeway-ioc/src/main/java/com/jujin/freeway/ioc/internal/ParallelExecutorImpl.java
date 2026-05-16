@@ -1,10 +1,9 @@
 package com.jujin.freeway.ioc.internal;
 
+import com.jujin.freeway.ioc.advisor.ThunkCreator;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
+import com.jujin.freeway.ioc.lifecycle.PerThreadManager;
 import com.jujin.freeway.ioc.threading.ParallelExecutor;
-import com.jujin.freeway.ioc.threading.PerThreadManager;
-import com.jujin.freeway.ioc.threading.ThunkCreator;
-
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -21,7 +20,8 @@ public class ParallelExecutorImpl implements ParallelExecutor {
     public ParallelExecutorImpl(
         ExecutorService executorService,
         ThunkCreator thunkCreator,
-        PerThreadManager perthreadManager) {
+        PerThreadManager perthreadManager
+    ) {
         this.executorService = executorService;
         this.thunkCreator = thunkCreator;
         this.perthreadManager = perthreadManager;
@@ -61,11 +61,13 @@ public class ParallelExecutorImpl implements ParallelExecutor {
 
         String description = String.format(
             "FutureThunk[%s]",
-            proxyType.getName());
+            proxyType.getName()
+        );
 
         return thunkCreator.createThunk(
             proxyType,
             new CachingObjectCreator<T>(creator),
-            description);
+            description
+        );
     }
 }

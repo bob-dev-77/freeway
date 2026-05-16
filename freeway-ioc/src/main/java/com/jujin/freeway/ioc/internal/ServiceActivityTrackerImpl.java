@@ -4,8 +4,8 @@ import com.jujin.freeway.ioc.ServiceDefinition;
 import com.jujin.freeway.ioc.advisor.ServiceActivity;
 import com.jujin.freeway.ioc.advisor.ServiceActivityScoreboard;
 import com.jujin.freeway.ioc.internal.util.Scopes;
-import com.jujin.freeway.ioc.threading.PerThreadManager;
-import com.jujin.freeway.ioc.threading.PerThreadValue;
+import com.jujin.freeway.ioc.lifecycle.PerThreadManager;
+import com.jujin.freeway.ioc.lifecycle.PerThreadValue;
 import java.util.*;
 
 public class ServiceActivityTrackerImpl

@@ -16,7 +16,7 @@ import com.jujin.freeway.ioc.annotations.UsesMappedConfiguration;
 public interface ServiceOverride {
     /**
      * Returns a provider based on the configuration; this is wired into the
-     * {@link DependencyResolver}'s configuration.
+     * {@link InjectionResolver}'s configuration.
      */
-    DependencyPolicy getServiceOverrideProvider();
+    InjectionProvider getServiceOverrideProvider();
 }

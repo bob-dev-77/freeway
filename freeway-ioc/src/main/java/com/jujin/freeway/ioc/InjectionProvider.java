@@ -14,9 +14,9 @@ package com.jujin.freeway.ioc;
  * element (usually a parameter, or perhaps a field) for which a value is
  * required.
  */
-public interface DependencyPolicy {
+public interface InjectionProvider {
     /**
-     * Resolves an object based on an expression. The process of resolving objects
+     * Provides an object based on an expression. The process of providing objects
      * occurs within a particular <em>context</em>, which will typically be a
      * service builder method, service contributor method, or service decorator
      * method. The locator parameter provides access to the services visible <em>to
@@ -40,7 +40,7 @@ public interface DependencyPolicy {
      *             identified is not assignable to the type specified by the
      *             objectType parameter
      */
-    <T> T resolve(
+    <T> T provide(
         Class<T> objectType,
         AnnotationProvider annotationProvider,
         ServiceLocator locator);

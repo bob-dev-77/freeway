@@ -1,7 +1,7 @@
 package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.AnnotationProvider;
-import com.jujin.freeway.ioc.DependencyPolicy;
+import com.jujin.freeway.ioc.InjectionProvider;
 import com.jujin.freeway.ioc.ServiceLocator;
 import com.jujin.freeway.ioc.annotations.Builtin;
 import com.jujin.freeway.ioc.annotations.IntermediateType;
@@ -15,7 +15,7 @@ import com.jujin.freeway.ioc.symbol.SymbolSource;
  * The string value is expanded via {@link SymbolSource}, optionally coerced
  * through an {@link IntermediateType}, then coerced to the target type.
  */
-public class BuiltinConfigProvider implements DependencyPolicy {
+public class BuiltinConfigProvider implements InjectionProvider {
 
     private final SymbolSource symbolSource;
     private final TypeCoercer typeCoercer;
@@ -29,7 +29,7 @@ public class BuiltinConfigProvider implements DependencyPolicy {
     }
 
     @Override
-    public <T> T resolve(
+    public <T> T provide(
         Class<T> objectType,
         AnnotationProvider annotationProvider,
         ServiceLocator locator

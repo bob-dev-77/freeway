@@ -4,11 +4,11 @@ import com.jujin.freeway.ioc.advisor.LazyAdvisor;
 import com.jujin.freeway.ioc.advisor.MethodAdvice;
 import com.jujin.freeway.ioc.advisor.MethodAdviceReceiver;
 import com.jujin.freeway.ioc.advisor.MethodInvocation;
+import com.jujin.freeway.ioc.advisor.ThunkCreator;
 import com.jujin.freeway.ioc.annotations.NotLazy;
 import com.jujin.freeway.ioc.annotations.PreventServiceDecoration;
 import com.jujin.freeway.ioc.internal.util.StringUtils;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
-import com.jujin.freeway.ioc.threading.ThunkCreator;
 import java.lang.reflect.Method;
 
 @PreventServiceDecoration

@@ -2,23 +2,23 @@ package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.RegistryShutdownHub;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
-import com.jujin.freeway.ioc.threading.PerThreadManager;
-import com.jujin.freeway.ioc.threading.PerThreadValue;
-import com.jujin.freeway.ioc.threading.PerThreadManager;
-import org.slf4j.Logger;
-
+import com.jujin.freeway.ioc.lifecycle.PerThreadManager;
+import com.jujin.freeway.ioc.lifecycle.PerThreadValue;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
+import org.slf4j.Logger;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class PerThreadManagerImpl implements PerThreadManager {
+
     private final PerThreadValue<List<Runnable>> callbacksValue;
 
-    private static final ScopedValue<Map> PER_THREAD_MAP = ScopedValue.newInstance();
+    private static final ScopedValue<Map> PER_THREAD_MAP =
+        ScopedValue.newInstance();
 
     private final Logger logger;
 
@@ -33,10 +33,12 @@ public class PerThreadManagerImpl implements PerThreadManager {
     }
 
     public void registerForShutdown(RegistryShutdownHub hub) {
-        hub.addRegistryShutdownListener((Runnable) () -> {
-            cleanup();
-            shutdown = true;
-        });
+        hub.addRegistryShutdownListener(
+            (Runnable) () -> {
+                cleanup();
+                shutdown = true;
+            }
+        );
     }
 
     private Map getPerthreadMap() {
@@ -88,7 +90,10 @@ public class PerThreadManagerImpl implements PerThreadManager {
 
     private static Object NULL_VALUE = new Object();
 
-    <T> ObjectCreator<T> createValue(final Object key, final ObjectCreator<T> delegate) {
+    <T> ObjectCreator<T> createValue(
+        final Object key,
+        final ObjectCreator<T> delegate
+    ) {
         return new DefaultObjectCreator<T>(key, delegate);
     }
 
@@ -135,22 +140,24 @@ public class PerThreadManagerImpl implements PerThreadManager {
                 cleanup();
             }
         } else {
-            return ScopedValue.where(PER_THREAD_MAP, new HashMap<>()).call(() -> {
-                try {
-                    return invokable.get();
-                } finally {
-                    cleanup();
+            return ScopedValue.where(PER_THREAD_MAP, new HashMap<>()).call(
+                () -> {
+                    try {
+                        return invokable.get();
+                    } finally {
+                        cleanup();
+                    }
                 }
-            });
+            );
         }
     }
 
     private final class DefaultPerThreadValue<T> implements PerThreadValue<T> {
+
         private final Object key;
 
         DefaultPerThreadValue(final Object key) {
             this.key = key;
-
         }
 
         @Override
@@ -177,7 +184,10 @@ public class PerThreadManagerImpl implements PerThreadManager {
 
         @Override
         public T set(T newValue) {
-            getPerthreadMap().put(key, newValue == null ? NULL_VALUE : newValue);
+            getPerthreadMap().put(
+                key,
+                newValue == null ? NULL_VALUE : newValue
+            );
 
             return newValue;
         }
@@ -193,7 +203,10 @@ public class PerThreadManagerImpl implements PerThreadManager {
         private final Object key;
         private final ObjectCreator<T> delegate;
 
-        DefaultObjectCreator(final Object key, final ObjectCreator<T> delegate) {
+        DefaultObjectCreator(
+            final Object key,
+            final ObjectCreator<T> delegate
+        ) {
             this.key = key;
             this.delegate = delegate;
         }

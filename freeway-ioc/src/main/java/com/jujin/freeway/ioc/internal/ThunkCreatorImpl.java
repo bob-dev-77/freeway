@@ -1,9 +1,9 @@
 package com.jujin.freeway.ioc.internal;
 
+import com.jujin.freeway.ioc.advisor.ThunkCreator;
 import com.jujin.freeway.ioc.annotations.Builtin;
 import com.jujin.freeway.ioc.internal.util.StringUtils;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
-import com.jujin.freeway.ioc.threading.ThunkCreator;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;

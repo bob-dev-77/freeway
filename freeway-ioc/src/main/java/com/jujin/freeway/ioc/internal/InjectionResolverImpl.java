@@ -9,14 +9,14 @@ import java.util.List;
 import java.util.Objects;
 
 @PreventServiceDecoration
-public class DependencyResolverImpl implements DependencyResolver {
+public class InjectionResolverImpl implements InjectionResolver {
 
-    private final List<DependencyPolicy> configuration;
+    private final List<InjectionProvider> configuration;
 
     private final OperationTracker tracker;
 
-    public DependencyResolverImpl(
-        List<DependencyPolicy> configuration,
+    public InjectionResolverImpl(
+        List<InjectionProvider> configuration,
         OperationTracker tracker
     ) {
         this.configuration = new ArrayList<>(
@@ -43,12 +43,12 @@ public class DependencyResolverImpl implements DependencyResolver {
     ) {
         return tracker.invoke(
             String.format(
-                "Resolving object of type %s using DependencyResolver",
+                "Resolving object of type %s using InjectionResolver",
                 StringUtils.toSimpleTypeName(objectType)
             ),
             () -> {
-                for (DependencyPolicy resolver : configuration) {
-                    T result = resolver.resolve(
+                for (InjectionProvider provider : configuration) {
+                    T result = provider.provide(
                         objectType,
                         annotationProvider,
                         locator

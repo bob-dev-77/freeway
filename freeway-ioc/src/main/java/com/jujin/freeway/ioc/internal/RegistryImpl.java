@@ -10,7 +10,6 @@ import com.jujin.freeway.ioc.annotations.Local;
 import com.jujin.freeway.ioc.config.*;
 import com.jujin.freeway.ioc.exception.UnknownValueException;
 import com.jujin.freeway.ioc.internal.util.CollectionUtils;
-import com.jujin.freeway.ioc.internal.util.StringUtils;
 import com.jujin.freeway.ioc.internal.util.InjectionPlanner;
 import com.jujin.freeway.ioc.internal.util.InstancePlanBuilder;
 import com.jujin.freeway.ioc.internal.util.IocConstants;
@@ -19,12 +18,13 @@ import com.jujin.freeway.ioc.internal.util.OneShotLock;
 import com.jujin.freeway.ioc.internal.util.Orderer;
 import com.jujin.freeway.ioc.internal.util.ReflectionUtils;
 import com.jujin.freeway.ioc.internal.util.Scopes;
+import com.jujin.freeway.ioc.internal.util.StringUtils;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
+import com.jujin.freeway.ioc.lifecycle.PerThreadManager;
 import com.jujin.freeway.ioc.lifecycle.ServiceLifecycle;
 import com.jujin.freeway.ioc.lifecycle.ServiceLifecycleSource;
 import com.jujin.freeway.ioc.lifecycle.StartupDef;
 import com.jujin.freeway.ioc.symbol.SymbolSource;
-import com.jujin.freeway.ioc.threading.PerThreadManager;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
@@ -674,10 +674,10 @@ public class RegistryImpl
         // this can be
         // accomplished in the normal way?
 
-        if (serviceId.equals("DependencyResolver")) {
-            DependencyPolicy contribution = new DependencyPolicy() {
+        if (serviceId.equals("InjectionResolver")) {
+            InjectionProvider contribution = new InjectionProvider() {
                 @Override
-                public <T> T resolve(
+                public <T> T provide(
                     Class<T> objectType,
                     AnnotationProvider annotationProvider,
                     ServiceLocator locator
@@ -1201,8 +1201,8 @@ public class RegistryImpl
         // We do a check here for known marker/type combinations, so that you can use a
         // marker
         // annotation
-        // to inject into a contribution method that contributes to DependencyResolver.
-        // We also force a contribution into DependencyResolver to accomplish the same
+        // to inject into a contribution method that contributes to InjectionResolver.
+        // We also force a contribution into InjectionResolver to accomplish the same
         // thing.
 
         var result = findServiceByMarkerAndType(
@@ -1215,7 +1215,7 @@ public class RegistryImpl
 
         var injector = getService(
             IocConstants.RESOLVER_SERVICE_ID,
-            DependencyResolver.class
+            InjectionResolver.class
         );
 
         return injector.resolve(objectType, effectiveProvider, locator, true);
@@ -1257,7 +1257,7 @@ public class RegistryImpl
 
         // If didn't see @Local or any recognized marker annotation, then don't try to
         // filter that
-        // way. Continue on, eventually to the DependencyResolver service.
+        // way. Continue on, eventually to the InjectionResolver service.
 
         if (markers.isEmpty()) {
             return null;

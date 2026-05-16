@@ -19,8 +19,10 @@ import com.jujin.freeway.ioc.internal.*;
 import com.jujin.freeway.ioc.internal.cron.PeriodicExecutorImpl;
 import com.jujin.freeway.ioc.internal.util.IocConstants;
 import com.jujin.freeway.ioc.internal.util.Scopes;
+import com.jujin.freeway.ioc.lifecycle.PerThreadManager;
 import com.jujin.freeway.ioc.lifecycle.ServiceLifecycle;
 import com.jujin.freeway.ioc.lifecycle.ServiceLifecycleSource;
+import com.jujin.freeway.ioc.lifecycle.ThreadLocale;
 import com.jujin.freeway.ioc.property.PropertyAccess;
 import com.jujin.freeway.ioc.property.PropertyShadowBuilder;
 import com.jujin.freeway.ioc.schedule.PeriodicExecutor;
@@ -28,9 +30,6 @@ import com.jujin.freeway.ioc.schedule.TimeInterval;
 import com.jujin.freeway.ioc.symbol.SymbolProvider;
 import com.jujin.freeway.ioc.symbol.SymbolSource;
 import com.jujin.freeway.ioc.threading.ParallelExecutor;
-import com.jujin.freeway.ioc.threading.PerThreadManager;
-import com.jujin.freeway.ioc.threading.ThreadLocale;
-import com.jujin.freeway.ioc.threading.ThunkCreator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
@@ -75,7 +74,7 @@ public final class FreewayIOCModule {
             .withMarker(FactoryDefaults.class);
         binder.bind(Runnable.class, RegistryStartup.class).withSimpleId();
         binder
-            .bind(DependencyResolver.class, DependencyResolverImpl.class)
+            .bind(InjectionResolver.class, InjectionResolverImpl.class)
             .preventReloading();
         binder.bind(ClassNameLocator.class, ClassNameLocatorImpl.class);
         binder.bind(ClassPathScanner.class, ClassPathScannerImpl.class);
@@ -138,7 +137,7 @@ public final class FreewayIOCModule {
     /**
      * <dl>
      * <dt>AnnotationBasedContributions</dt>
-     * <dd>Empty placeholder used to separate annotation-based DependencyPolicy
+     * <dd>Empty placeholder used to separate annotation-based InjectionProvider
      * contributions (which come before) from non-annotation based (such as
      * ServiceOverride) which come after.</dd>
      * <dt>Config</dt>
@@ -152,9 +151,9 @@ public final class FreewayIOCModule {
      * {@link com.jujin.freeway.ioc.ServiceOverride} service (and its configuration)
      * </dl>
      */
-    @Contribute(DependencyResolver.class)
+    @Contribute(InjectionResolver.class)
     public static void setupObjectProviders(
-        OrderedConfiguration<DependencyPolicy> configuration,
+        OrderedConfiguration<InjectionProvider> configuration,
         @Local final ServiceOverride serviceOverride
     ) {
         configuration.add("AnnotationBasedContributions", null);
@@ -170,16 +169,16 @@ public final class FreewayIOCModule {
             before("AnnotationBasedContributions").build()
         );
 
-        DependencyPolicy wrapper = new DependencyPolicy() {
+        InjectionProvider wrapper = new InjectionProvider() {
             @Override
-            public <T> T resolve(
+            public <T> T provide(
                 Class<T> objectType,
                 AnnotationProvider annotationProvider,
                 ServiceLocator locator
             ) {
                 return serviceOverride
                     .getServiceOverrideProvider()
-                    .resolve(objectType, annotationProvider, locator);
+                    .provide(objectType, annotationProvider, locator);
             }
         };
 

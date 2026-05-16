@@ -3,8 +3,8 @@ package com.jujin.freeway.ioc.internal;
 import com.jujin.freeway.ioc.ServiceContext;
 import com.jujin.freeway.ioc.annotations.Builtin;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
+import com.jujin.freeway.ioc.lifecycle.PerThreadManager;
 import com.jujin.freeway.ioc.lifecycle.ServiceLifecycle;
-import com.jujin.freeway.ioc.threading.PerThreadManager;
 
 /**
  * Allows a service to exist "per thread" (in each thread). Creates a proxy that
@@ -25,7 +25,8 @@ public class PerThreadServiceLifecycle implements ServiceLifecycle {
 
     public PerThreadServiceLifecycle(
         @Builtin PerThreadManager perthreadManager,
-        @Builtin JdkProxyFactory proxyFactory) {
+        @Builtin JdkProxyFactory proxyFactory
+    ) {
         this.perthreadManager = perthreadManager;
         this.proxyFactory = proxyFactory;
     }
@@ -47,7 +48,8 @@ public class PerThreadServiceLifecycle implements ServiceLifecycle {
     @Override
     public Object createService(
         ServiceContext resources,
-        ObjectCreator creator) {
+        ObjectCreator creator
+    ) {
         ObjectCreator perThreadCreator = perthreadManager.createValue(creator);
 
         Class serviceInterface = resources.getServiceInterface();
@@ -59,6 +61,7 @@ public class PerThreadServiceLifecycle implements ServiceLifecycle {
                 resources.getServiceId() +
                 "(" +
                 serviceInterface.getName() +
-                ")>");
+                ")>"
+        );
     }
 }

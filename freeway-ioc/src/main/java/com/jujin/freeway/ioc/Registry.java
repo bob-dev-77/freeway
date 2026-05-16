@@ -5,10 +5,9 @@ import com.jujin.freeway.ioc.annotations.ImportModule;
 import com.jujin.freeway.ioc.internal.*;
 import com.jujin.freeway.ioc.internal.util.ExceptionUtils;
 import com.jujin.freeway.ioc.internal.util.OneShotLock;
-import org.slf4j.Logger;
-
 import java.lang.reflect.AnnotatedElement;
 import java.util.*;
+import org.slf4j.Logger;
 
 /**
  * Public access to the IoC service registry.
@@ -18,7 +17,7 @@ public interface Registry extends ServiceLocator {
      * Invoked at the end of a request to discard any thread-specific information
      * accumulated during the current request.
      *
-     * @see com.jujin.freeway.ioc.threading.PerThreadManager
+     * @see com.jujin.freeway.ioc.lifecycle.PerThreadManager
      */
     void cleanupThread();
 
@@ -115,8 +114,7 @@ public interface Registry extends ServiceLocator {
 
                 // Quietly ignore previously added classes.
 
-                if (addedModuleClasses.contains(c))
-                    continue;
+                if (addedModuleClasses.contains(c)) continue;
 
                 addedModuleClasses.add(c);
 
@@ -125,7 +123,8 @@ public interface Registry extends ServiceLocator {
                 ModuleDefinition def = new DefaultModuleDefinition(
                     c,
                     logger,
-                    proxyFactory);
+                    proxyFactory
+                );
                 add(def);
 
                 var element = (AnnotatedElement) c;
@@ -155,7 +154,8 @@ public interface Registry extends ServiceLocator {
                 Class<?> builderClass = Class.forName(
                     classname,
                     true,
-                    classLoader);
+                    classLoader
+                );
 
                 add(builderClass);
             } catch (Exception ex) {
@@ -163,8 +163,10 @@ public interface Registry extends ServiceLocator {
                     String.format(
                         "Failure loading Freeway IoC module class %s: %s",
                         classname,
-                        ExceptionUtils.toMessage(ex)),
-                    ex);
+                        ExceptionUtils.toMessage(ex)
+                    ),
+                    ex
+                );
             }
 
             return this;
@@ -200,11 +202,12 @@ public interface Registry extends ServiceLocator {
             var discovered = new ArrayList<Class<?>>();
             for (ModuleProvider provider : loader) {
                 Class<?>[] moduleClasses = provider.modules();
-                if (moduleClasses == null)
-                    continue;
+                if (moduleClasses == null) continue;
                 for (Class<?> moduleClass : moduleClasses) {
-                    if (moduleClass != null &&
-                        !addedModuleClasses.contains(moduleClass)) {
+                    if (
+                        moduleClass != null &&
+                        !addedModuleClasses.contains(moduleClass)
+                    ) {
                         discovered.add(moduleClass);
                     }
                 }
@@ -214,11 +217,13 @@ public interface Registry extends ServiceLocator {
                 logger.info(
                     "Auto-discovered {} module(s) via SPI: {}",
                     discovered.size(),
-                    discovered);
+                    discovered
+                );
                 add(discovered.toArray(new Class<?>[0]));
             } else {
                 logger.debug(
-                    "No modules discovered via SPI (no ModuleProvider implementations found)");
+                    "No modules discovered via SPI (no ModuleProvider implementations found)"
+                );
             }
 
             return this;
@@ -233,13 +238,15 @@ public interface Registry extends ServiceLocator {
             lock.lock();
 
             var tracker = new PerThreadOperationTracker(
-                loggerSource.getLogger(Registry.class));
+                loggerSource.getLogger(Registry.class)
+            );
 
             var registry = new RegistryImpl(
                 modules,
                 proxyFactory,
                 loggerSource,
-                tracker);
+                tracker
+            );
 
             return registry;
         }
@@ -266,11 +273,11 @@ public interface Registry extends ServiceLocator {
          */
         public static Registry startAndBuild(
             ModuleDefinition moduleDef,
-            Class<?>... moduleClasses) {
+            Class<?>... moduleClasses
+        ) {
             var builder = new Builder();
 
-            if (moduleDef != null)
-                builder.add(moduleDef);
+            if (moduleDef != null) builder.add(moduleDef);
 
             builder.add(moduleClasses);
 

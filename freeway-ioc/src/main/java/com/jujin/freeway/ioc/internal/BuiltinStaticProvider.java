@@ -1,14 +1,14 @@
 package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.AnnotationProvider;
-import com.jujin.freeway.ioc.DependencyPolicy;
+import com.jujin.freeway.ioc.InjectionProvider;
 import com.jujin.freeway.ioc.ServiceLocator;
 
 /**
  * Provides a single object of a given type.
  *
  */
-public class BuiltinStaticProvider<S> implements DependencyPolicy {
+public class BuiltinStaticProvider<S> implements InjectionProvider {
 
     private final Class<S> valueType;
 
@@ -23,10 +23,11 @@ public class BuiltinStaticProvider<S> implements DependencyPolicy {
     }
 
     @Override
-    public <T> T resolve(
+    public <T> T provide(
         Class<T> objectType,
         AnnotationProvider annotationProvider,
-        ServiceLocator locator) {
+        ServiceLocator locator
+    ) {
         if (objectType == valueType) {
             return objectType.cast(value);
         }
