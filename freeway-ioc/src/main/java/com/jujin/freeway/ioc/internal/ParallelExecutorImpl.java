@@ -3,6 +3,7 @@ package com.jujin.freeway.ioc.internal;
 import com.jujin.freeway.ioc.advisor.ThunkCreator;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
 import com.jujin.freeway.ioc.lifecycle.PerThreadManager;
+import com.jujin.freeway.ioc.lifecycle.internal.CachingObjectCreator;
 import com.jujin.freeway.ioc.threading.ParallelExecutor;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;

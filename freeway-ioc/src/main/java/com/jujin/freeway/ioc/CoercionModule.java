@@ -5,8 +5,8 @@ import com.jujin.freeway.ioc.annotations.Contribute;
 import com.jujin.freeway.ioc.annotations.Marker;
 import com.jujin.freeway.ioc.coercion.CoercionTuple;
 import com.jujin.freeway.ioc.coercion.TypeCoercer;
+import com.jujin.freeway.ioc.coercion.internal.BasicTypeCoercions;
 import com.jujin.freeway.ioc.config.MappedConfiguration;
-import com.jujin.freeway.ioc.internal.BasicTypeCoercions;
 
 @Marker(Builtin.class)
 public class CoercionModule {

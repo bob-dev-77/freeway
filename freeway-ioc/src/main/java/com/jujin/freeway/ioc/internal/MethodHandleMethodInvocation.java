@@ -2,7 +2,6 @@ package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.advisor.MethodAdvice;
 import com.jujin.freeway.ioc.advisor.MethodInvocation;
-
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -16,7 +15,7 @@ import java.util.List;
  * JIT-compilable, unlike reflective invocation.
  * </p>
  */
-final class MethodHandleMethodInvocation implements MethodInvocation {
+public final class MethodHandleMethodInvocation implements MethodInvocation {
 
     private final Method method;
     private final Object[] parameters;
@@ -28,11 +27,12 @@ final class MethodHandleMethodInvocation implements MethodInvocation {
     private Exception checkedException;
     private boolean threwCheckedException;
 
-    MethodHandleMethodInvocation(
+    public MethodHandleMethodInvocation(
         Method method,
         Object[] parameters,
         MethodHandle delegateHandle,
-        List<MethodAdvice> advices) {
+        List<MethodAdvice> advices
+    ) {
         this.method = method;
         this.parameters = parameters;
         this.delegateHandle = delegateHandle;

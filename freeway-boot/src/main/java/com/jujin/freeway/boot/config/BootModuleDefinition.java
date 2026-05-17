@@ -6,9 +6,9 @@ import com.jujin.freeway.ioc.config.Configuration;
 import com.jujin.freeway.ioc.config.ContributionDef;
 import com.jujin.freeway.ioc.config.MappedConfiguration;
 import com.jujin.freeway.ioc.config.OrderedConfiguration;
-import com.jujin.freeway.ioc.internal.MapSymbolProvider;
 import com.jujin.freeway.ioc.lifecycle.StartupDef;
 import com.jujin.freeway.ioc.symbol.SymbolProvider;
+import com.jujin.freeway.ioc.symbol.internal.MapSymbolProvider;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -29,12 +29,12 @@ public class BootModuleDefinition implements ModuleDefinition {
 
     @Override
     public Set<String> getServiceIds() {
-        return Set.of();  // No services exposed - only contributes to SymbolSource
+        return Set.of(); // No services exposed - only contributes to SymbolSource
     }
 
     @Override
     public ServiceDefinition getServiceDef(String serviceId) {
-        return null;  // No service definitions - see getContributionDefs()
+        return null; // No service definitions - see getContributionDefs()
     }
 
     @Override

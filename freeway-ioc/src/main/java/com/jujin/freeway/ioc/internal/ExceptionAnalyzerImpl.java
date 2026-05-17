@@ -3,10 +3,11 @@ package com.jujin.freeway.ioc.internal;
 import com.jujin.freeway.ioc.exception.ExceptionAnalysis;
 import com.jujin.freeway.ioc.exception.ExceptionAnalyzer;
 import com.jujin.freeway.ioc.exception.ExceptionInfo;
+import com.jujin.freeway.ioc.exception.internal.ExceptionAnalysisImpl;
+import com.jujin.freeway.ioc.exception.internal.ExceptionInfoImpl;
 import com.jujin.freeway.ioc.property.BeanPropertyAdapter;
 import com.jujin.freeway.ioc.property.PropertyAccess;
 import com.jujin.freeway.ioc.property.PropertyAdapter;
-
 import java.util.*;
 
 public class ExceptionAnalyzerImpl implements ExceptionAnalyzer {
@@ -34,7 +35,8 @@ public class ExceptionAnalyzerImpl implements ExceptionAnalyzer {
         this.propertyAccess = propertyAccess;
 
         throwableProperties = new HashSet<>(
-            this.propertyAccess.getAdapter(Throwable.class).getPropertyNames());
+            this.propertyAccess.getAdapter(Throwable.class).getPropertyNames()
+        );
     }
 
     @Override
@@ -73,22 +75,21 @@ public class ExceptionAnalyzerImpl implements ExceptionAnalyzer {
      * @return
      */
     private boolean addsValue(ExceptionInfo previousInfo, ExceptionInfo info) {
-        if (previousInfo == null)
-            return true;
+        if (previousInfo == null) return true;
 
-        if (!info.getStackTrace().isEmpty())
-            return true;
+        if (!info.getStackTrace().isEmpty()) return true;
 
         // This adds back in a large number of frames that used to be squashed.
-        if (!info.getClassName().equals(previousInfo.getClassName()))
-            return true;
+        if (
+            !info.getClassName().equals(previousInfo.getClassName())
+        ) return true;
 
-        if (!previousInfo.getMessage().contains(info.getMessage()))
-            return true;
+        if (!previousInfo.getMessage().contains(info.getMessage())) return true;
 
         for (String name : info.getPropertyNames()) {
-            if (info.getProperty(name).equals(previousInfo.getProperty(name)))
-                continue;
+            if (
+                info.getProperty(name).equals(previousInfo.getProperty(name))
+            ) continue;
 
             // Found something new and different at this level.
 
@@ -110,30 +111,28 @@ public class ExceptionAnalyzerImpl implements ExceptionAnalyzer {
         for (String name : adapter.getPropertyNames()) {
             PropertyAdapter pa = adapter.getPropertyAdapter(name);
 
-            if (!pa.isRead())
-                continue;
+            if (!pa.isRead()) continue;
 
-            if (cause == null && Throwable.class.isAssignableFrom(pa.getType())) {
+            if (
+                cause == null && Throwable.class.isAssignableFrom(pa.getType())
+            ) {
                 // Ignore the property, but track it as the cause.
 
                 Throwable nestedException = (Throwable) pa.get(t);
 
                 // Handle the case where an exception is its own cause (avoid endless loop!)
-                if (t != nestedException)
-                    cause = nestedException;
+                if (t != nestedException) cause = nestedException;
 
                 continue;
             }
 
             // Otherwise, ignore properties defined by the Throwable class
 
-            if (throwableProperties.contains(name))
-                continue;
+            if (throwableProperties.contains(name)) continue;
 
             Object value = pa.get(t);
 
-            if (value == null)
-                continue;
+            if (value == null) continue;
 
             // An interesting property, let's save it for the analysis.
 
@@ -147,8 +146,7 @@ public class ExceptionAnalyzerImpl implements ExceptionAnalyzer {
         // Usually, I'd use a terniary expression here, but Generics gets in
         // the way here.
 
-        if (cause == null)
-            stackTrace = Arrays.asList(t.getStackTrace());
+        if (cause == null) stackTrace = Arrays.asList(t.getStackTrace());
 
         ExceptionInfo info = new ExceptionInfoImpl(t, properties, stackTrace);
 

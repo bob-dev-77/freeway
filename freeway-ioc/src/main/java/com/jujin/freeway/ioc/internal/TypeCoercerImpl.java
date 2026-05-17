@@ -1,6 +1,7 @@
 package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.coercion.*;
+import com.jujin.freeway.ioc.coercion.internal.CompoundCoercion;
 import com.jujin.freeway.ioc.internal.util.CollectionUtils;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;

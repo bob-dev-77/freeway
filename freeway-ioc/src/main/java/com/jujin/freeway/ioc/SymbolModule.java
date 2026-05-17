@@ -7,21 +7,23 @@ import com.jujin.freeway.ioc.annotations.FactoryDefaults;
 import com.jujin.freeway.ioc.annotations.Marker;
 import com.jujin.freeway.ioc.config.MappedConfiguration;
 import com.jujin.freeway.ioc.config.OrderedConfiguration;
-import com.jujin.freeway.ioc.internal.MapSymbolProvider;
-import com.jujin.freeway.ioc.internal.SystemEnvSymbolProvider;
-import com.jujin.freeway.ioc.internal.SystemPropertiesSymbolProvider;
 import com.jujin.freeway.ioc.internal.util.IocConstants;
 import com.jujin.freeway.ioc.symbol.SymbolProvider;
 import com.jujin.freeway.ioc.symbol.SymbolSource;
+import com.jujin.freeway.ioc.symbol.internal.MapSymbolProvider;
+import com.jujin.freeway.ioc.symbol.internal.SystemEnvSymbolProvider;
+import com.jujin.freeway.ioc.symbol.internal.SystemPropertiesSymbolProvider;
 
 @Marker(Builtin.class)
 public class SymbolModule {
 
     public static void bind(ServiceBinder binder) {
-        binder.bind(SymbolProvider.class, MapSymbolProvider.class)
+        binder
+            .bind(SymbolProvider.class, MapSymbolProvider.class)
             .withId("ApplicationDefaults")
             .withMarker(ApplicationDefaults.class);
-        binder.bind(SymbolProvider.class, MapSymbolProvider.class)
+        binder
+            .bind(SymbolProvider.class, MapSymbolProvider.class)
             .withId("FactoryDefaults")
             .withMarker(FactoryDefaults.class);
     }
@@ -32,8 +34,15 @@ public class SymbolModule {
         @ApplicationDefaults SymbolProvider applicationDefaults,
         @FactoryDefaults SymbolProvider factoryDefaults
     ) {
-        configuration.add("SystemProperties", new SystemPropertiesSymbolProvider(), "before:*");
-        configuration.add("EnvironmentVariables", new SystemEnvSymbolProvider());
+        configuration.add(
+            "SystemProperties",
+            new SystemPropertiesSymbolProvider(),
+            "before:*"
+        );
+        configuration.add(
+            "EnvironmentVariables",
+            new SystemEnvSymbolProvider()
+        );
         configuration.add("ApplicationDefaults", applicationDefaults);
         configuration.add("FactoryDefaults", factoryDefaults);
     }

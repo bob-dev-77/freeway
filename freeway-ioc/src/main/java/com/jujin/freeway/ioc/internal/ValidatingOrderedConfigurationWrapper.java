@@ -1,11 +1,12 @@
 package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.ServiceLocator;
+import com.jujin.freeway.ioc.coercion.internal.TypeCoercerProxy;
 import com.jujin.freeway.ioc.config.ContributionDef;
 import com.jujin.freeway.ioc.config.OrderedConfiguration;
-import com.jujin.freeway.ioc.internal.util.StringUtils;
 import com.jujin.freeway.ioc.internal.util.Orderer;
 import com.jujin.freeway.ioc.internal.util.ReflectionUtils;
+import com.jujin.freeway.ioc.internal.util.StringUtils;
 import java.util.Map;
 
 /**

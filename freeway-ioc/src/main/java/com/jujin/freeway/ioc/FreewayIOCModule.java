@@ -19,6 +19,8 @@ import com.jujin.freeway.ioc.lifecycle.PerThreadManager;
 import com.jujin.freeway.ioc.lifecycle.ServiceLifecycle;
 import com.jujin.freeway.ioc.lifecycle.ServiceLifecycleSource;
 import com.jujin.freeway.ioc.lifecycle.ThreadLocale;
+import com.jujin.freeway.ioc.lifecycle.internal.PerThreadServiceLifecycle;
+import com.jujin.freeway.ioc.lifecycle.internal.ThreadLocaleImpl;
 import com.jujin.freeway.ioc.schedule.PeriodicExecutor;
 import com.jujin.freeway.ioc.schedule.TimeInterval;
 import com.jujin.freeway.ioc.symbol.SymbolSource;

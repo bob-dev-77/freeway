@@ -1,6 +1,7 @@
 package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.ServiceLocator;
+import com.jujin.freeway.ioc.coercion.internal.TypeCoercerProxy;
 import com.jujin.freeway.ioc.config.Configuration;
 import com.jujin.freeway.ioc.internal.util.ReflectionUtils;
 import java.util.Collection;

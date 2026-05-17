@@ -58,17 +58,19 @@ public final class ServiceProxyGenerator {
         return mechanism;
     }
 
-    static <T> T createProxy(
+    public static <T> T createProxy(
         Class<T> interfaceType,
         Object delegate,
         MethodHandle[] handles,
-        String description) {
+        String description
+    ) {
         if (CLASSFILE.equals(mechanism)) {
             return ClassFileProxyGenerator.createProxy(
                 interfaceType,
                 delegate,
                 handles,
-                description);
+                description
+            );
         }
         return createJdkProxy(interfaceType, delegate, handles, description);
     }
@@ -78,24 +80,28 @@ public final class ServiceProxyGenerator {
         Class<T> interfaceType,
         Object delegate,
         MethodHandle[] handles,
-        String description) {
+        String description
+    ) {
         Method[] methods = interfaceType.getMethods();
         if (handles.length != methods.length) {
             throw new IllegalArgumentException(
                 "Handle count " +
                     handles.length +
                     " != method count " +
-                    methods.length);
+                    methods.length
+            );
         }
 
         return (T) Proxy.newProxyInstance(
             interfaceType.getClassLoader(),
-            new Class<?>[]{ interfaceType },
+            new Class<?>[] { interfaceType },
             new MethodHandleInvocationHandler(
                 delegate,
                 handles,
                 methods,
-                description));
+                description
+            )
+        );
     }
 
     /**
@@ -103,7 +109,8 @@ public final class ServiceProxyGenerator {
      * MethodHandle via {@code invokeWithArguments()}.
      */
     private static final class MethodHandleInvocationHandler
-        implements InvocationHandler {
+        implements InvocationHandler
+    {
 
         private final Object delegate;
         private final MethodHandle[] handles;
@@ -114,7 +121,8 @@ public final class ServiceProxyGenerator {
             Object delegate,
             MethodHandle[] handles,
             Method[] methods,
-            String description) {
+            String description
+        ) {
             this.delegate = delegate;
             this.handles = handles;
             this.methods = methods;
@@ -145,7 +153,7 @@ public final class ServiceProxyGenerator {
                     // Build args array: [delegate, param1, param2, ...]
                     Object[] fullArgs;
                     if (args == null || args.length == 0) {
-                        fullArgs = new Object[]{ delegate };
+                        fullArgs = new Object[] { delegate };
                     } else {
                         fullArgs = new Object[args.length + 1];
                         fullArgs[0] = delegate;

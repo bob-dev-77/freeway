@@ -1,6 +1,7 @@
 package com.jujin.freeway.ioc.internal;
 
 import com.jujin.freeway.ioc.ServiceLocator;
+import com.jujin.freeway.ioc.coercion.internal.TypeCoercerProxy;
 import com.jujin.freeway.ioc.config.ContributionDef;
 import com.jujin.freeway.ioc.config.MappedConfiguration;
 import com.jujin.freeway.ioc.internal.util.ReflectionUtils;
@@ -132,10 +133,7 @@ public class ValidatingMappedConfigurationWrapper<
 
     @Override
     public void addInstance(K key, Class<? extends V> clazz) {
-        add(
-            key,
-            ReflectionUtils.instantiate(contributionType, locator, clazz)
-        );
+        add(key, ReflectionUtils.instantiate(contributionType, locator, clazz));
     }
 
     @Override

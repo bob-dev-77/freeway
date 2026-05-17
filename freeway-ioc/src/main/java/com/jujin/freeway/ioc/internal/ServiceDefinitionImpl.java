@@ -5,6 +5,7 @@ import com.jujin.freeway.ioc.ServiceBuilderContext;
 import com.jujin.freeway.ioc.ServiceDefinition;
 import com.jujin.freeway.ioc.internal.util.ReflectionUtils;
 import com.jujin.freeway.ioc.lifecycle.ObjectCreator;
+import com.jujin.freeway.ioc.lifecycle.internal.ObjectCreatorFactory;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;

@@ -3,9 +3,9 @@ package com.jujin.freeway.db;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.jujin.freeway.db.internal.MigrationRunner;
-import com.jujin.freeway.ioc.internal.ClassPathScannerImpl;
-import com.jujin.freeway.ioc.internal.ClassPathURLConverterImpl;
 import com.jujin.freeway.ioc.scan.ClassPathScanner;
+import com.jujin.freeway.ioc.scan.internal.ClassPathScannerImpl;
+import com.jujin.freeway.ioc.scan.internal.ClassPathURLConverterImpl;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
